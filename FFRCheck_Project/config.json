@@ -1,0 +1,171 @@
+{
+  "default_arguments": {
+    "description": "Default values for command-line arguments. Can be overridden via CLI.",
+    "comment_note": "Set values here to avoid typing them every time. null = no default (must provide via CLI or uses fallback)",
+    
+    "input_dir": null,
+    "comment_input_dir": "Example: 'I:/fuse/release/NVL/NVL_HX_Int/NVL_HX_Int_A1_25WW44P0' or './data/input'",
+    
+    "output_dir": "output",
+    "comment_output_dir": "Example: 'output' or 'results' or './my_results'",
+    
+    "sspec": null,
+    "comment_sspec": "Example: 'L15H' or 'L0V8,L0VS,L15E' or '*' (for all QDFs)",
+    
+    "ube": null,
+    "comment_ube": "Example: './input_files/P5461880SM_6197.ube' or 'I:/data/latest.ube'",
+    
+    "mtlolf": null,
+    "comment_mtlolf": "Example: './input_files/MTL_OLF.xml' or 'I:/data/MTL_OLF.xml' (if not in input_dir)",
+    
+    "ituff": null,
+    "comment_ituff": "Example: './input_files/P5470070_6197/' or 'I:/data/itf_files/' (directory containing .itf, .txt, or .itf.gz files - all files will be processed)",
+    
+    "log": false,
+    "comment_log": "Example: true (enable console logging to file) or false (no log file)",
+    
+    "html_stats": true,
+    "comment_html_stats": "Example: true (generate HTML report) or false (skip HTML generation)"
+  },
+  "itf_parser": {
+    "active_mapping": "lockout_RAP",
+    "ssid_mappings": {
+      "prog_RAP": [
+        {
+          "domain": "IPC::FUS",
+          "register": "CPU0",
+          "ssid": "U1.U5",
+          "tname_patterns": ["FACTFUSBURNCPUNOM_X_X_X_X_HVM_RAP_CPU0"]
+        },
+        {
+          "domain": "IPC::FUS",
+          "register": "CPU1",
+          "ssid": "U1.U6",
+          "tname_patterns": ["FACTFUSBURNCPUNOM_X_X_X_X_HVM_RAP_CPU1"]
+        },
+        {
+          "domain": "IPG::FUS",
+          "register": "GCD",
+          "ssid": "U1.U4",
+          "tname_patterns": ["FACTFUSBURNGCDNOM_X_X_X_X_HVM_RAP_GCD"]
+        },
+        {
+          "domain": "IPH::FUS",
+          "register": "HUB",
+          "ssid": "U1.U2",
+          "tname_patterns": ["FACTFUSBURNHUBNOM_X_X_X_X_HVM_RAP_HUB"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_HVMRAP_PCD"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "OSSE",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_OSSE_HVMRAP_OSSE"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "OSSE_INTELIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_OSSEINTELIFP_HVMRAP_OSSE_INTELIFP"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD_OEMIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_PCDOEMIFP_HVMRAP_PCD_OEMIFP"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD_INTELIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_PCDINTELIFP_HVMRAP_PCD_INTELIFP"]
+        }
+      ],
+      "lockout_RAP": [
+        {
+          "domain": "IPC::FUS",
+          "register": "CPU0",
+          "ssid": "U1.U5",
+          "tname_patterns": ["FACTFUSBURNCPUNOM_X_X_X_X_LOCKBIT_RAP_CPU0"]
+        },
+        {
+          "domain": "IPC::FUS",
+          "register": "CPU1",
+          "ssid": "U1.U6",
+          "tname_patterns": ["FACTFUSBURNCPUNOM_X_X_X_X_LOCKBIT_RAP_CPU1"]
+        },
+        {
+          "domain": "IPG::FUS",
+          "register": "GCD",
+          "ssid": "U1.U4",
+          "tname_patterns": ["FACTFUSBURNGCDNOM_X_X_X_X_LOCKBIT_RAP_GCD"]
+        },
+        {
+          "domain": "IPH::FUS",
+          "register": "HUB",
+          "ssid": "U1.U2",
+          "tname_patterns": ["FACTFUSBURNHUBNOM_X_X_X_X_LOCKBIT_RAP_HUB"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_LOCKBITRAP_PCD"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "OSSE",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_OSSE_LOCKBITRAP_OSSE"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "OSSE_INTELIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_OSSEINTELIFP_LOCKBITRAP_OSSE_INTELIFP"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD_OEMIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_PCDOEMIFP_LOCKBITRAP_PCD_OEMIFP"]
+        },
+        {
+          "domain": "IPP::FUS",
+          "register": "PCD_INTELIFP",
+          "ssid": "U1.U3",
+          "tname_patterns": ["FACTFUSBURNPCDNOM_X_X_X_X_PCDINTELIFP_LOCKBITRAP_PCD_INTELIFP"]
+        }
+      ]
+    }
+  },
+  "fle_settings": {
+    "filename": "FleFuseSettings.json",
+    "description": "FLE (Fuse Lockout Enable) fuse settings configuration"
+  },
+  "processing": {
+    "chunk_size": 10000,
+    "progress_updates": 1000,
+    "memory_optimization": true
+  },
+  "output": {
+    "csv_delimiter": ",",
+    "date_format": "%Y-%m-%d %H:%M:%S",
+    "decimal_places": 1
+  },
+  "html_report": {
+    "max_table_rows": 100,
+    "enable_excel_export": true,
+    "theme": "default"
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "date_format": "%Y-%m-%d %H:%M:%S"
+  }
+}

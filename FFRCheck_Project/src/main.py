@@ -4,24 +4,53 @@ import sys
 import argparse
 from pathlib import Path
 from .ffr_processor import FFRProcessor
-from .utils import ConsoleLogger
+from .utils import ConsoleLogger, get_config
 
 
 def main():
     """Main function to run FFR Check."""
+    # Load configuration for defaults
+    config = get_config()
+    
     parser = argparse.ArgumentParser(
-        description='FFR Check - Enhanced version with ITF parsing integration, memory optimization, and flexible file paths'
+        description='FFR Check - Enhanced version with ITF parsing integration, memory optimization, and flexible file paths',
+        epilog='Note: Default values can be configured in config.json under "default_arguments" section'
     )
-    parser.add_argument('input_dir', help='Input directory containing fuseDef.json and optionally sspec.txt')
-    parser.add_argument('output_dir', help='Output directory for generated CSV files')
-    parser.add_argument('-sspec', '--sspec', help='QDF specification(s) (e.g., L0V8 or L0V8,L0VS,L15E) or "*" for all QDFs in sspec.txt')
-    parser.add_argument('-ube', '--ube', help='UBE file path to parse')
-    parser.add_argument('-mtlolf', '--mtlolf', help='MTL_OLF.xml file path (if not in input directory)')
-    parser.add_argument('-ituff', '--ituff', help='Directory path containing ITF files to parse')
-    parser.add_argument('-log', '--log', action='store_true', help='Enable console logging to file')
-    parser.add_argument('--html-stats', action='store_true', default=True, help='Generate interactive HTML statistics report')
+    
+    # Get defaults from config
+    default_output = config.get('default_arguments.output_dir', 'output')
+    default_sspec = config.get('default_arguments.sspec')
+    default_ube = config.get('default_arguments.ube')
+    default_mtlolf = config.get('default_arguments.mtlolf')
+    default_ituff = config.get('default_arguments.ituff')
+    default_log = config.get('default_arguments.log', False)
+    default_html_stats = config.get('default_arguments.html_stats', True)
+    
+    parser.add_argument('input_dir', nargs='?', default=config.get('default_arguments.input_dir'),
+                       help='Input directory containing fuseDef.json and optionally sspec.txt')
+    parser.add_argument('output_dir', nargs='?', default=default_output,
+                       help=f'Output directory for generated CSV files (default: {default_output})')
+    parser.add_argument('-sspec', '--sspec', default=default_sspec,
+                       help='QDF specification(s) (e.g., L0V8 or L0V8,L0VS,L15E) or "*" for all QDFs in sspec.txt' + 
+                       (f' (default: {default_sspec})' if default_sspec else ''))
+    parser.add_argument('-ube', '--ube', default=default_ube,
+                       help='UBE file path to parse' + (f' (default: {default_ube})' if default_ube else ''))
+    parser.add_argument('-mtlolf', '--mtlolf', default=default_mtlolf,
+                       help='MTL_OLF.xml file path (if not in input directory)' + 
+                       (f' (default: {default_mtlolf})' if default_mtlolf else ''))
+    parser.add_argument('-ituff', '--ituff', default=default_ituff,
+                       help='Directory path containing ITF files to parse' + 
+                       (f' (default: {default_ituff})' if default_ituff else ''))
+    parser.add_argument('-log', '--log', action='store_true', default=default_log,
+                       help=f'Enable console logging to file (default: {default_log})')
+    parser.add_argument('--html-stats', action='store_true', default=default_html_stats,
+                       help=f'Generate interactive HTML statistics report (default: {default_html_stats})')
     
     args = parser.parse_args()
+    
+    # Validate required input_dir
+    if not args.input_dir:
+        parser.error("input_dir is required (either via command line or config.json)")
     
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
@@ -51,9 +80,9 @@ def main():
         json_file = input_dir / "fuseDef.json"
         sspec_file = input_dir / "sspec.txt"
         
-        xml_output_csv = output_dir / f"_MTL_OLF-{processor.fusefilename}.csv"
-        json_output_csv = output_dir / f"_FUSEDEF-{processor.fusefilename}.csv"
-        combined_output_csv = output_dir / f"xfuse-mtlolf-check_{processor.fusefilename}.csv"
+        xml_output_csv = output_dir / f"I_Report_MTL_OLF_{processor.fusefilename}.csv"
+        json_output_csv = output_dir / f"I_Report_FuseDef_{processor.fusefilename}.csv"
+        combined_output_csv = output_dir / f"V_Report_FuseDef_vs_MTL_OLF_{processor.fusefilename}.csv"
         
         print(f"📁 Input directory: {input_dir}")
         print(f"📁 Output directory: {output_dir}")
@@ -89,7 +118,7 @@ def main():
                     lotname, location = processor.extract_lotname_location_from_ube(ube_path)
                     processor.lotname = lotname
                     processor.location = location
-                    ube_output_csv = output_dir / f"_UBE-----{lotname}_{location}.csv"
+                    ube_output_csv = output_dir / f"I_Report_UBE_{lotname}_{location}.csv"
                     headers = ['visualID', 'ULT', 'ref_level', 'first_socket_upload', 'token_name', 'tokenValue', 'MDPOSITION']
                     processor.write_csv_optimized(ube_data, ube_output_csv, headers)
                     processor.print_ube_statistics(ube_data)
@@ -132,7 +161,7 @@ def main():
         # Create xfuse-dff-unitData-check CSV
         if xml_data and ube_data:
             print("🔄 Creating xfuse-dff-unitData-check CSV...")
-            dff_check_csv = output_dir / f"xfuse-dff-unitData-check_{processor.fusefilename}.csv"
+            dff_check_csv = output_dir / f"V_Report_DFF_UnitData_{processor.fusefilename}.csv"
             processor.create_dff_mtl_olf_check_csv(xml_data, ube_data, dff_check_csv)
         
         # Process ITF files
@@ -153,6 +182,10 @@ def main():
                     if sspec_data and json_output_csv.exists():
                         print(f"✅ sspec data parsed successfully")
                         processor.create_sspec_breakdown_csv(sspec_data, json_output_csv)
+                        
+                        # Create unit data SSPEC CSV if ITF was processed
+                        if itf_processed:
+                            processor.create_unit_data_sspec_csv(itf_processed)
                     else:
                         print("⚠️  Cannot create sspec breakdown - need sspec data and FUSEDEF CSV")
                 else:

@@ -43,7 +43,12 @@ class HTMLStatsGenerator:
         
         ref_levels = Counter(row.get('ref_level', '') for row in ube_rows if row.get('ref_level'))
         mdpositions = Counter(row.get('MDPOSITION', 'No MDPOSITION') for row in ube_rows)
-        visual_ids = set(row.get('visualID', '') for row in ube_rows if row.get('visualID'))
+        # Check for visualid (lowercase) or visualID (camelCase)
+        visual_ids = set(
+            row.get('visualid', '') or row.get('visualID', '') 
+            for row in ube_rows 
+            if row.get('visualid') or row.get('visualID')
+        )
         ults = set(row.get('ULT', '') for row in ube_rows if row.get('ULT'))
         tokens = set(row.get('token_name', '') for row in ube_rows if row.get('token_name'))
         
@@ -252,11 +257,20 @@ class HTMLStatsGenerator:
         itf_fullstring_rows = [self._clean_bom(row) for row in itf_fullstring_rows]
         
         ssids = set(row.get('SSID', '') for row in itf_tname_rows if row.get('SSID'))
-        visual_ids = set(row.get('visualID', '') or row.get('Visual ID', '') for row in itf_tname_rows if row.get('visualID') or row.get('Visual ID'))
+        # Check for visualid (lowercase), visualID (camelCase), or Visual ID (with space)
+        visual_ids = set(
+            row.get('visualid', '') or row.get('visualID', '') or row.get('Visual ID', '') 
+            for row in itf_tname_rows 
+            if row.get('visualid') or row.get('visualID') or row.get('Visual ID')
+        )
         ssid_breakdown = Counter(row.get('SSID', '') for row in itf_tname_rows if row.get('SSID'))
         
         # Count unique files from fullstring (assuming visual ID represents files)
-        files = set(row.get('visualID', '') or row.get('Visual ID', '') for row in itf_fullstring_rows if row.get('visualID') or row.get('Visual ID'))
+        files = set(
+            row.get('visualid', '') or row.get('visualID', '') or row.get('Visual ID', '') 
+            for row in itf_fullstring_rows 
+            if row.get('visualid') or row.get('visualID') or row.get('Visual ID')
+        )
         
         return {
             "total_files": len(files) if files else 1,
@@ -387,27 +401,78 @@ class HTMLStatsGenerator:
             "register_statistics": final_register_stats
         }
     
+    def _build_statuscheck_stats(self, unit_data_rows):
+        """Build StatusCheck statistics from S_UnitData_by_Fuse file."""
+        if not unit_data_rows:
+            return {}
+        
+        # Clean BOM from rows
+        unit_data_rows = [self._clean_bom(row) for row in unit_data_rows]
+        
+        # Find all visual IDs
+        visual_ids = set()
+        for row in unit_data_rows:
+            for key in row.keys():
+                if key.endswith('_StatusCheck'):
+                    vid = key.replace('_StatusCheck', '')
+                    visual_ids.add(vid)
+        
+        if not visual_ids:
+            return {}
+        
+        # Count StatusCheck values for each visual ID
+        statuscheck_counts = {}
+        for vid in visual_ids:
+            status_col = f'{vid}_StatusCheck'
+            counts = Counter(row.get(status_col, 'N/A') for row in unit_data_rows if row.get(status_col))
+            statuscheck_counts[vid] = dict(counts)
+        
+        # Calculate overall statistics using first visual ID (all should be same)
+        total_fuses = len(unit_data_rows)
+        overall_counts = Counter()
+        
+        # Use first visual ID for overall counts
+        if visual_ids:
+            first_vid = sorted(visual_ids)[0]
+            overall_counts = Counter(statuscheck_counts[first_vid])
+        
+        # Calculate percentages
+        statuscheck_percentages = {}
+        for status, count in overall_counts.items():
+            statuscheck_percentages[status] = {
+                "count": count,
+                "percentage": round(100.0 * count / total_fuses, 1) if total_fuses > 0 else 0
+            }
+        
+        return {
+            "total_fuses": total_fuses,
+            "visual_ids": list(visual_ids),
+            "statuscheck_by_vid": statuscheck_counts,
+            "overall_statuscheck": dict(overall_counts),
+            "statuscheck_percentages": statuscheck_percentages
+        }
+    
     def generate_html_report(self):
         """Generate complete interactive HTML statistics report.
         
         Returns:
             Path to the generated HTML file
         """
-        html_file = self.output_dir / f"xFFR-Statistics_{self.fusefilename}.html"
+        html_file = self.output_dir / f"HTML_Statistics_Report_{self.fusefilename}.html"
         
         # Find UBE CSV file (could have different naming pattern)
         ube_csv = None
-        for file in self.output_dir.glob("_UBE*.csv"):
+        for file in self.output_dir.glob("I_Report_UBE*.csv"):
             ube_csv = file
             break
         
         # Find ITF CSV files (could have timestamp)
         itf_tname_csv = None
         itf_fullstring_csv = None
-        for file in self.output_dir.glob("*itf_tname_value_rows_*.csv"):
+        for file in self.output_dir.glob("*ITF_Rows_*.csv"):
             if "fullstring" not in file.name:
                 itf_tname_csv = file
-        for file in self.output_dir.glob("*itf_tname_value_rows_fullstring_*.csv"):
+        for file in self.output_dir.glob("*ITF_FullString_*.csv"):
             itf_fullstring_csv = file
         # Fallback to expected names
         if not itf_tname_csv:
@@ -417,27 +482,36 @@ class HTMLStatsGenerator:
         
         # Find sspec CSV file (could have L2FW prefix)
         sspec_csv = None
-        for file in self.output_dir.glob("xsplit-sspec*.csv"):
+        for file in self.output_dir.glob("S_SSPEC_Breakdown*.csv"):
             sspec_csv = file
             break
         if not sspec_csv:
-            sspec_csv = self.output_dir / f"xsplit-sspec_{self.fusefilename}.csv"
+            sspec_csv = self.output_dir / f"S_SSPEC_Breakdown_{self.fusefilename}.csv"
+        
+        # Find S_UnitData_by_Fuse CSV file (contains StatusCheck)
+        unit_data_csv = None
+        for file in self.output_dir.glob("S_UnitData_by_Fuse*.csv"):
+            unit_data_csv = file
+            break
+        if not unit_data_csv:
+            unit_data_csv = self.output_dir / f"S_UnitData_by_Fuse_{self.fusefilename}.csv"
         
         # Find raw MTL_OLF CSV file
         mtlolf_csv = None
-        for file in self.output_dir.glob("_MTL_OLF*.csv"):
+        for file in self.output_dir.glob("I_Report_MTL_OLF*.csv"):
             mtlolf_csv = file
             break
         
         # Define CSV file paths
         csv_files = {
-            'ube': ube_csv if ube_csv else self.output_dir / f"{self.fusefilename}_UBE.csv",
-            'mtlolf': mtlolf_csv if mtlolf_csv else self.output_dir / f"_MTL_OLF-{self.fusefilename}.csv",
-            'mtlolf_check': self.output_dir / f"xfuse-mtlolf-check_{self.fusefilename}.csv",
-            'dff_check': self.output_dir / f"xfuse-dff-unitData-check_{self.fusefilename}.csv",
+            'ube': ube_csv if ube_csv else self.output_dir / f"I_Report_UBE_{self.fusefilename}.csv",
+            'mtlolf': mtlolf_csv if mtlolf_csv else self.output_dir / f"I_Report_MTL_OLF_{self.fusefilename}.csv",
+            'mtlolf_check': self.output_dir / f"V_Report_FuseDef_vs_MTL_OLF_{self.fusefilename}.csv",
+            'dff_check': self.output_dir / f"V_Report_DFF_UnitData_{self.fusefilename}.csv",
             'itf_rows': itf_tname_csv,
             'itf_fullstring': itf_fullstring_csv,
-            'sspec_breakdown': sspec_csv
+            'sspec_breakdown': sspec_csv,
+            'unit_data': unit_data_csv
         }
         
         # Load CSV data
@@ -449,6 +523,7 @@ class HTMLStatsGenerator:
         itf_tname_rows = self._read_csv_rows(csv_files['itf_rows'])
         itf_fullstring_rows = self._read_csv_rows(csv_files['itf_fullstring'])
         sspec_rows = self._read_csv_rows(csv_files['sspec_breakdown'])
+        unit_data_rows = self._read_csv_rows(csv_files['unit_data'])
         
         # Build statsData object
         print("Building statsData object...")
@@ -459,14 +534,16 @@ class HTMLStatsGenerator:
                 "dff_rows": len(dff_rows),
                 "itf_tname_rows": len(itf_tname_rows),
                 "itf_fullstring_rows": len(itf_fullstring_rows),
-                "sspec_breakdown_rows": len(sspec_rows)
+                "sspec_breakdown_rows": len(sspec_rows),
+                "unit_data_rows": len(unit_data_rows)
             },
             "ube": self._build_ube_stats(ube_rows),
             "xml": self._build_xml_stats(mtlolf_xml_rows),
             "matching": self._build_matching_stats(mtlolf_check_rows),
             "dff": self._build_dff_stats(dff_rows),
             "itf": self._build_itf_stats(itf_tname_rows, itf_fullstring_rows),
-            "sspec": self._build_sspec_stats(sspec_rows)
+            "sspec": self._build_sspec_stats(sspec_rows),
+            "statuscheck": self._build_statuscheck_stats(unit_data_rows)
         }
         
         # Prepare breakdown data for sspec download functionality
@@ -1041,6 +1118,7 @@ class HTMLStatsGenerator:
             <button class="nav-tab" onclick="showTab('xml')">📄 XML Tokens</button>
             <button class="nav-tab" onclick="showTab('matching')">🔗 Matching Analysis</button>
             <button class="nav-tab" onclick="showTab('dff')">🔍 DFF Check</button>
+            <button class="nav-tab" onclick="showTab('statuscheck')">✅ DFF-ITF StatusCheck</button>
             <button class="nav-tab" onclick="showTab('itf')">📋 ITF Data</button>
             <button class="nav-tab" onclick="showTab('sspec')">🔧 Sspec Breakdown</button>
         </div>
@@ -1056,6 +1134,7 @@ class HTMLStatsGenerator:
         <div id="xml" class="tab-content"><h2>📄 MTL-OLF Analysis</h2><div id="xml-content"></div></div>
         <div id="matching" class="tab-content"><h2>🔗 Matching Analysis</h2><div id="matching-content"></div></div>
         <div id="dff" class="tab-content"><h2>🎯 DFF MTL-OLF Analysis</h2><div id="dff-content"></div></div>
+        <div id="statuscheck" class="tab-content"><h2>✅ DFF-ITF StatusCheck Analysis</h2><div id="statuscheck-content"></div></div>
         <div id="sspec" class="tab-content"><h2>🧬 SSPEC Breakdown Analysis</h2><div id="sspec-content"></div></div>
         <div id="itf" class="tab-content"><h2>📋 ITF Analysis</h2><div id="itf-content"></div></div>
         
@@ -1084,6 +1163,7 @@ class HTMLStatsGenerator:
                         'xml': loadXMLContent,
                         'matching': loadMatchingContent,
                         'dff': loadDFFContent,
+                        'statuscheck': loadStatusCheckContent,
                         'sspec': loadSspecContent,
                         'itf': loadITFContent
                     }};
@@ -1660,6 +1740,113 @@ class HTMLStatsGenerator:
                         html += '</div>';
                     }}
 
+                    contentDiv.innerHTML = html;
+                }}
+
+                function loadStatusCheckContent() {{
+                    const contentDiv = document.getElementById('statuscheck-content');
+                    if (!statsData.statuscheck || !statsData.statuscheck.total_fuses) {{
+                        contentDiv.innerHTML = '<div class="alert alert-info">No StatusCheck data available</div>';
+                        return;
+                    }}
+
+                    const data = statsData.statuscheck;
+                    const percentages = data.statuscheck_percentages || {{}};
+
+                    let html = `
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h3><span class="icon">📊</span>Total Fuses Analyzed</h3>
+                                <div class="stat-value">${{data.total_fuses || 0}}</div>
+                                <div class="stat-description">Fuses in unit-data-xsplit-sspec</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3><span class="icon">📋</span>Visual IDs</h3>
+                                <div class="stat-value">${{data.visual_ids ? data.visual_ids.length : 0}}</div>
+                                <div class="stat-description">Unique units tested</div>
+                                <div class="stat-subdescription">${{data.visual_ids ? data.visual_ids.join(', ') : 'N/A'}}</div>
+                            </div>
+                        </div>
+
+                        <div class="data-section">
+                            <h2>📈 StatusCheck Distribution</h2>
+                            <div class="stats-grid">
+                                <div class="stat-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                    <h3><span class="icon">✅</span>Static</h3>
+                                    <div class="stat-value">${{percentages.static ? percentages.static.count : 0}}</div>
+                                    <div class="stat-description">${{percentages.static ? percentages.static.percentage : 0}}% of total</div>
+                                    <div class="stat-subdescription">QDF default matches ITF</div>
+                                </div>
+                                <div class="stat-card" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
+                                    <h3><span class="icon">🔄</span>Dynamic</h3>
+                                    <div class="stat-value">${{percentages.dynamic ? percentages.dynamic.count : 0}}</div>
+                                    <div class="stat-description">${{percentages.dynamic ? percentages.dynamic.percentage : 0}}% of total</div>
+                                    <div class="stat-subdescription">DFF value matches ITF</div>
+                                </div>
+                                <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1 0%, #563d7c 100%);">
+                                    <h3><span class="icon">🔐</span>FLE</h3>
+                                    <div class="stat-value">${{percentages.FLE ? percentages.FLE.count : 0}}</div>
+                                    <div class="stat-description">${{percentages.FLE ? percentages.FLE.percentage : 0}}% of total</div>
+                                    <div class="stat-subdescription">Field-level encrypted fuses</div>
+                                </div>
+                                <div class="stat-card" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+                                    <h3><span class="icon">🔧</span>Sort</h3>
+                                    <div class="stat-value">${{percentages.sort ? percentages.sort.count : 0}}</div>
+                                    <div class="stat-description">${{percentages.sort ? percentages.sort.percentage : 0}}% of total</div>
+                                    <div class="stat-subdescription">Sort-skip quality control</div>
+                                </div>
+                                <div class="stat-card" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                                    <h3><span class="icon">❌</span>Mismatch</h3>
+                                    <div class="stat-value">${{percentages['!mismatch!'] ? percentages['!mismatch!'].count : 0}}</div>
+                                    <div class="stat-description">${{percentages['!mismatch!'] ? percentages['!mismatch!'].percentage : 0}}% of total</div>
+                                    <div class="stat-subdescription">DFF and QDF don't match ITF</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-section">
+                            <h2>📊 Per-Unit Breakdown</h2>
+                    `;
+
+                    if (data.statuscheck_by_vid) {{
+                        Object.entries(data.statuscheck_by_vid).forEach(([vid, counts]) => {{
+                            const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+                            html += `
+                                <div class="expandable">
+                                    <div class="expandable-header" onclick="toggleMismatchExpansion('statuscheck_${{vid}}')">
+                                        <span><strong>Visual ID: ${{vid}}</strong></span>
+                                        <span>${{total}} fuses <span id="statuscheck_${{vid}}_arrow">▼</span></span>
+                                    </div>
+                                    <div id="statuscheck_${{vid}}_content" class="expandable-content">
+                                        <div class="data-grid">
+                            `;
+
+                            Object.entries(counts).forEach(([status, count]) => {{
+                                const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                                let color = '#333';
+                                if (status === 'static') color = '#28a745';
+                                else if (status === 'dynamic') color = '#007bff';
+                                else if (status === 'FLE') color = '#6f42c1';
+                                else if (status === 'sort') color = '#ffc107';
+                                else if (status === '!mismatch!') color = '#dc3545';
+
+                                html += `
+                                    <div class="data-item" style="border-left-color: ${{color}};">
+                                        <strong>${{status}}</strong>
+                                        <span>${{count}} (${{pct}}%)</span>
+                                    </div>
+                                `;
+                            }});
+
+                            html += `
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }});
+                    }}
+
+                    html += '</div>';
                     contentDiv.innerHTML = html;
                 }}
 

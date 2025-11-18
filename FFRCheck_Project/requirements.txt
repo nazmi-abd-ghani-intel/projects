@@ -1,0 +1,41 @@
+# FFR Check Project Requirements
+
+# Core dependencies
+# (No external dependencies required for basic functionality)
+
+# Optional dependencies for enhanced features
+# Uncomment the lines below to enable these features:
+
+# Progress bars for long operations
+# tqdm>=4.66.0
+
+# Rich terminal formatting
+# rich>=13.7.0
+
+# Better CLI argument parsing with auto-completion
+# argcomplete>=3.2.0
+
+# Excel file support (if needed in future)
+# openpyxl>=3.1.2
+# xlsxwriter>=3.1.9
+
+# Data validation and schema checking
+# pydantic>=2.5.0
+
+# Performance profiling
+# memory-profiler>=0.61.0
+
+# Testing dependencies (for development)
+# pytest>=7.4.0
+# pytest-cov>=4.1.0
+# pytest-mock>=3.12.0
+
+# Code quality tools (for development)
+# black>=23.12.0
+# flake8>=7.0.0
+# mypy>=1.8.0
+# pylint>=3.0.0
+
+# Documentation (for development)
+# sphinx>=7.2.0
+# sphinx-rtd-theme>=2.0.0

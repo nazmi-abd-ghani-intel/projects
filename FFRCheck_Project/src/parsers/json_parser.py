@@ -60,13 +60,15 @@ class JSONParser:
                             
                             for fuse in fuses:
                                 fuse_name = fuse.get('Name', '')
+                                start_addr_array = fuse.get('StartAddress', [])
+                                end_addr_array = fuse.get('EndAddress', [])
                                 
                                 row_data = {
                                     'RegisterName': register_name,
                                     'FuseGroup_Name': group_name,
                                     'Fuse_Name': fuse_name,
-                                    'StartAddress': self._format_address_array(fuse.get('StartAddress', [])),
-                                    'EndAddress': self._format_address_array(fuse.get('EndAddress', []))
+                                    'StartAddress': self._format_start_address(start_addr_array),
+                                    'EndAddress': self._format_end_address(end_addr_array)
                                 }
                                 
                                 csv_data.append(row_data)
@@ -93,16 +95,57 @@ class JSONParser:
             print(f"Unexpected error parsing JSON: {e}")
             return []
     
-    def _format_address_array(self, address_array: List[Any]) -> str:
+    def _format_start_address(self, address_array: List[Any]) -> str:
         """
-        Format an address array as a comma-separated string.
+        Format start address array - returns the minimum address (start of range).
         
         Args:
             address_array: List of addresses
             
         Returns:
-            Comma-separated string of addresses
+            String representation of the start address
         """
         if not address_array:
             return ''
-        return ','.join(str(self.sanitizer.sanitize_csv_field(addr)) for addr in address_array)
+        # If single address, return it
+        if len(address_array) == 1:
+            return str(int(address_array[0]))
+        # If multiple addresses, return the minimum (start address)
+        return str(int(min(address_array)))
+    
+    def _format_end_address(self, address_array: List[Any]) -> str:
+        """
+        Format end address array - returns the maximum address (end of range).
+        
+        Args:
+            address_array: List of addresses
+            
+        Returns:
+            String representation of the end address
+        """
+        if not address_array:
+            return ''
+        # If single address, return it
+        if len(address_array) == 1:
+            return str(int(address_array[0]))
+        # If multiple addresses, return the maximum (end address)
+        return str(int(max(address_array)))
+    
+    def _format_address_array(self, address_array: List[Any]) -> str:
+        """
+        Format an address array - returns the first address for single value or first address of range.
+        DEPRECATED: Use _format_start_address or _format_end_address instead.
+        
+        Args:
+            address_array: List of addresses
+            
+        Returns:
+            String representation of the start address
+        """
+        if not address_array:
+            return ''
+        # If single address, return it
+        if len(address_array) == 1:
+            return str(int(address_array[0]))
+        # If multiple addresses, return the minimum (start address)
+        return str(int(min(address_array)))

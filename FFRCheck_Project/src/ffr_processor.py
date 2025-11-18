@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Set, List, Tuple
 from .utils import FileProcessor, CSVSanitizer
 from .parsers import XMLParser, JSONParser, UBEParser, SspecParser, ITFParser
-from .processors import CSVProcessor, HTMLStatsGenerator
+from .processors import CSVProcessor, HTMLStatsGenerator, UnitDataSspecProcessor
 
 
 class FFRProcessor:
@@ -45,6 +45,7 @@ class FFRProcessor:
         
         # Initialize processors
         self.csv_processor = CSVProcessor(self.sanitizer, self.file_processor)
+        self.unit_data_sspec_processor = UnitDataSspecProcessor()
         
         # Determine fusefilename
         self.fusefilename = self._determine_fusefilename()
@@ -145,11 +146,11 @@ class FFRProcessor:
         return self.csv_processor.create_matched_csv(xml_data, json_data, output_csv_path)
     
     def create_dff_mtl_olf_check_csv(self, xml_data, ube_data, output_csv_path: Path):
-        """Create xfuse-dff-unitData-check CSV file."""
+        """Create V_Report_DFF_UnitData CSV file."""
         return self.csv_processor.create_dff_mtl_olf_check_csv(xml_data, ube_data, output_csv_path)
     
     def create_sspec_breakdown_csv(self, sspec_data, fusedef_csv_path: Path) -> bool:
-        """Create xsplit-sspec breakdown CSVs."""
+        """Create S_SSPEC_Breakdown CSVs."""
         target_qdf_list = list(self.target_qdf_set)
         return self.sspec_parser.create_sspec_breakdown_csv(
             sspec_data, fusedef_csv_path, self.output_dir, self.fusefilename, target_qdf_list
@@ -166,3 +167,36 @@ class FFRProcessor:
     def extract_lotname_location_from_ube(self, ube_file_path: Path) -> Tuple[str, str]:
         """Extract lot name and location from UBE file."""
         return self.ube_parser.extract_lotname_location_from_ube(ube_file_path)
+    
+    def create_unit_data_sspec_csv(self, itf_processed: bool) -> bool:
+        """Create S_UnitData_by_Fuse CSV files."""
+        if not itf_processed or not self.lotname or not self.location:
+            return False
+        
+        # Find ITF fullstring file
+        itf_pattern = f"ITF_FullString_{self.fusefilename}_{self.lotname}_{self.location}.csv"
+        itf_file = self.output_dir / itf_pattern
+        
+        if not itf_file.exists():
+            print(f"⚠️  ITF fullstring file not found: {itf_pattern}")
+            return False
+        
+        # Find DFF file if it exists
+        dff_file = self.output_dir / f"V_Report_DFF_UnitData_{self.fusefilename}.csv"
+        if not dff_file.exists():
+            dff_file = None
+        
+        # Process each QDF
+        success = False
+        for qdf in self.target_qdf_set:
+            sspec_file = self.output_dir / f"S_SSPEC_Breakdown_{qdf}_{self.fusefilename}.csv"
+            if not sspec_file.exists():
+                continue
+            
+            output_file = self.output_dir / f"S_UnitData_by_Fuse_{qdf}_{self.fusefilename}.csv"
+            if self.unit_data_sspec_processor.create_unit_data_sspec_csv(
+                sspec_file, itf_file, output_file, qdf, dff_file, self.input_dir
+            ):
+                success = True
+        
+        return success

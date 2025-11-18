@@ -167,7 +167,7 @@ class SspecParser:
             
             if breakdown_data:
                 # Write CSV for this QDF
-                output_csv = output_dir / f"xsplit-sspec_{qdf}_{fusefilename}.csv"
+                output_csv = output_dir / f"S_SSPEC_Breakdown_{qdf}_{fusefilename}.csv"
                 headers = [
                     'RegisterName', 'RegisterName_fuseDef', 'FuseGroup_Name_fuseDef', 'Fuse_Name_fuseDef',
                     'StartAddress_fuseDef', 'EndAddress_fuseDef', 'bit_length',

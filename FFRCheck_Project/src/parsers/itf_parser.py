@@ -13,21 +13,49 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from collections import defaultdict
 from datetime import datetime
 
-# SSID mapping table for TNAME pattern matching
-SSID_MAPPING_TABLE = [
-    ('IPC::FUS', 'CPU0', 'U1.U5', ['FACTFUSBURNCPUNOM_X_X_X_X_LOCKBIT_RAP_CPU0']),
-    ('IPC::FUS', 'CPU1', 'U1.U6', ['FACTFUSBURNCPUNOM_X_X_X_X_LOCKBIT_RAP_CPU1']),
-    ('IPG::FUS', 'GCD', 'U1.U4', ['FACTFUSBURNGCDNOM_X_X_X_X_LOCKBIT_RAP_GCD']),
-    ('IPH::FUS', 'HUB', 'U1.U2', ['FACTFUSBURNHUBNOM_X_X_X_X_LOCKBIT_RAP_HUB']),
-    ('IPP::FUS', 'PCD', 'U1.U3', ['FACTFUSBURNPCDNOM_X_X_X_X_LOCKBITRAP_PCD']),
-]
-
 
 class ITFParser:
-    """Parser for ITF files."""
+    """Parser for ITF files with configurable SSID mapping."""
     
-    def __init__(self):
-        pass
+    def __init__(self, config=None):
+        """
+        Initialize ITF parser with SSID mapping from config.
+        
+        Args:
+            config: Configuration object. If None, will load default config.
+        """
+        # Import here to avoid circular imports
+        from ..utils.config import get_config
+        
+        self.config = config if config else get_config()
+        self.ssid_mapping_table = self._load_ssid_mapping()
+    
+    def _load_ssid_mapping(self) -> List[Tuple[str, str, str, List[str]]]:
+        """
+        Load SSID mapping table from configuration.
+        
+        Returns:
+            List of tuples: (domain, register, ssid, tname_patterns)
+        """
+        active_mapping = self.config.get('itf_parser.active_mapping', 'lockout_RAP')
+        mappings = self.config.get(f'itf_parser.ssid_mappings.{active_mapping}', [])
+        
+        # Convert JSON format to tuple format for compatibility
+        ssid_table = []
+        for mapping in mappings:
+            ssid_table.append((
+                mapping['domain'],
+                mapping['register'],
+                mapping['ssid'],
+                mapping['tname_patterns']
+            ))
+        
+        if not ssid_table:
+            print(f"Warning: No SSID mapping found for '{active_mapping}'. ITF processing may fail.")
+        else:
+            print(f"[ITF] Loaded {len(ssid_table)} SSID mappings for profile: {active_mapping}")
+        
+        return ssid_table
     
     def extract_gz_file(self, gz_file_path: Path) -> Optional[Path]:
         """Extract .gz file to temporary directory."""
@@ -41,32 +69,61 @@ class ITFParser:
                 with open(extracted_path, 'wb') as extracted_file:
                     shutil.copyfileobj(gz_file, extracted_file)
             
-            print(f"  Extracted {gz_file_path.name} to temp location")
+            print(f"      Extracted {gz_file_path.name} to temp location")
             return extracted_path
         except Exception as e:
-            print(f"❌ Error extracting {gz_file_path}: {e}")
+            print(f"      ❌ Error extracting {gz_file_path}: {e}")
             return None
     
     def find_itf_files(self, directory_path: Path) -> List[Path]:
-        """Find all .itf and .itf.gz files in directory."""
+        """
+        Find all .itf, .txt, and .itf.gz files in directory.
+        
+        Supports:
+        - .itf files (plain text ITF format)
+        - .txt files (plain text ITF format with .txt extension)
+        - .itf.gz files (gzip-compressed ITF format, automatically extracted)
+        
+        Args:
+            directory_path: Path to directory containing ITF files
+            
+        Returns:
+            List of paths to ITF files (extracted if necessary)
+        """
         itf_files = []
         if not directory_path.exists() or not directory_path.is_dir():
             print(f"❌ Error: Directory {directory_path} does not exist")
             return itf_files
         
+        print(f"📂 Scanning directory: {directory_path}")
+        
         try:
-            for file_path in directory_path.iterdir():
+            # Count files by type
+            all_files = list(directory_path.iterdir())
+            itf_count = sum(1 for f in all_files if f.is_file() and f.suffix == '.itf')
+            txt_count = sum(1 for f in all_files if f.is_file() and f.suffix == '.txt')
+            gz_count = sum(1 for f in all_files if f.is_file() and f.name.endswith('.itf.gz'))
+            
+            print(f"   Found {itf_count} .itf file(s), {txt_count} .txt file(s), and {gz_count} .itf.gz file(s)")
+            
+            for file_path in all_files:
                 if file_path.is_dir():
                     continue
                 
                 if file_path.suffix == '.itf':
-                    print(f"  Found ITF file: {file_path.name}")
+                    print(f"  ✓ ITF file: {file_path.name}")
+                    itf_files.append(file_path)
+                elif file_path.suffix == '.txt':
+                    print(f"  ✓ TXT file: {file_path.name}")
                     itf_files.append(file_path)
                 elif file_path.name.endswith('.itf.gz'):
-                    print(f"  Found ITF.GZ file: {file_path.name}")
+                    print(f"  ✓ ITF.GZ file: {file_path.name} (extracting...)")
                     extracted_path = self.extract_gz_file(file_path)
                     if extracted_path and extracted_path.suffix == '.itf':
                         itf_files.append(extracted_path)
+                        print(f"    → Extracted successfully")
+                    else:
+                        print(f"    ✗ Failed to extract")
         except Exception as e:
             print(f"❌ Error reading directory {directory_path}: {e}")
         
@@ -88,7 +145,7 @@ class ITFParser:
     
     def find_ssid_for_tname(self, tname: str) -> Optional[Tuple[str, str, str]]:
         """Find Domain, Register, SSID for given TNAME."""
-        for domain, register, ssid, tname_patterns in SSID_MAPPING_TABLE:
+        for domain, register, ssid, tname_patterns in self.ssid_mapping_table:
             if self.match_tname_patterns(tname, tname_patterns):
                 return domain, register, ssid
         return None
@@ -314,30 +371,47 @@ class ITFParser:
     
     def process_itf_files(self, ituff_dir: Path, output_dir: Path, fusefilename: str, 
                          lotname: str = None, location: str = None) -> bool:
-        """Process all ITF files in the directory."""
+        """
+        Process all ITF files in the directory.
+        
+        Scans the directory for .itf and .itf.gz files, processes each file,
+        extracts TNAME/VALUE data, and generates combined CSV output files.
+        
+        Args:
+            ituff_dir: Directory containing ITF files
+            output_dir: Directory for output CSV files
+            fusefilename: Base filename for output
+            lotname: Optional lot name for output filename
+            location: Optional location for output filename
+            
+        Returns:
+            True if processing succeeded, False otherwise
+        """
         print("🔄 Processing ITF files...")
         
         itf_files = self.find_itf_files(ituff_dir)
         if not itf_files:
-            print("⚠️  No ITF files found")
+            print("⚠️  No ITF files found in directory")
             return False
+        
+        print(f"\n📊 Processing {len(itf_files)} ITF file(s)...")
         
         all_rows = []
         all_ssids = set()
         
-        for itf_file in itf_files:
-            print(f"\n  Processing: {itf_file.name}")
+        for idx, itf_file in enumerate(itf_files, 1):
+            print(f"\n  [{idx}/{len(itf_files)}] Processing: {itf_file.name}")
             
             header_data, units = self.extract_itf_data(itf_file)
             if header_data is None or units is None:
-                print(f"  ❌ Failed to extract data")
+                print(f"      ❌ Failed to extract data")
                 continue
             
             valid_units = [unit for unit in units if unit.get('visualid')]
-            print(f"    Found {len(units)} total units, {len(valid_units)} with visualID")
+            print(f"      Found {len(units)} total units, {len(valid_units)} with visualID")
             
             total_matching_tnames = sum(len(unit.get('tname_values', {})) for unit in valid_units)
-            print(f"    Found {total_matching_tnames} matching TNAMEs")
+            print(f"      Found {total_matching_tnames} matching TNAMEs")
             
             rows, file_ssids, tname_stats = self.create_visualid_ssid_ult_tname_rows(
                 valid_units, header_data, itf_file.name
@@ -346,18 +420,22 @@ class ITFParser:
             all_rows.extend(rows)
             all_ssids.update(file_ssids)
             
-            print(f"    Generated {len(rows)} TNAME-VALUE rows")
+            print(f"      Generated {len(rows)} TNAME-VALUE rows")
         
         if not all_rows:
-            print("\n⚠️  No matching TNAMEs found")
+            print("\n⚠️  No matching TNAMEs found in any files")
             return False
+        
+        print(f"\n📈 Combined results from {len(itf_files)} file(s):")
+        print(f"   Total TNAME-VALUE rows: {len(all_rows)}")
+        print(f"   Unique SSIDs: {len(all_ssids)}")
         
         # Export individual rows CSV
         if lotname and location:
             suffix = f"{lotname}_{location}"
         else:
             suffix = datetime.now().strftime('%Y%m%d_%H%M%S')
-        individual_csv = output_dir / f"itf_tname_value_rows_{fusefilename}_{suffix}.csv"
+        individual_csv = output_dir / f"ITF_Rows_{fusefilename}_{suffix}.csv"
         
         fieldnames = [
             'visualid', 'SSID', 'ULT', 'TNAME', 'TNAME_VALUE', 'Domain', 'Register', 'filename',
@@ -372,7 +450,7 @@ class ITFParser:
         
         # Create and export fullstring rows
         fullstring_rows = self.create_fullstring_rows(all_rows)
-        fullstring_csv = output_dir / f"itf_tname_value_rows_fullstring_{fusefilename}_{suffix}.csv"
+        fullstring_csv = output_dir / f"ITF_FullString_{fusefilename}_{suffix}.csv"
         
         fullstring_fieldnames = fieldnames[:7] + ['FD_Count', 'FD_Numbers'] + fieldnames[7:]
         
