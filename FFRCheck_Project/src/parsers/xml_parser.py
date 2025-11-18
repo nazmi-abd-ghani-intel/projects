@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Any
 from pathlib import Path
-from lxml import etree
+import xml.etree.ElementTree as etree
 
 
 class XMLParser:
@@ -30,72 +30,81 @@ class XMLParser:
             List of dictionaries containing parsed data
         """
         try:
-            print(f"\nSuccessfully opened: {xml_file_path}")
+            print(f"Successfully parsing: {xml_file_path}")
             print("-" * 60)
             
+            # Parse the tree to get root element and total token count
+            tree = etree.parse(str(xml_file_path))
+            root = tree.getroot()
+            
+            print(f"Root element: {root.tag}")
+            
+            tokens = root.findall('.//Token')
+            print(f"Found {len(tokens)} Token(s)")
+            
             csv_data = []
-            context = etree.iterparse(str(xml_file_path), events=('end',), tag='token')
             
-            for event, element in context:
-                dff_token_id = element.get('dff_token_id', '')
-                token_name = element.get('token_name', '')
-                first_socket_upload = element.get('first_socket_upload', '')
-                upload_process_step = element.get('upload_process_step', '')
-                ssid = element.get('ssid', '')
-                ref_level = element.get('ref_level', '')
-                module = element.get('module', '')
+            for token_idx, element in enumerate(tokens):
+                if token_idx % 1000 == 0 and token_idx > 0:
+                    print(f"  Processed {token_idx} tokens...")
                 
-                fields = element.findall('field')
+                # Extract token-level information from child elements
+                dff_token_id = element.findtext('dff_token_id', '')
+                token_name = element.findtext('name', '')
+                first_socket_upload = element.findtext('first_socket_upload', '')
+                upload_process_step = element.findtext('upload_process_step', '')
+                ssid = element.findtext('ssid', '')
+                ref_level = element.findtext('ref_level', '')
+                module = element.findtext('module', '')
                 
-                if fields:
-                    for field in fields:
-                        field_name = field.get('field_name', '')
-                        field_name_seq = int(field.get('field_name_seq', 0))
-                        fuse_name_original = field.get('fuse_name', '')
-                        fuse_register_original = field.get('fuse_register', '')
-                        
-                        paired_data = self._pair_fuse_names_registers(fuse_name_original, fuse_register_original)
-                        
-                        for pair in paired_data:
-                            row_data = {
-                                'dff_token_id': dff_token_id,
-                                'token_name': token_name,
-                                'first_socket_upload': first_socket_upload,
-                                'upload_process_step': upload_process_step,
-                                'ssid': ssid,
-                                'ref_level': ref_level,
-                                'module': module,
-                                'field_name': field_name,
-                                'field_name_seq': field_name_seq,
-                                'fuse_name_ori': fuse_name_original,
-                                'fuse_name': pair['fuse_name'],
-                                'fuse_register_ori': fuse_register_original,
-                                'fuse_register': pair['fuse_register']
-                            }
-                            csv_data.append(row_data)
-                else:
-                    row_data = {
-                        'dff_token_id': dff_token_id,
-                        'token_name': token_name,
-                        'first_socket_upload': first_socket_upload,
-                        'upload_process_step': upload_process_step,
-                        'ssid': ssid,
-                        'ref_level': ref_level,
-                        'module': module,
-                        'field_name': '',
-                        'field_name_seq': 0,
-                        'fuse_name_ori': '',
-                        'fuse_name': '',
-                        'fuse_register_ori': '',
-                        'fuse_register': ''
-                    }
-                    csv_data.append(row_data)
-                
-                element.clear()
-                while element.getprevious() is not None:
-                    del element.getparent()[0]
-            
-            del context
+                # Find all ValueDecoderField elements within ValueDecoder
+                value_decoder = element.find('ValueDecoder')
+                if value_decoder is not None:
+                    fields = value_decoder.findall('ValueDecoderField')
+                    
+                    if fields:
+                        for idx, field in enumerate(fields, 1):
+                            field_name = field.findtext('name', '')
+                            fuse_name_original = field.findtext('fuse_name', '')
+                            fuse_register_original = field.findtext('fuse_register', '')
+                            
+                            paired_data = self._pair_fuse_names_registers(fuse_name_original, fuse_register_original)
+                            
+                            for pair in paired_data:
+                                row_data = {
+                                    'dff_token_id': dff_token_id,
+                                    'token_name': token_name,
+                                    'first_socket_upload': first_socket_upload,
+                                    'upload_process_step': upload_process_step,
+                                    'ssid': ssid,
+                                    'ref_level': ref_level,
+                                    'module': module,
+                                    'field_name': field_name,
+                                    'field_name_seq': idx,
+                                    'fuse_name_ori': fuse_name_original,
+                                    'fuse_name': pair['fuse_name'],
+                                    'fuse_register_ori': fuse_register_original,
+                                    'fuse_register': pair['fuse_register']
+                                }
+                                csv_data.append(row_data)
+                    else:
+                        # No fields found
+                        row_data = {
+                            'dff_token_id': dff_token_id,
+                            'token_name': token_name,
+                            'first_socket_upload': first_socket_upload,
+                            'upload_process_step': upload_process_step,
+                            'ssid': ssid,
+                            'ref_level': ref_level,
+                            'module': module,
+                            'field_name': '',
+                            'field_name_seq': 0,
+                            'fuse_name_ori': '',
+                            'fuse_name': '',
+                            'fuse_register_ori': '',
+                            'fuse_register': ''
+                        }
+                        csv_data.append(row_data)
             
             print(f"\n✅ XML parsing completed: {len(csv_data)} records extracted")
             return csv_data

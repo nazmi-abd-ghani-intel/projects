@@ -32,8 +32,8 @@ class CSVSanitizer:
         if str_value and str_value[0] in ['=', '+', '-', '@', '\t', '\r']:
             str_value = "'" + str_value
         
-        # HTML escape to prevent XSS
-        str_value = html.escape(str_value)
+        # Note: No HTML escaping needed for CSV files (only needed for HTML output)
+        # The CSV format itself provides sufficient data isolation
         
         return str_value
     

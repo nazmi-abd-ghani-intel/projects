@@ -34,10 +34,18 @@ env/
 
 # Output files
 output/
+output_original_ref/
 *.csv
 *.html
-*.txt
 *.log
+
+# Temporary development files
+fix_js_braces.py
+generate_corrected_sspec_json.py
+test_sspec_fix.py
+update_html_js.py
+temp_js_functions.js
+new_javascript_section.txt
 
 # OS
 .DS_Store

@@ -60,7 +60,7 @@ class FileProcessor:
             return
     
     def write_csv_streaming(self, data_generator: Generator[Dict[str, Any], None, None],
-                           csv_file_path: Path, headers: List[str], sanitizer=None) -> None:
+                           csv_file_path: Path, headers: List[str], sanitizer=None) -> int:
         """
         Write CSV data using streaming for memory efficiency.
         
@@ -69,8 +69,12 @@ class FileProcessor:
             csv_file_path: Path to output CSV file
             headers: List of column headers
             sanitizer: Optional sanitizer for data cleaning
+            
+        Returns:
+            Number of rows written
         """
         try:
+            row_count = 0
             with open(csv_file_path, 'w', encoding='utf-8-sig', newline='') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=headers, extrasaction='ignore')
                 writer.writeheader()
@@ -79,6 +83,13 @@ class FileProcessor:
                     if sanitizer:
                         row = {k: sanitizer.sanitize_csv_field(v) for k, v in row.items()}
                     writer.writerow(row)
+                    row_count += 1
+                    
+                    if row_count % 10000 == 0:
+                        print(f"  Processed {row_count} rows...")
+            
+            print(f"✅ CSV created: {csv_file_path} ({row_count} rows)")
+            return row_count
                     
         except Exception as e:
             print(f"Error writing CSV {csv_file_path}: {e}")

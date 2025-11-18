@@ -57,7 +57,7 @@ def main():
         
         print(f"📁 Input directory: {input_dir}")
         print(f"📁 Output directory: {output_dir}")
-        print(f"📁 FusefileName: {processor.fusefilename}")
+        print(f"📝 FusefileName: {processor.fusefilename}")
         if console_log_file:
             print(f"📄 Console log: {console_log_file}")
         if args.sspec:
@@ -83,19 +83,22 @@ def main():
         if args.ube:
             ube_path = Path(args.ube)
             if ube_path.exists():
-                print("📄 Processing UBE file with memory optimization...")
+                print("🔄 Processing UBE file with memory optimization...")
                 ube_data = processor.parse_ube_file_optimized(ube_path)
                 if ube_data:
                     lotname, location = processor.extract_lotname_location_from_ube(ube_path)
+                    processor.lotname = lotname
+                    processor.location = location
                     ube_output_csv = output_dir / f"_UBE-----{lotname}_{location}.csv"
                     headers = ['visualID', 'ULT', 'ref_level', 'first_socket_upload', 'token_name', 'tokenValue', 'MDPOSITION']
                     processor.write_csv_optimized(ube_data, ube_output_csv, headers)
+                    processor.print_ube_statistics(ube_data)
             else:
                 print(f"❌ Error: UBE file '{args.ube}' does not exist")
         
         # XML processing
         if xml_file.exists():
-            print(f"📄 Processing XML file: {xml_file}")
+            print(f"🔄 Processing XML file: {xml_file}")
             xml_data = processor.parse_xml_optimized(xml_file)
             if xml_data:
                 headers = [
@@ -110,7 +113,7 @@ def main():
         
         # JSON processing
         if json_file.exists():
-            print("📄 Processing JSON file...")
+            print("🔄 Processing JSON file...")
             json_data = processor.parse_json_optimized(json_file)
             if json_data:
                 headers = ['RegisterName_fuseDef', 'FuseGroup_Name_fuseDef', 'Fuse_Name_fuseDef', 'StartAddress_fuseDef', 'EndAddress_fuseDef']
@@ -121,10 +124,16 @@ def main():
         
         # Create combined CSV
         if xml_data and json_data:
-            print("📄 Creating combined matched CSV with memory optimization...")
+            print("🔄 Creating combined matched CSV with memory optimization...")
             combined_data = processor.create_matched_csv(xml_data, json_data, combined_output_csv)
         else:
             print("⚠️  Cannot create combined CSV - need both XML and JSON data")
+        
+        # Create xfuse-dff-unitData-check CSV
+        if xml_data and ube_data:
+            print("🔄 Creating xfuse-dff-unitData-check CSV...")
+            dff_check_csv = output_dir / f"xfuse-dff-unitData-check_{processor.fusefilename}.csv"
+            processor.create_dff_mtl_olf_check_csv(xml_data, ube_data, dff_check_csv)
         
         # Process ITF files
         itf_processed = False
@@ -142,9 +151,8 @@ def main():
                     sspec_data, resolved_qdf_list = processor.parse_sspec_file_optimized(sspec_file, target_qdf_set)
                     
                     if sspec_data and json_output_csv.exists():
-                        qdf_suffix = "_".join(resolved_qdf_list)
-                        sspec_output_csv = output_dir / f"xsplit-sspec_{qdf_suffix}_{processor.fusefilename}.csv"
                         print(f"✅ sspec data parsed successfully")
+                        processor.create_sspec_breakdown_csv(sspec_data, json_output_csv)
                     else:
                         print("⚠️  Cannot create sspec breakdown - need sspec data and FUSEDEF CSV")
                 else:
@@ -155,6 +163,7 @@ def main():
         # Generate HTML statistics report
         if args.html_stats:
             html_report = processor.generate_html_statistics_report()
+            print(f"\n📊 Interactive HTML statistics report generated: {html_report}")
             print(f"\n🌐 Open the following file in your browser to view interactive statistics:")
             print(f"   {html_report}")
         
@@ -176,6 +185,10 @@ def main():
             print(f"✅ Combined matching completed! Results: {combined_output_csv}")
         else:
             print("❌ Combined matching failed or insufficient data")
+        
+        # Check for UBE+XML matching
+        if not (xml_data and ube_data):
+            print("❌ xfuse-dff-unitData-check processing failed or insufficient data")
         
         if not xml_data and not json_data and not ube_data and not itf_processed:
             print("❌ No files were processed successfully!")
