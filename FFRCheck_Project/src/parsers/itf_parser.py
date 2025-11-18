@@ -29,6 +29,7 @@ class ITFParser:
         
         self.config = config if config else get_config()
         self.ssid_mapping_table = self._load_ssid_mapping()
+        self.visualid_filter = self._load_visualid_filter()
     
     def _load_ssid_mapping(self) -> List[Tuple[str, str, str, List[str]]]:
         """
@@ -56,6 +57,40 @@ class ITFParser:
             print(f"[ITF] Loaded {len(ssid_table)} SSID mappings for profile: {active_mapping}")
         
         return ssid_table
+    
+    def _load_visualid_filter(self) -> Optional[set]:
+        """
+        Load visualID filter from configuration.
+        
+        Returns:
+            Set of visualIDs to filter, or None if filtering is disabled
+        """
+        enabled = self.config.get('itf_parser.visualid_filter.enabled', False)
+        filter_list = self.config.get('itf_parser.visualid_filter.filter_list', [])
+        
+        if enabled and filter_list:
+            visualid_set = set(filter_list)
+            print(f"[ITF] Filtering enabled for {len(visualid_set)} visualID(s): {', '.join(sorted(visualid_set))}")
+            return visualid_set
+        
+        return None
+    
+    def set_visualid_filter(self, visualid_filter: str):
+        """
+        Set visualID filter from command-line argument.
+        
+        Args:
+            visualid_filter: Comma-separated list of visualIDs or None
+        """
+        if visualid_filter and visualid_filter.strip():
+            if visualid_filter.strip() == '*':
+                self.visualid_filter = None
+                print("[ITF] VisualID filter: * (all units)")
+            else:
+                self.visualid_filter = set(vid.strip() for vid in visualid_filter.split(',') if vid.strip())
+                print(f"[ITF] Filtering by {len(self.visualid_filter)} visualID(s): {', '.join(sorted(self.visualid_filter))}")
+        else:
+            self.visualid_filter = None
     
     def extract_gz_file(self, gz_file_path: Path) -> Optional[Path]:
         """Extract .gz file to temporary directory."""
@@ -409,6 +444,12 @@ class ITFParser:
             
             valid_units = [unit for unit in units if unit.get('visualid')]
             print(f"      Found {len(units)} total units, {len(valid_units)} with visualID")
+            
+            # Apply visualID filter if enabled
+            if self.visualid_filter:
+                filtered_units = [unit for unit in valid_units if unit.get('visualid') in self.visualid_filter]
+                print(f"      Filtered to {len(filtered_units)} unit(s) matching visualID filter")
+                valid_units = filtered_units
             
             total_matching_tnames = sum(len(unit.get('tname_values', {})) for unit in valid_units)
             print(f"      Found {total_matching_tnames} matching TNAMEs")

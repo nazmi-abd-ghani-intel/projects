@@ -4,31 +4,39 @@
     "comment_note": "Set values here to avoid typing them every time. null = no default (must provide via CLI or uses fallback)",
     
     "input_dir": null,
-    "comment_input_dir": "Example: 'I:/fuse/release/NVL/NVL_HX_Int/NVL_HX_Int_A1_25WW44P0' or './data/input'",
+    "comment_input_dir": "Example: 'I:/fuse/release/NVL/NVL_HX_Int/NVL_HX_Int_A1_25WW44P0' or './data/input' [REQUIRED]",
     
     "output_dir": "output",
-    "comment_output_dir": "Example: 'output' or 'results' or './my_results'",
+    "comment_output_dir": "Example: 'output' or 'results' or './my_results' [OPTIONAL - defaults to 'output']",
     
     "sspec": null,
-    "comment_sspec": "Example: 'L15H' or 'L0V8,L0VS,L15E' or '*' (for all QDFs)",
+    "comment_sspec": "Example: 'L15H' or 'L0V8,L0VS,L15E' or '*' (for all QDFs) [OPTIONAL - required for sspec processing]",
     
     "ube": null,
-    "comment_ube": "Example: './input_files/P5461880SM_6197.ube' or 'I:/data/latest.ube'",
+    "comment_ube": "Example: './input_files/P5461880SM_6197.ube' or 'I:/data/latest.ube' [OPTIONAL - required for UBE processing]",
     
     "mtlolf": null,
-    "comment_mtlolf": "Example: './input_files/MTL_OLF.xml' or 'I:/data/MTL_OLF.xml' (if not in input_dir)",
+    "comment_mtlolf": "Example: './input_files/MTL_OLF.xml' or 'I:/data/MTL_OLF.xml' (if not in input_dir) [OPTIONAL - defaults to input_dir/MTL_OLF.xml]",
     
     "ituff": null,
-    "comment_ituff": "Example: './input_files/P5470070_6197/' or 'I:/data/itf_files/' (directory containing .itf, .txt, or .itf.gz files - all files will be processed)",
+    "comment_ituff": "Example: './input_files/P5470070_6197/' or 'I:/data/itf_files/' (directory containing .itf, .txt, or .itf.gz files - all files will be processed) [OPTIONAL - required for ITF processing]",
     
     "log": false,
-    "comment_log": "Example: true (enable console logging to file) or false (no log file)",
+    "comment_log": "Example: true (enable console logging to file) or false (no log file) [OPTIONAL - defaults to false]",
     
     "html_stats": true,
-    "comment_html_stats": "Example: true (generate HTML report) or false (skip HTML generation)"
+    "comment_html_stats": "Example: true (generate HTML report) or false (skip HTML generation) [OPTIONAL - defaults to true]",
+    
+    "visualid_filter": null,
+    "comment_visualid_filter": "Example: 'U538G05900011' or 'U538G05900011,U538G09400164' or '*' (for all units) - Filter ITF/UBE data by specific visualID(s) [OPTIONAL - defaults to all units]"
   },
   "itf_parser": {
     "active_mapping": "lockout_RAP",
+    "visualid_filter": {
+      "enabled": false,
+      "filter_list": [],
+      "comment": "Set enabled=true and add visualIDs to filter_list to process only specific units. Leave empty or set enabled=false to process all units."
+    },
     "ssid_mappings": {
       "prog_RAP": [
         {
@@ -146,7 +154,7 @@
   },
   "fle_settings": {
     "filename": "FleFuseSettings.json",
-    "description": "FLE (Fuse Lockout Enable) fuse settings configuration"
+    "description": "FLE (FuseLogicEngine) fuse settings configuration"
   },
   "processing": {
     "chunk_size": 10000,

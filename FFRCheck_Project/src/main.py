@@ -25,6 +25,7 @@ def main():
     default_ituff = config.get('default_arguments.ituff')
     default_log = config.get('default_arguments.log', False)
     default_html_stats = config.get('default_arguments.html_stats', True)
+    default_visualid_filter = config.get('default_arguments.visualid_filter')
     
     parser.add_argument('input_dir', nargs='?', default=config.get('default_arguments.input_dir'),
                        help='Input directory containing fuseDef.json and optionally sspec.txt')
@@ -45,6 +46,9 @@ def main():
                        help=f'Enable console logging to file (default: {default_log})')
     parser.add_argument('--html-stats', action='store_true', default=default_html_stats,
                        help=f'Generate interactive HTML statistics report (default: {default_html_stats})')
+    parser.add_argument('-visualid', '--visualid-filter', dest='visualid_filter', default=default_visualid_filter,
+                       help='Filter by specific visualID(s) (e.g., U538G05900011 or U538G05900011,U538G09400164)' + 
+                       (f' (default: {default_visualid_filter})' if default_visualid_filter else ''))
     
     args = parser.parse_args()
     
@@ -61,7 +65,7 @@ def main():
     
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    processor = FFRProcessor(input_dir, output_dir, args.sspec, args.ube, args.mtlolf, args.ituff)
+    processor = FFRProcessor(input_dir, output_dir, args.sspec, args.ube, args.mtlolf, args.ituff, args.visualid_filter)
     
     console_log_file = None
     if args.log:
@@ -102,6 +106,12 @@ def main():
             print(f"📄 MTL_OLF file: {xml_file} (default location)")
         if args.ituff:
             print(f"📄 ITF directory: {args.ituff}")
+        if args.visualid_filter:
+            if args.visualid_filter.strip() == '*':
+                print(f"🔍 VisualID filter: * (all units)")
+            else:
+                visualids = [v.strip() for v in args.visualid_filter.split(',') if v.strip()]
+                print(f"🔍 VisualID filter: {', '.join(visualids)}")
         print("=" * 80)
         
         xml_data = []

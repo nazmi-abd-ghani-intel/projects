@@ -13,7 +13,8 @@ class FFRProcessor:
     """
     
     def __init__(self, input_dir: Path, output_dir: Path, sspec_qdf: str = None,
-                 ube_file_path: str = None, mtlolf_file_path: str = None, ituff_dir_path: str = None):
+                 ube_file_path: str = None, mtlolf_file_path: str = None, ituff_dir_path: str = None,
+                 visualid_filter: str = None):
         """
         Initialize the FFR processor.
         
@@ -24,6 +25,7 @@ class FFRProcessor:
             ube_file_path: Path to UBE file
             mtlolf_file_path: Path to MTL_OLF.xml file
             ituff_dir_path: Path to ITF directory
+            visualid_filter: Comma-separated visualIDs to filter
         """
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
@@ -31,6 +33,7 @@ class FFRProcessor:
         self.ube_file_path = ube_file_path
         self.mtlolf_file_path = mtlolf_file_path
         self.ituff_dir_path = ituff_dir_path
+        self.visualid_filter = visualid_filter
         
         # Initialize utilities
         self.file_processor = FileProcessor()
@@ -42,6 +45,10 @@ class FFRProcessor:
         self.ube_parser = UBEParser(self.sanitizer, self.file_processor)
         self.sspec_parser = SspecParser(self.file_processor)
         self.itf_parser = ITFParser()
+        
+        # Set visualID filter if provided
+        if self.visualid_filter:
+            self.itf_parser.set_visualid_filter(self.visualid_filter)
         
         # Initialize processors
         self.csv_processor = CSVProcessor(self.sanitizer, self.file_processor)
