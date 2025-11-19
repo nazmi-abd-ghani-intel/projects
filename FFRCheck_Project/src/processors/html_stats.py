@@ -450,11 +450,25 @@ class HTMLStatsGenerator:
             status_col = f'{vid}_StatusCheck'
             register_stats = defaultdict(lambda: Counter())
             
+            register_bitsize = defaultdict(int)
+            
             for row in unit_data_rows:
                 register = row.get('RegisterName', row.get('Register', 'Unknown'))
                 status = row.get(status_col, 'N/A')
                 if status:
                     register_stats[register][status] += 1
+                
+                # Calculate bit size from StartAddress and EndAddress
+                start_addr = row.get('StartAddress_fuseDef', '')
+                end_addr = row.get('EndAddress_fuseDef', '')
+                if start_addr and end_addr:
+                    try:
+                        start = int(start_addr, 16) if isinstance(start_addr, str) and start_addr.startswith('0x') else int(start_addr)
+                        end = int(end_addr, 16) if isinstance(end_addr, str) and end_addr.startswith('0x') else int(end_addr)
+                        bit_size = end - start + 1
+                        register_bitsize[register] += bit_size
+                    except (ValueError, TypeError):
+                        pass
             
             # Convert to regular dict and calculate percentages
             per_unit_register_stats[vid] = {}
@@ -463,6 +477,7 @@ class HTMLStatsGenerator:
                 per_unit_register_stats[vid][register] = {
                     'counts': dict(counts),
                     'total': total,
+                    'total_bitsize': register_bitsize[register],
                     'percentages': {
                         status: round(100.0 * count / total, 1) if total > 0 else 0
                         for status, count in counts.items()
@@ -1169,7 +1184,6 @@ class HTMLStatsGenerator:
             <button class="nav-tab" onclick="showTab('xml')">📄 XML Tokens</button>
             <button class="nav-tab" onclick="showTab('matching')">🔗 Matching Analysis</button>
             <button class="nav-tab" onclick="showTab('dff')">🔍 DFF Check</button>
-            <button class="nav-tab" onclick="showTab('statuscheck')">✅ DFF-ITF StatusCheck</button>
             <button class="nav-tab" onclick="showTab('unitsummary')">📊 Unit Summary</button>
             <button class="nav-tab" onclick="showTab('itf')">📋 ITF Data</button>
             <button class="nav-tab" onclick="showTab('sspec')">🔧 Sspec Breakdown</button>
@@ -1186,7 +1200,6 @@ class HTMLStatsGenerator:
         <div id="xml" class="tab-content"><h2>📄 MTL-OLF Analysis</h2><div id="xml-content"></div></div>
         <div id="matching" class="tab-content"><h2>🔗 Matching Analysis</h2><div id="matching-content"></div></div>
         <div id="dff" class="tab-content"><h2>🎯 DFF MTL-OLF Analysis</h2><div id="dff-content"></div></div>
-        <div id="statuscheck" class="tab-content"><h2>✅ DFF-ITF StatusCheck Analysis</h2><div id="statuscheck-content"></div></div>
         <div id="unitsummary" class="tab-content"><h2>📊 Per-Unit StatusCheck Summary</h2><div id="unitsummary-content"></div></div>
         <div id="sspec" class="tab-content"><h2>🧬 SSPEC Breakdown Analysis</h2><div id="sspec-content"></div></div>
         <div id="itf" class="tab-content"><h2>📋 ITF Analysis</h2><div id="itf-content"></div></div>
@@ -1216,7 +1229,6 @@ class HTMLStatsGenerator:
                         'xml': loadXMLContent,
                         'matching': loadMatchingContent,
                         'dff': loadDFFContent,
-                        'statuscheck': loadStatusCheckContent,
                         'unitsummary': loadUnitSummaryContent,
                         'sspec': loadSspecContent,
                         'itf': loadITFContent
@@ -1934,6 +1946,7 @@ class HTMLStatsGenerator:
                                             <th>Visual ID</th>
                                             <th>Registers</th>
                                             <th>Total Fuses</th>
+                                            <th>Total Bit Size</th>
                                             <th style="background: #28a745;">Static</th>
                                             <th style="background: #007bff;">Dynamic</th>
                                             <th style="background: #6f42c1;">FLE</th>
@@ -1949,9 +1962,10 @@ class HTMLStatsGenerator:
                         const vidStats = perUnitStats[vid] || {{}};
                         const registers = Object.keys(vidStats).sort();
                         
-                        // Aggregate counts across all registers for this visualID
+                        // Aggregate counts and bitsize across all registers for this visualID
                         const totalCounts = {{'static': 0, 'dynamic': 0, 'FLE': 0, 'sort': 0, '!mismatch!': 0}};
                         let grandTotal = 0;
+                        let totalBitSize = 0;
                         
                         registers.forEach(register => {{
                             const counts = vidStats[register].counts || {{}};
@@ -1959,6 +1973,7 @@ class HTMLStatsGenerator:
                                 totalCounts[status] += counts[status] || 0;
                             }});
                             grandTotal += vidStats[register].total || 0;
+                            totalBitSize += vidStats[register].total_bitsize || 0;
                         }});
 
                         const registerList = registers.join(', ');
@@ -1968,6 +1983,7 @@ class HTMLStatsGenerator:
                                 <td><strong>${{vid}}</strong></td>
                                 <td style="font-size: 0.9em;">${{registerList}}</td>
                                 <td><strong>${{grandTotal}}</strong></td>
+                                <td><strong>${{totalBitSize.toLocaleString()}}</strong> bits</td>
                                 <td>${{totalCounts.static}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.static / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.dynamic}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.FLE}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.FLE / grandTotal).toFixed(1)}}%)</span></td>
