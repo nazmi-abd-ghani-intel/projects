@@ -596,6 +596,8 @@ class HTMLStatsGenerator:
         # Build statsData object
         print("Building statsData object...")
         stats_data = {
+            "fusefilename": self.fusefilename,
+            "unit_data_csv_filename": unit_data_csv.name if unit_data_csv and unit_data_csv.exists() else f"S_UnitData_by_Fuse_{self.fusefilename}.csv",
             "overview": {
                 "ube_entries": len(ube_rows),
                 "xml_records": len(mtlolf_xml_rows),
@@ -1965,15 +1967,17 @@ class HTMLStatsGenerator:
                     // High-Level Summary: All Visual IDs Combined
                     html += `
                         <div class="data-section">
-                            <h2>🎯 High-Level Summary - All Visual IDs</h2>
+                            <h2 style="display: inline-block;">🎯 High-Level Summary - All Visual IDs</h2>
+                            <button onclick="downloadUnitDataCSV()" style="float: right; margin: 10px 0; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                📥 Download S_UnitData_by_Fuse CSV
+                            </button>
+                            <div style="clear: both;"></div>
                             <div class="table-container">
                                 <table class="register-analysis-table">
                                     <thead>
                                         <tr>
                                             <th>Visual ID</th>
-                                            <th>Registers</th>
                                             <th>Total Fuses</th>
-                                            <th>Total Bit Size</th>
                                             <th style="background: #28a745;">Static</th>
                                             <th style="background: #007bff;">Dynamic</th>
                                             <th style="background: #6f42c1;">FLE</th>
@@ -2010,9 +2014,7 @@ class HTMLStatsGenerator:
                         html += `
                             <tr>
                                 <td><strong>${{vid}}</strong></td>
-                                <td style="font-size: 0.9em;">${{registerList}}</td>
                                 <td><strong>${{grandTotal}}</strong></td>
-                                <td><strong>${{totalRegisterSize.toLocaleString()}}</strong> bits</td>
                                 <td>${{totalCounts.static}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.static / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.dynamic}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.FLE}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.FLE / grandTotal).toFixed(1)}}%)</span></td>
@@ -2047,6 +2049,7 @@ class HTMLStatsGenerator:
                                         <thead>
                                             <tr>
                                                 <th>Register</th>
+                                                <th>Total Bit Size</th>
                                                 <th>Total Fuses</th>
                                                 <th style="background: #28a745;">Static</th>
                                                 <th style="background: #007bff;">Dynamic</th>
@@ -2063,6 +2066,7 @@ class HTMLStatsGenerator:
                             const counts = regData.counts || {{}};
                             const percentages = regData.percentages || {{}};
                             const total = regData.total || 0;
+                            const registerSize = regData.register_size || 0;
 
                             const staticCount = counts.static || 0;
                             const dynamicCount = counts.dynamic || 0;
@@ -2079,6 +2083,7 @@ class HTMLStatsGenerator:
                             html += `
                                 <tr>
                                     <td><strong>${{register}}</strong></td>
+                                    <td>${{registerSize.toLocaleString()}} bits</td>
                                     <td>${{total}}</td>
                                     <td>${{staticCount}} <span style="color: #666; font-size: 0.9em;">(${{staticPct}}%)</span></td>
                                     <td>${{dynamicCount}} <span style="color: #666; font-size: 0.9em;">(${{dynamicPct}}%)</span></td>
@@ -2094,17 +2099,20 @@ class HTMLStatsGenerator:
                         // Add totals row
                         const allCounts = {{'static': 0, 'dynamic': 0, 'FLE': 0, 'sort': 0, '!mismatch!': 0}};
                         let grandTotal = 0;
+                        let totalRegisterSize = 0;
                         registers.forEach(register => {{
                             const counts = vidStats[register].counts || {{}};
                             Object.keys(allCounts).forEach(status => {{
                                 allCounts[status] += counts[status] || 0;
                             }});
                             grandTotal += vidStats[register].total || 0;
+                            totalRegisterSize += vidStats[register].register_size || 0;
                         }});
 
                         html += `
                             <tr style="background: #f8f9fa; font-weight: 600;">
                                 <td><strong>TOTAL</strong></td>
+                                <td><strong>${{totalRegisterSize.toLocaleString()}}</strong> bits</td>
                                 <td><strong>${{grandTotal}}</strong></td>
                                 <td><strong>${{allCounts.static}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.static / grandTotal).toFixed(1)}}%)</span></td>
                                 <td><strong>${{allCounts.dynamic}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
@@ -2126,6 +2134,22 @@ class HTMLStatsGenerator:
                     }});
 
                     contentDiv.innerHTML = html;
+                }}
+
+                function downloadUnitDataCSV() {{
+                    // Get the actual filename from statsData
+                    const filename = statsData.unit_data_csv_filename || `S_UnitData_by_Fuse_${{statsData.fusefilename}}.csv`;
+                    
+                    // Create a link to open the CSV file (same directory as HTML)
+                    const link = document.createElement('a');
+                    link.href = filename;
+                    link.download = filename;
+                    link.target = '_blank';
+                    
+                    // Trigger download/open
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }}
 
                 function loadITFContent() {{
