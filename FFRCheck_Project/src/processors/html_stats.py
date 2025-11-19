@@ -446,29 +446,19 @@ class HTMLStatsGenerator:
         
         # Build per-unit per-register breakdown
         per_unit_register_stats = {}
+        
+        # Load register sizes from fuseDef.json
+        register_sizes = self._get_register_sizes_from_json()
+        
         for vid in visual_ids:
             status_col = f'{vid}_StatusCheck'
             register_stats = defaultdict(lambda: Counter())
-            
-            register_bitsize = defaultdict(int)
             
             for row in unit_data_rows:
                 register = row.get('RegisterName', row.get('Register', 'Unknown'))
                 status = row.get(status_col, 'N/A')
                 if status:
                     register_stats[register][status] += 1
-                
-                # Calculate bit size from StartAddress and EndAddress
-                start_addr = row.get('StartAddress_fuseDef', '')
-                end_addr = row.get('EndAddress_fuseDef', '')
-                if start_addr and end_addr:
-                    try:
-                        start = int(start_addr, 16) if isinstance(start_addr, str) and start_addr.startswith('0x') else int(start_addr)
-                        end = int(end_addr, 16) if isinstance(end_addr, str) and end_addr.startswith('0x') else int(end_addr)
-                        bit_size = end - start + 1
-                        register_bitsize[register] += bit_size
-                    except (ValueError, TypeError):
-                        pass
             
             # Convert to regular dict and calculate percentages
             per_unit_register_stats[vid] = {}
@@ -477,7 +467,7 @@ class HTMLStatsGenerator:
                 per_unit_register_stats[vid][register] = {
                     'counts': dict(counts),
                     'total': total,
-                    'total_bitsize': register_bitsize[register],
+                    'register_size': register_sizes.get(register, 0),
                     'percentages': {
                         status: round(100.0 * count / total, 1) if total > 0 else 0
                         for status, count in counts.items()
@@ -490,8 +480,39 @@ class HTMLStatsGenerator:
             "statuscheck_by_vid": statuscheck_counts,
             "overall_statuscheck": dict(overall_counts),
             "statuscheck_percentages": statuscheck_percentages,
-            "per_unit_register_stats": per_unit_register_stats
+            "per_unit_register_stats": per_unit_register_stats,
+            "register_sizes": register_sizes
         }
+    
+    def _get_register_sizes_from_json(self):
+        """Extract register sizes directly from fuseDef.json."""
+        import json
+        register_sizes = {}
+        
+        # Find fuseDef.json file
+        json_file = self.input_dir / 'fuseDef.json'
+        if not json_file.exists():
+            print(f"⚠️  fuseDef.json not found at {json_file}")
+            return register_sizes
+        
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            if 'Registers' in data:
+                for register in data['Registers']:
+                    register_size = register.get('Size', 0)
+                    registers_data = register.get('RegistersData', [])
+                    for reg_data in registers_data:
+                        register_name = reg_data.get('RegisterName', '')
+                        if register_name:
+                            register_sizes[register_name] = register_size
+            
+            print(f"✅ Loaded register sizes for {len(register_sizes)} registers from fuseDef.json")
+        except Exception as e:
+            print(f"⚠️  Error reading fuseDef.json: {e}")
+        
+        return register_sizes
     
     def generate_html_report(self):
         """Generate complete interactive HTML statistics report.
@@ -1967,13 +1988,15 @@ class HTMLStatsGenerator:
                         let grandTotal = 0;
                         let totalBitSize = 0;
                         
+                        // Calculate total register size for this visual ID
+                        let totalRegisterSize = 0;
                         registers.forEach(register => {{
                             const counts = vidStats[register].counts || {{}};
                             Object.keys(totalCounts).forEach(status => {{
                                 totalCounts[status] += counts[status] || 0;
                             }});
                             grandTotal += vidStats[register].total || 0;
-                            totalBitSize += vidStats[register].total_bitsize || 0;
+                            totalRegisterSize += vidStats[register].register_size || 0;
                         }});
 
                         const registerList = registers.join(', ');
@@ -1983,7 +2006,7 @@ class HTMLStatsGenerator:
                                 <td><strong>${{vid}}</strong></td>
                                 <td style="font-size: 0.9em;">${{registerList}}</td>
                                 <td><strong>${{grandTotal}}</strong></td>
-                                <td><strong>${{totalBitSize.toLocaleString()}}</strong> bits</td>
+                                <td><strong>${{totalRegisterSize.toLocaleString()}}</strong> bits</td>
                                 <td>${{totalCounts.static}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.static / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.dynamic}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
                                 <td>${{totalCounts.FLE}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.FLE / grandTotal).toFixed(1)}}%)</span></td>
