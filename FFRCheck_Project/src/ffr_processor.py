@@ -58,7 +58,7 @@ class FFRProcessor:
         self.fusefilename = self._determine_fusefilename()
         
         # Initialize HTML stats generator
-        self.html_stats = HTMLStatsGenerator(self.output_dir, self.fusefilename)
+        self.html_stats = HTMLStatsGenerator(self.output_dir, self.fusefilename, self.input_dir)
         
         # Parse target QDFs if provided
         self.target_qdf_set = self._parse_target_qdfs(sspec_qdf) if sspec_qdf else set()

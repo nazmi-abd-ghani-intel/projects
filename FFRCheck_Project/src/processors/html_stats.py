@@ -9,9 +9,10 @@ from collections import Counter, defaultdict
 class HTMLStatsGenerator:
     """Generates interactive HTML statistics report with structured statsData object."""
     
-    def __init__(self, output_dir, fusefilename):
+    def __init__(self, output_dir, fusefilename, input_dir=None):
         self.output_dir = Path(output_dir)
         self.fusefilename = fusefilename
+        self.input_dir = Path(input_dir) if input_dir else None
         
     def _read_csv_rows(self, csv_file):
         """Read CSV file and return list of row dictionaries."""
@@ -488,6 +489,11 @@ class HTMLStatsGenerator:
         """Extract register sizes directly from fuseDef.json."""
         import json
         register_sizes = {}
+        
+        # Check if input_dir is available
+        if not self.input_dir:
+            print("⚠️  input_dir not available for reading fuseDef.json")
+            return register_sizes
         
         # Find fuseDef.json file
         json_file = self.input_dir / 'fuseDef.json'
