@@ -451,7 +451,7 @@ class HTMLStatsGenerator:
             register_stats = defaultdict(lambda: Counter())
             
             for row in unit_data_rows:
-                register = row.get('Register', 'Unknown')
+                register = row.get('RegisterName', row.get('Register', 'Unknown'))
                 status = row.get(status_col, 'N/A')
                 if status:
                     register_stats[register][status] += 1
@@ -1922,6 +1922,72 @@ class HTMLStatsGenerator:
                             <p><strong>Excel Formula:</strong> <code>=SEARCH("!mismatch!",cell)>0</code> → Fill with red background</p>
                         </div>
                     `;
+
+                    // High-Level Summary: All Visual IDs Combined
+                    html += `
+                        <div class="data-section">
+                            <h2>🎯 High-Level Summary - All Visual IDs</h2>
+                            <div class="table-container">
+                                <table class="register-analysis-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Visual ID</th>
+                                            <th>Registers</th>
+                                            <th>Total Fuses</th>
+                                            <th style="background: #28a745;">Static</th>
+                                            <th style="background: #007bff;">Dynamic</th>
+                                            <th style="background: #6f42c1;">FLE</th>
+                                            <th style="background: #ffc107; color: #000;">Sort</th>
+                                            <th style="background: #dc3545;">!mismatch!</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                    // Calculate summary for each Visual ID
+                    visualIds.forEach(vid => {{
+                        const vidStats = perUnitStats[vid] || {{}};
+                        const registers = Object.keys(vidStats).sort();
+                        
+                        // Aggregate counts across all registers for this visualID
+                        const totalCounts = {{'static': 0, 'dynamic': 0, 'FLE': 0, 'sort': 0, '!mismatch!': 0}};
+                        let grandTotal = 0;
+                        
+                        registers.forEach(register => {{
+                            const counts = vidStats[register].counts || {{}};
+                            Object.keys(totalCounts).forEach(status => {{
+                                totalCounts[status] += counts[status] || 0;
+                            }});
+                            grandTotal += vidStats[register].total || 0;
+                        }});
+
+                        const registerList = registers.join(', ');
+                        
+                        html += `
+                            <tr>
+                                <td><strong>${{vid}}</strong></td>
+                                <td style="font-size: 0.9em;">${{registerList}}</td>
+                                <td><strong>${{grandTotal}}</strong></td>
+                                <td>${{totalCounts.static}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.static / grandTotal).toFixed(1)}}%)</span></td>
+                                <td>${{totalCounts.dynamic}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
+                                <td>${{totalCounts.FLE}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.FLE / grandTotal).toFixed(1)}}%)</span></td>
+                                <td>${{totalCounts.sort}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts.sort / grandTotal).toFixed(1)}}%)</span></td>
+                                <td style="background: ${{totalCounts['!mismatch!'] > 0 ? '#ffe6e6' : 'transparent'}}; font-weight: ${{totalCounts['!mismatch!'] > 0 ? 'bold' : 'normal'}}; color: ${{totalCounts['!mismatch!'] > 0 ? '#dc3545' : 'inherit'}};">
+                                    ${{totalCounts['!mismatch!']}} <span style="color: #666; font-size: 0.9em;">(${{(100 * totalCounts['!mismatch!'] / grandTotal).toFixed(1)}}%)</span>
+                                </td>
+                            </tr>
+                        `;
+                    }});
+
+                    html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+
+                    // Per-Visual ID Detailed Breakdown
+                    html += '<div class="data-section"><h2>📋 Detailed Per-Visual ID Breakdown</h2></div>';
 
                     // Create tabs for each visual ID
                     visualIds.forEach((vid, index) => {{
