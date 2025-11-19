@@ -143,7 +143,7 @@ def main():
                 headers = [
                     'dff_token_id_MTL', 'token_name_MTL', 'first_socket_upload_MTL', 'upload_process_step_MTL',
                     'ssid_MTL', 'ref_level_MTL', 'module_MTL', 'field_name_MTL', 'field_name_seq_MTL',
-                    'fuse_name_ori_MTL', 'fuse_name_MTL', 'fuse_register_ori_MTL', 'fuse_register_MTL'
+                    'fuse_name_ori_MTL', 'fuse_name_MTL', 'fuse_register_ori_MTL', 'fuse_register_MTL', 'global_type_MTL'
                 ]
                 suffixed_data = [{f"{k}_MTL": v for k, v in row.items()} for row in xml_data]
                 processor.write_csv_optimized(suffixed_data, xml_output_csv, headers)

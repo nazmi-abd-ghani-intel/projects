@@ -271,7 +271,7 @@ class CSVProcessor:
                 }
             per_register_stats[register]['total_tokens'] += 1
             
-            # Build output row with ALL 13 XML columns using _MTL suffix
+            # Build output row with ALL 14 XML columns using _MTL suffix
             output_row = {
                 'dff_token_id_MTL': xml_row.get('dff_token_id', ''),
                 'token_name_MTL': token_name,
@@ -285,7 +285,8 @@ class CSVProcessor:
                 'fuse_name_ori_MTL': xml_row.get('fuse_name_ori', ''),
                 'fuse_name_MTL': xml_row.get('fuse_name', ''),
                 'fuse_register_ori_MTL': xml_row.get('fuse_register_ori', ''),
-                'fuse_register_MTL': register
+                'fuse_register_MTL': register,
+                'global_type_MTL': xml_row.get('global_type', '')
             }
             
             # Lookup UBE data
@@ -341,13 +342,13 @@ class CSVProcessor:
             
             combined_rows.append(output_row)
         
-        # Define column order - ALL 13 XML fields with _MTL suffix + visual IDs
+        # Define column order - ALL 14 XML fields with _MTL suffix + visual IDs
         base_columns = [
             'dff_token_id_MTL', 'token_name_MTL', 'first_socket_upload_MTL', 
             'upload_process_step_MTL', 'ssid_MTL', 'ref_level_MTL', 
             'module_MTL', 'field_name_MTL', 'field_name_seq_MTL', 
             'fuse_name_ori_MTL', 'fuse_name_MTL', 'fuse_register_ori_MTL', 
-            'fuse_register_MTL'
+            'fuse_register_MTL', 'global_type_MTL'
         ]
         all_columns = base_columns + sorted(visual_ids)
         

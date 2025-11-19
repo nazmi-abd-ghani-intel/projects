@@ -56,6 +56,7 @@ class XMLParser:
                 ssid = element.findtext('ssid', '')
                 ref_level = element.findtext('ref_level', '')
                 module = element.findtext('module', '')
+                global_type = element.findtext('global_type', '')
                 
                 # Find all ValueDecoderField elements within ValueDecoder
                 value_decoder = element.find('ValueDecoder')
@@ -84,7 +85,8 @@ class XMLParser:
                                     'fuse_name_ori': fuse_name_original,
                                     'fuse_name': pair['fuse_name'],
                                     'fuse_register_ori': fuse_register_original,
-                                    'fuse_register': pair['fuse_register']
+                                    'fuse_register': pair['fuse_register'],
+                                    'global_type': global_type
                                 }
                                 csv_data.append(row_data)
                     else:
@@ -102,7 +104,8 @@ class XMLParser:
                             'fuse_name_ori': '',
                             'fuse_name': '',
                             'fuse_register_ori': '',
-                            'fuse_register': ''
+                            'fuse_register': '',
+                            'global_type': global_type
                         }
                         csv_data.append(row_data)
             

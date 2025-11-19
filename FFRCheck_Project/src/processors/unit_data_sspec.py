@@ -134,6 +134,73 @@ class UnitDataSspecProcessor:
         except ValueError:
             return ''
     
+    def convert_dff_to_hex(self, dff_val: str, global_type: str = '') -> str:
+        """
+        Convert DFF value to hex based on global_type from XML.
+        
+        Args:
+            dff_val: DFF value from UBE file
+            global_type: Type from MTL_OLF.xml (STRING/INTEGER/BINARY/HEX)
+            
+        Returns:
+            Hex string with 0X prefix or 'N/A' if conversion fails
+        """
+        if not dff_val or dff_val in ('N/A', '-999'):
+            return 'N/A'
+        
+        try:
+            # Check if already hex format (with 0X prefix)
+            if dff_val.upper().startswith('0X'):
+                return dff_val.upper()
+            
+            # Use global_type if available for deterministic conversion
+            if global_type:
+                global_type_upper = global_type.upper()
+                
+                if global_type_upper == 'BINARY':
+                    # Binary format: convert binary string to hex
+                    if all(c in '01' for c in dff_val):
+                        return '0X' + hex(int(dff_val, 2))[2:].upper()
+                    else:
+                        return 'N/A'
+                
+                elif global_type_upper == 'INTEGER':
+                    # Decimal format: convert decimal to hex
+                    return '0X' + hex(int(dff_val, 10))[2:].upper()
+                
+                elif global_type_upper in ('HEX', 'STRING'):
+                    # Hex format (STRING assumption as per user request)
+                    return '0X' + hex(int(dff_val, 16))[2:].upper()
+            
+            # Fallback: Try all possible formats (original behavior)
+            candidates = []
+            
+            # Try binary (only if all chars are 0 or 1)
+            if all(c in '01' for c in dff_val):
+                try:
+                    candidates.append('0X' + hex(int(dff_val, 2))[2:].upper())
+                except ValueError:
+                    pass
+            
+            # Try hex (if contains A-F or valid hex digits)
+            try:
+                candidates.append('0X' + hex(int(dff_val, 16))[2:].upper())
+            except ValueError:
+                pass
+            
+            # Try decimal (only if all digits)
+            if dff_val.isdigit():
+                try:
+                    candidates.append('0X' + hex(int(dff_val, 10))[2:].upper())
+                except ValueError:
+                    pass
+            
+            # Return first valid candidate or N/A
+            return candidates[0] if candidates else 'N/A'
+            
+        except (ValueError, AttributeError):
+            return 'N/A'
+    
     def load_itf_fullstring_data(self, itf_file: Path) -> Dict[str, Dict[str, str]]:
         """
         Load ITF fullstring data and organize by visualID and register.
@@ -191,10 +258,13 @@ class UnitDataSspecProcessor:
         
         # Load DFF data if available
         dff_data = {}
+        global_type_map = {}
         if dff_file and dff_file.exists():
-            dff_data = self.load_dff_data(dff_file, visual_ids)
+            dff_data, global_type_map = self.load_dff_data(dff_file, visual_ids)
             if dff_data:
                 print(f"  Loaded DFF data for comparison")
+                if global_type_map:
+                    print(f"  Loaded global_type mapping for {len(global_type_map)} fuses")
         
         # Load FLE fuses if available
         fle_fuses = set()
@@ -299,50 +369,13 @@ class UnitDataSspecProcessor:
                     elif dff_val == 'FLE':
                         status_check = 'FLE'
                     elif dff_val != 'N/A' and hex_value and hex_value != 'N/A':
-                        # Check if DFF value matches ITF hex
-                        # DFF can be binary, decimal, or hex (with or without 0X prefix)
-                        # Strategy: Try all possible interpretations and use the one that matches ITF
-                        dff_as_hex = 'N/A'
-                        if dff_val:
-                            try:
-                                # Check if already hex format (with 0X prefix)
-                                if dff_val.upper().startswith('0X'):
-                                    dff_as_hex = dff_val.upper()
-                                else:
-                                    # Try all possible formats and check which matches ITF
-                                    candidates = []
-                                    
-                                    # Try binary (only if all chars are 0 or 1)
-                                    if all(c in '01' for c in dff_val):
-                                        try:
-                                            candidates.append(hex(int(dff_val, 2)).upper())
-                                        except ValueError:
-                                            pass
-                                    
-                                    # Try hex (if contains A-F or valid hex digits)
-                                    try:
-                                        candidates.append(hex(int(dff_val, 16)).upper())
-                                    except ValueError:
-                                        pass
-                                    
-                                    # Try decimal (only if all digits, for values like "38", "13")
-                                    if dff_val.isdigit():
-                                        try:
-                                            candidates.append(hex(int(dff_val, 10)).upper())
-                                        except ValueError:
-                                            pass
-                                    
-                                    # Check which candidate matches ITF
-                                    for candidate in candidates:
-                                        if candidate == hex_value.upper():
-                                            dff_as_hex = candidate
-                                            break
-                                    
-                                    # If no match, use first candidate as default
-                                    if dff_as_hex == 'N/A' and candidates:
-                                        dff_as_hex = candidates[0]
-                            except (ValueError, AttributeError):
-                                pass
+                        # Get global_type for this fuse to determine DFF format
+                        dff_key_group = f"{fuse_group}|{register_name}"
+                        dff_key_fuse = f"{fuse_name}|{register_name}"
+                        global_type = global_type_map.get(dff_key_group, global_type_map.get(dff_key_fuse, ''))
+                        
+                        # Convert DFF to hex using global_type for deterministic conversion
+                        dff_as_hex = self.convert_dff_to_hex(dff_val, global_type)
                         
                         if dff_as_hex == hex_value.upper():
                             status_check = 'dynamic'
@@ -394,9 +427,12 @@ class UnitDataSspecProcessor:
             visual_ids: List of visual IDs to load
             
         Returns:
-            Dict mapping visual_id -> {fuse_name|register: value}
+            Tuple of (dff_data, global_type_map)
+            - dff_data: Dict mapping visual_id -> {fuse_name|register: value}
+            - global_type_map: Dict mapping {fuse_name|register: global_type}
         """
         dff_data = {vid: {} for vid in visual_ids}
+        global_type_map = {}
         
         try:
             with open(dff_file, 'r', encoding='utf-8') as f:
@@ -405,18 +441,23 @@ class UnitDataSspecProcessor:
                 for row in reader:
                     fuse_name = row.get('fuse_name_MTL', '')
                     register = row.get('fuse_register_MTL', '')
+                    global_type = row.get('global_type_MTL', '')
                     
                     if fuse_name and register:
                         key = f"{fuse_name}|{register}"
+                        
+                        # Store global_type for this fuse
+                        if global_type and key not in global_type_map:
+                            global_type_map[key] = global_type
                         
                         for vid in visual_ids:
                             if vid in row:
                                 dff_data[vid][key] = row[vid]
             
-            return dff_data
+            return dff_data, global_type_map
         except Exception as e:
             print(f"⚠️  Error loading DFF data: {e}")
-            return {}
+            return {}, {}
     
     def load_fle_fuses(self, input_dir: Path) -> Set[str]:
         """
