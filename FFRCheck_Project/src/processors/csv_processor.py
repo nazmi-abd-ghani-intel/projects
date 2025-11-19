@@ -59,6 +59,31 @@ class CSVProcessor:
         print(f"JSON records: {len(json_data)}")
         print("-" * 60)
         
+        # Build index dictionaries for fast lookup (O(1) instead of O(n))
+        print("📊 Building lookup indices for faster matching...")
+        register_index = {}
+        fusegroup_index = {}
+        fusename_index = {}
+        
+        for json_row in json_data:
+            register_name = json_row.get('RegisterName', '').strip()
+            fusegroup_name = json_row.get('FuseGroup_Name', '').strip()
+            fuse_name = json_row.get('Fuse_Name', '').strip()
+            
+            # Index by RegisterName (first match only)
+            if register_name and register_name not in register_index:
+                register_index[register_name] = json_row
+            
+            # Index by FuseGroup_Name
+            if fusegroup_name:
+                fusegroup_index[fusegroup_name] = json_row
+            
+            # Index by Fuse_Name
+            if fuse_name:
+                fusename_index[fuse_name] = json_row
+        
+        print(f"✅ Indices built: {len(register_index)} registers, {len(fusegroup_index)} fusegroups, {len(fusename_index)} fusenames")
+        
         combined_data = []
         mismatch_details = {
             'register_mismatches': [],
@@ -74,40 +99,38 @@ class CSVProcessor:
             'mismatch_tokens': []
         })
         
-        for xml_row in xml_data:
+        # Progress indicator for large datasets
+        total_rows = len(xml_data)
+        progress_interval = max(1, total_rows // 10)  # Show progress every 10%
+        
+        for idx, xml_row in enumerate(xml_data):
+            if (idx + 1) % progress_interval == 0:
+                print(f"  Processing: {idx + 1}/{total_rows} ({100 * (idx + 1) // total_rows}%)")
+            
             xml_fuse_register = xml_row.get('fuse_register', '').strip()
             xml_fuse_name = xml_row.get('fuse_name', '').strip()
             
+            # Fast dictionary lookup instead of nested loop
             register_match = 'no-match'
             fusegroup_match = 'no-match'
             fusename_match = 'no-match'
             matched_json_row_for_register = None
             matched_json_row_for_fuse = None
             
-            for json_row in json_data:
-                json_register_name = json_row.get('RegisterName', '').strip()
-                json_fusegroup_name = json_row.get('FuseGroup_Name', '').strip()
-                json_fuse_name = json_row.get('Fuse_Name', '').strip()
-                
-                reg_match = (xml_fuse_register == json_register_name) if xml_fuse_register and json_register_name else False
-                group_match = (xml_fuse_name == json_fusegroup_name) if xml_fuse_name and json_fusegroup_name else False
-                name_match = (xml_fuse_name == json_fuse_name) if xml_fuse_name and json_fuse_name else False
-                
-                if reg_match:
-                    register_match = 'match'
-                    if matched_json_row_for_register is None:
-                        matched_json_row_for_register = json_row
-                
-                if group_match:
-                    fusegroup_match = 'match'
-                    matched_json_row_for_fuse = json_row
-                
-                if name_match:
-                    fusename_match = 'match'
-                    matched_json_row_for_fuse = json_row
-                
-                if reg_match and (group_match or name_match):
-                    break
+            # Check register match (O(1) lookup)
+            if xml_fuse_register and xml_fuse_register in register_index:
+                register_match = 'match'
+                matched_json_row_for_register = register_index[xml_fuse_register]
+            
+            # Check fusegroup match (O(1) lookup)
+            if xml_fuse_name and xml_fuse_name in fusegroup_index:
+                fusegroup_match = 'match'
+                matched_json_row_for_fuse = fusegroup_index[xml_fuse_name]
+            
+            # Check fusename match (O(1) lookup)
+            if xml_fuse_name and xml_fuse_name in fusename_index:
+                fusename_match = 'match'
+                matched_json_row_for_fuse = fusename_index[xml_fuse_name]
             
             mismatch_row_data = {
                 'token_name_MTL': xml_row.get('token_name', ''),
