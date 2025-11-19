@@ -138,7 +138,7 @@ class ConsoleLogger:
                 sys.stdout = Tee(self.original_stdout, self.log_file)
                 sys.stderr = Tee(self.original_stderr, self.log_file)
                 
-                print(f"Console logging enabled: {self.log_file_path}")
+                print(f"Fuse File Release Status Check - Console logging enabled: {self.log_file_path}")
             except Exception as e:
                 print(f"Warning: Could not enable console logging: {e}")
         
@@ -156,6 +156,6 @@ class ConsoleLogger:
             self.log_file.close()
             
             if not exc_type:
-                print(f"Console log saved to: {self.log_file_path}")
+                print(f"Fuse File Release Status Check - Console log saved to: {self.log_file_path}")
         
         return False

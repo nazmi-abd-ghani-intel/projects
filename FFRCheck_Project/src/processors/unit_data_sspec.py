@@ -411,10 +411,21 @@ class UnitDataSspecProcessor:
             writer.writeheader()
             writer.writerows(processed_rows)
         
+        # Count mismatches for reporting
+        mismatch_count = 0
+        for row in processed_rows:
+            for vid in visual_ids:
+                if row.get(f'{vid}_StatusCheck') == '!mismatch!':
+                    mismatch_count += 1
+                    break  # Count each row only once
+        
         print(f"✅ Created: {output_file.name} ({len(processed_rows)} rows)")
         print(f"   Added columns for {len(visual_ids)} units")
         if dff_data:
             print(f"   Includes DFF comparison data")
+        if mismatch_count > 0:
+            print(f"   ⚠️  Found {mismatch_count} rows with !mismatch! status")
+            print(f"   💡 Tip: Apply conditional formatting in Excel to highlight '!mismatch!' cells in red")
         
         return True
     

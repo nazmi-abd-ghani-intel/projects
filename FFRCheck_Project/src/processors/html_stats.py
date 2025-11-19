@@ -444,12 +444,38 @@ class HTMLStatsGenerator:
                 "percentage": round(100.0 * count / total_fuses, 1) if total_fuses > 0 else 0
             }
         
+        # Build per-unit per-register breakdown
+        per_unit_register_stats = {}
+        for vid in visual_ids:
+            status_col = f'{vid}_StatusCheck'
+            register_stats = defaultdict(lambda: Counter())
+            
+            for row in unit_data_rows:
+                register = row.get('Register', 'Unknown')
+                status = row.get(status_col, 'N/A')
+                if status:
+                    register_stats[register][status] += 1
+            
+            # Convert to regular dict and calculate percentages
+            per_unit_register_stats[vid] = {}
+            for register, counts in register_stats.items():
+                total = sum(counts.values())
+                per_unit_register_stats[vid][register] = {
+                    'counts': dict(counts),
+                    'total': total,
+                    'percentages': {
+                        status: round(100.0 * count / total, 1) if total > 0 else 0
+                        for status, count in counts.items()
+                    }
+                }
+        
         return {
             "total_fuses": total_fuses,
-            "visual_ids": list(visual_ids),
+            "visual_ids": sorted(list(visual_ids)),
             "statuscheck_by_vid": statuscheck_counts,
             "overall_statuscheck": dict(overall_counts),
-            "statuscheck_percentages": statuscheck_percentages
+            "statuscheck_percentages": statuscheck_percentages,
+            "per_unit_register_stats": per_unit_register_stats
         }
     
     def generate_html_report(self):
@@ -1144,6 +1170,7 @@ class HTMLStatsGenerator:
             <button class="nav-tab" onclick="showTab('matching')">🔗 Matching Analysis</button>
             <button class="nav-tab" onclick="showTab('dff')">🔍 DFF Check</button>
             <button class="nav-tab" onclick="showTab('statuscheck')">✅ DFF-ITF StatusCheck</button>
+            <button class="nav-tab" onclick="showTab('unitsummary')">📊 Unit Summary</button>
             <button class="nav-tab" onclick="showTab('itf')">📋 ITF Data</button>
             <button class="nav-tab" onclick="showTab('sspec')">🔧 Sspec Breakdown</button>
         </div>
@@ -1160,6 +1187,7 @@ class HTMLStatsGenerator:
         <div id="matching" class="tab-content"><h2>🔗 Matching Analysis</h2><div id="matching-content"></div></div>
         <div id="dff" class="tab-content"><h2>🎯 DFF MTL-OLF Analysis</h2><div id="dff-content"></div></div>
         <div id="statuscheck" class="tab-content"><h2>✅ DFF-ITF StatusCheck Analysis</h2><div id="statuscheck-content"></div></div>
+        <div id="unitsummary" class="tab-content"><h2>📊 Per-Unit StatusCheck Summary</h2><div id="unitsummary-content"></div></div>
         <div id="sspec" class="tab-content"><h2>🧬 SSPEC Breakdown Analysis</h2><div id="sspec-content"></div></div>
         <div id="itf" class="tab-content"><h2>📋 ITF Analysis</h2><div id="itf-content"></div></div>
         
@@ -1189,6 +1217,7 @@ class HTMLStatsGenerator:
                         'matching': loadMatchingContent,
                         'dff': loadDFFContent,
                         'statuscheck': loadStatusCheckContent,
+                        'unitsummary': loadUnitSummaryContent,
                         'sspec': loadSspecContent,
                         'itf': loadITFContent
                     }};
@@ -1872,6 +1901,119 @@ class HTMLStatsGenerator:
                     }}
 
                     html += '</div>';
+                    contentDiv.innerHTML = html;
+                }}
+
+                function loadUnitSummaryContent() {{
+                    const contentDiv = document.getElementById('unitsummary-content');
+                    if (!statsData.statuscheck || !statsData.statuscheck.per_unit_register_stats) {{
+                        contentDiv.innerHTML = '<div class="alert alert-info">No per-unit summary data available</div>';
+                        return;
+                    }}
+
+                    const perUnitStats = statsData.statuscheck.per_unit_register_stats;
+                    const visualIds = statsData.statuscheck.visual_ids || [];
+
+                    let html = `
+                        <div class="alert alert-info">
+                            <h4>📊 Per-Unit StatusCheck Summary by Register</h4>
+                            <p>This tab shows detailed StatusCheck breakdown for each visual ID across all registers, sorted by register name.</p>
+                            <p><strong>💡 Tip:</strong> In the S_UnitData_by_Fuse CSV file, apply conditional formatting in Excel to highlight cells containing "!mismatch!" in red for easy identification.</p>
+                            <p><strong>Excel Formula:</strong> <code>=SEARCH("!mismatch!",cell)>0</code> → Fill with red background</p>
+                        </div>
+                    `;
+
+                    // Create tabs for each visual ID
+                    visualIds.forEach((vid, index) => {{
+                        const vidStats = perUnitStats[vid] || {{}};
+                        const registers = Object.keys(vidStats).sort();
+                        
+                        html += `
+                            <div class="data-section">
+                                <h2>👁️ Visual ID: ${{vid}}</h2>
+                                <div class="table-container">
+                                    <table class="register-analysis-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Register</th>
+                                                <th>Total Fuses</th>
+                                                <th style="background: #28a745;">Static</th>
+                                                <th style="background: #007bff;">Dynamic</th>
+                                                <th style="background: #6f42c1;">FLE</th>
+                                                <th style="background: #ffc107; color: #000;">Sort</th>
+                                                <th style="background: #dc3545;">!mismatch!</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                        `;
+
+                        registers.forEach(register => {{
+                            const regData = vidStats[register];
+                            const counts = regData.counts || {{}};
+                            const percentages = regData.percentages || {{}};
+                            const total = regData.total || 0;
+
+                            const staticCount = counts.static || 0;
+                            const dynamicCount = counts.dynamic || 0;
+                            const fleCount = counts.FLE || 0;
+                            const sortCount = counts.sort || 0;
+                            const mismatchCount = counts['!mismatch!'] || 0;
+
+                            const staticPct = percentages.static || 0;
+                            const dynamicPct = percentages.dynamic || 0;
+                            const flePct = percentages.FLE || 0;
+                            const sortPct = percentages.sort || 0;
+                            const mismatchPct = percentages['!mismatch!'] || 0;
+
+                            html += `
+                                <tr>
+                                    <td><strong>${{register}}</strong></td>
+                                    <td>${{total}}</td>
+                                    <td>${{staticCount}} <span style="color: #666; font-size: 0.9em;">(${{staticPct}}%)</span></td>
+                                    <td>${{dynamicCount}} <span style="color: #666; font-size: 0.9em;">(${{dynamicPct}}%)</span></td>
+                                    <td>${{fleCount}} <span style="color: #666; font-size: 0.9em;">(${{flePct}}%)</span></td>
+                                    <td>${{sortCount}} <span style="color: #666; font-size: 0.9em;">(${{sortPct}}%)</span></td>
+                                    <td style="background: ${{mismatchCount > 0 ? '#ffe6e6' : 'transparent'}}; font-weight: ${{mismatchCount > 0 ? 'bold' : 'normal'}}; color: ${{mismatchCount > 0 ? '#dc3545' : 'inherit'}};">
+                                        ${{mismatchCount}} <span style="color: #666; font-size: 0.9em;">(${{mismatchPct}}%)</span>
+                                    </td>
+                                </tr>
+                            `;
+                        }});
+
+                        // Add totals row
+                        const allCounts = {{'static': 0, 'dynamic': 0, 'FLE': 0, 'sort': 0, '!mismatch!': 0}};
+                        let grandTotal = 0;
+                        registers.forEach(register => {{
+                            const counts = vidStats[register].counts || {{}};
+                            Object.keys(allCounts).forEach(status => {{
+                                allCounts[status] += counts[status] || 0;
+                            }});
+                            grandTotal += vidStats[register].total || 0;
+                        }});
+
+                        html += `
+                            <tr style="background: #f8f9fa; font-weight: 600;">
+                                <td><strong>TOTAL</strong></td>
+                                <td><strong>${{grandTotal}}</strong></td>
+                                <td><strong>${{allCounts.static}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.static / grandTotal).toFixed(1)}}%)</span></td>
+                                <td><strong>${{allCounts.dynamic}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.dynamic / grandTotal).toFixed(1)}}%)</span></td>
+                                <td><strong>${{allCounts.FLE}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.FLE / grandTotal).toFixed(1)}}%)</span></td>
+                                <td><strong>${{allCounts.sort}}</strong> <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts.sort / grandTotal).toFixed(1)}}%)</span></td>
+                                <td style="background: ${{allCounts['!mismatch!'] > 0 ? '#ffcccc' : 'transparent'}};">
+                                    <strong style="color: ${{allCounts['!mismatch!'] > 0 ? '#dc3545' : 'inherit'}};">${{allCounts['!mismatch!']}}</strong> 
+                                    <span style="color: #666; font-size: 0.9em; font-weight: normal;">(${{(100 * allCounts['!mismatch!'] / grandTotal).toFixed(1)}}%)</span>
+                                </td>
+                            </tr>
+                        `;
+
+                        html += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `;
+                    }});
+
                     contentDiv.innerHTML = html;
                 }}
 

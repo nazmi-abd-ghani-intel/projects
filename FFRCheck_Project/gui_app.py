@@ -16,7 +16,7 @@ import queue
 class FFRCheckGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("FFR Check - Fuse Fuse Register Checker")
+        self.root.title("FFR Check - Fuse File Release Checker")
         self.root.geometry("900x700")
         
         # Load config if exists
