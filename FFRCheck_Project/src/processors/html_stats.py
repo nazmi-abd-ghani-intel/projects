@@ -601,18 +601,21 @@ class HTMLStatsGenerator:
         .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 35px;
             border-radius: 8px 8px 0 0;
         }}
         
         .header h1 {{
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 36px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }}
         
         .header p {{
-            opacity: 0.9;
-            font-size: 14px;
+            opacity: 0.95;
+            font-size: 16px;
+            line-height: 1.6;
         }}
         
         .nav-tabs {{
@@ -625,12 +628,15 @@ class HTMLStatsGenerator:
         }}
         
         .nav-tab {{
-            padding: 10px 20px;
+            padding: 12px 24px;
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
         }}
         
         .nav-tab:hover {{
@@ -669,14 +675,17 @@ class HTMLStatsGenerator:
         }}
         
         .summary-card h3 {{
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
+            font-size: 16px;
+            opacity: 0.95;
+            margin-bottom: 12px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }}
         
         .summary-card .value {{
-            font-size: 32px;
+            font-size: 42px;
             font-weight: bold;
+            line-height: 1.2;
         }}
         
         .data-section {{
@@ -687,9 +696,11 @@ class HTMLStatsGenerator:
         }}
         
         .data-section h2 {{
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 18px;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }}
         
         .data-grid {{
@@ -707,15 +718,19 @@ class HTMLStatsGenerator:
         
         .data-item strong {{
             display: block;
-            color: #666;
-            font-size: 12px;
-            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }}
         
         .data-item span {{
-            font-size: 18px;
-            color: #333;
+            font-size: 22px;
+            color: #2c3e50;
             font-weight: bold;
+            line-height: 1.4;
         }}
         
         .expandable {{
@@ -807,17 +822,20 @@ class HTMLStatsGenerator:
         }}
         
         th, td {{
-            padding: 12px;
+            padding: 14px 16px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
+            font-size: 14px;
+            line-height: 1.5;
         }}
         
         th {{
-            background: #f8f9fa;
-            font-weight: bold;
-            color: #666;
-            font-size: 12px;
+            background: #e8eaf6;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }}
         
         tr:hover {{
@@ -826,25 +844,27 @@ class HTMLStatsGenerator:
         
         .filter-section {{
             margin-bottom: 20px;
-            padding: 15px;
+            padding: 18px;
             background: #f8f9fa;
-            border-radius: 4px;
+            border-radius: 6px;
         }}
         
         .filter-section input {{
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
+            padding: 12px 14px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            line-height: 1.5;
         }}
         
         .footer {{
             text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 12px;
-            border-top: 1px solid #e0e0e0;
+            padding: 25px;
+            color: #555;
+            font-size: 14px;
+            border-top: 2px solid #e0e0e0;
+            line-height: 1.6;
         }}
         
         /* Interactive Section Styles */
@@ -869,7 +889,8 @@ class HTMLStatsGenerator:
         .section-title {{
             font-weight: 600;
             color: #2c3e50;
-            font-size: 1.1em;
+            font-size: 18px;
+            line-height: 1.4;
         }}
         
         .section-badge {{
@@ -879,10 +900,11 @@ class HTMLStatsGenerator:
         }}
         
         .badge {{
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 0.85em;
+            padding: 6px 14px;
+            border-radius: 14px;
+            font-size: 13px;
             font-weight: 600;
+            letter-spacing: 0.3px;
         }}
         
         .badge-info {{
@@ -944,7 +966,8 @@ class HTMLStatsGenerator:
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 14px;
+            font-weight: 500;
             transition: all 0.3s ease;
         }}
         
@@ -955,13 +978,14 @@ class HTMLStatsGenerator:
         }}
         
         .qdf-download-btn {{
-            padding: 6px 12px;
+            padding: 7px 14px;
             background: #3498db;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 14px;
+            font-weight: 500;
         }}
         
         .qdf-download-btn:hover {{
@@ -976,7 +1000,7 @@ class HTMLStatsGenerator:
         .data-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9em;
+            font-size: 14px;
         }}
         
         .data-table th {{
@@ -1065,15 +1089,16 @@ class HTMLStatsGenerator:
         }}
         
         .register-stat-label {{
-            color: #7f8c8d;
-            font-size: 0.9em;
+            color: #555;
+            font-size: 14px;
             margin-top: 5px;
+            font-weight: 500;
         }}
         
         .register-analysis-table {{
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9em;
+            font-size: 14px;
         }}
         
         .register-analysis-table th {{
@@ -2036,7 +2061,7 @@ class HTMLStatsGenerator:
                     if (mismatches.length > 100) {{
                         html += `
                             <tr>
-                                <td colspan="8" style="text-align: center; font-style: italic; color: #666;">
+                                <td colspan="8" style="text-align: center; font-style: italic; color: #555; font-size: 14px; padding: 20px;">
                                     Showing first 100 of ${{mismatches.length}} mismatches. Download CSV for complete data.
                                 </td>
                             </tr>
