@@ -120,6 +120,18 @@ jobs:
           name: ffr-output
           path: ${{ env.OUTPUT_DIR }}
 
+      - name: Print OUTPUT_DIR logs (headless)
+        if: always()
+        run: |
+          echo "=== OUTPUT_DIR: $OUTPUT_DIR ==="
+          if [ -d "$OUTPUT_DIR" ]; then
+            echo "Searching for logs in $OUTPUT_DIR..."
+            find "$OUTPUT_DIR" -type f \( -iname "*.log" -o -iname "*.txt" -o -iname "*.out" -o -iname "*.err" \) -print0 | \
+              xargs -0 -I{} bash -c 'echo "--- FILE: {} ---"; sed -n "1,400p" "{}" || true; echo ""'
+          else
+            echo "$OUTPUT_DIR does not exist"
+          fi
+
   gui-windows:
     name: Windows GUI smoke test
     runs-on: windows-latest
@@ -184,3 +196,19 @@ jobs:
         with:
           name: ffr-output-windows
           path: ${{ env.OUTPUT_DIR }}
+
+      - name: Print OUTPUT_DIR logs (windows)
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "=== OUTPUT_DIR: $env:OUTPUT_DIR ==="
+          if (Test-Path $env:OUTPUT_DIR) {
+            Write-Host "Searching for logs in $env:OUTPUT_DIR..."
+            Get-ChildItem -Path $env:OUTPUT_DIR -Recurse -Include *.log,*.txt,*.out,*.err -ErrorAction SilentlyContinue | ForEach-Object {
+              Write-Host "--- FILE: $($_.FullName) ---"
+              Get-Content -Path $_.FullName -TotalCount 400 -ErrorAction SilentlyContinue
+              Write-Host ""
+            }
+          } else {
+            Write-Host "$env:OUTPUT_DIR does not exist"
+          }
