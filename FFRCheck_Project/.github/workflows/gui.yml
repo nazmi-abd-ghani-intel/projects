@@ -1,0 +1,121 @@
+name: GUI Tests (Headless)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      input_dir:
+        description: 'Input directory path (optional)'
+        required: false
+        default: ''
+      output_dir:
+        description: 'Output directory path (optional)'
+        required: false
+        default: 'output'
+      sspec:
+        description: 'SSPEC (optional)'
+        required: false
+        default: ''
+      ube:
+        description: 'UBE file path (optional)'
+        required: false
+        default: ''
+
+jobs:
+  gui-headless:
+    runs-on: ubuntu-latest
+    env:
+      INPUT_DIR: ${{ github.event.inputs.input_dir }}
+      OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
+      SSPEC: ${{ github.event.inputs.sspec }}
+      UBE: ${{ github.event.inputs.ube }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install system packages (Xvfb, tkinter, imagemagick)
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb x11-utils python3-tk imagemagick
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip; pip install -r requirements.txt
+
+      - name: Start X virtual framebuffer (Xvfb)
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 &
+          sleep 2
+        env:
+          DISPLAY: ":99"
+
+      - name: Run GUI smoke test (headless)
+        run: |
+          export DISPLAY=:99
+          python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python tests/gui_smoke.py
+        env:
+          DISPLAY: ":99"
+
+      - name: Capture screenshot of a simple X11 window (diagnostic)
+        run: |
+          sleep 1
+          import -window root /tmp/screen.png || true
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-artifacts
+          path: /tmp/screen.png
+
+  gui-windows:
+    runs-on: windows-latest
+    env:
+      INPUT_DIR: ${{ github.event.inputs.input_dir }}
+      OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
+      SSPEC: ${{ github.event.inputs.sspec }}
+      UBE: ${{ github.event.inputs.ube }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pillow
+
+      - name: Run GUI smoke test on Windows
+        run: |
+          python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
+          python tests/gui_smoke.py
+
+      - name: Capture screenshot with Pillow (Windows)
+        run: |
+          python - <<'PY'
+          from PIL import ImageGrab
+          img = ImageGrab.grab()
+          img.save('screen_windows.png')
+          print('Saved screen_windows.png')
+          PY
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-artifacts-windows
+          path: screen_windows.png
