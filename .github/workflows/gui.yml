@@ -82,6 +82,16 @@ jobs:
         env:
           DISPLAY: ':99'
 
+      - name: Diagnostic: show environment and output dir (headless)
+        run: |
+          echo "PWD: $(pwd)"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo "OUTPUT_DIR=$OUTPUT_DIR"
+          echo "Listing repo root:"
+          ls -la
+          if [ -d "$OUTPUT_DIR" ]; then echo "Contents of $OUTPUT_DIR:"; ls -la "$OUTPUT_DIR"; else echo "$OUTPUT_DIR does not exist yet"; fi
+          python -c 'import sys; print("python sys.path:", sys.path)'
+
       - name: Run GUI smoke test (headless)
         run: |
           export DISPLAY=:99
@@ -103,6 +113,12 @@ jobs:
         with:
           name: gui-artifacts
           path: /tmp/screen.png
+
+      - name: Upload OUTPUT_DIR artifact (headless)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffr-output
+          path: ${{ env.OUTPUT_DIR }}
 
   gui-windows:
     name: Windows GUI smoke test
@@ -136,6 +152,17 @@ jobs:
           pip install -r requirements.txt
           pip install pillow
 
+      - name: Diagnostic: show environment and output dir (windows)
+        shell: pwsh
+        run: |
+          Write-Host "PWD: $(Get-Location)"
+          Write-Host "GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
+          Write-Host "OUTPUT_DIR=$env:OUTPUT_DIR"
+          Write-Host "Listing repo root:"
+          Get-ChildItem -Force -ErrorAction SilentlyContinue
+          if (Test-Path -Path $env:OUTPUT_DIR) { Write-Host "Contents of $env:OUTPUT_DIR:"; Get-ChildItem -Path $env:OUTPUT_DIR -Recurse -Force } else { Write-Host "$env:OUTPUT_DIR does not exist yet" }
+          python -c "import sys; print('python sys.path:', sys.path)"
+
       - name: Run GUI smoke test on Windows
         run: |
           python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
@@ -151,3 +178,9 @@ jobs:
         with:
           name: gui-artifacts-windows
           path: screen_windows.png
+
+      - name: Upload OUTPUT_DIR artifact (windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffr-output-windows
+          path: ${{ env.OUTPUT_DIR }}
