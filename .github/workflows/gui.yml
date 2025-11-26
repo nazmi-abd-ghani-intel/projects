@@ -31,6 +31,7 @@ jobs:
       run:
         working-directory: FFRCheck_Project
     env:
+      PYTHONPATH: '.'
       INPUT_DIR: ${{ github.event.inputs.input_dir }}
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
       SSPEC: ${{ github.event.inputs.sspec }}
@@ -87,6 +88,7 @@ jobs:
       run:
         working-directory: FFRCheck_Project
     env:
+      PYTHONPATH: '.'
       INPUT_DIR: ${{ github.event.inputs.input_dir }}
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
       SSPEC: ${{ github.event.inputs.sspec }}
