@@ -17,158 +17,163 @@ on:
         ITUFF: "${{ github.event.inputs.ituff }}"
         VISUALID_FILTER: "${{ github.event.inputs.visualid_filter }}"
         LOG: "${{ github.event.inputs.log }}"
-        HTML_STATS: "${{ github.event.inputs.html_stats }}"
-    inputs:
-      input_dir:
-        description: 'Input directory path (required) - folder containing UBE files or inputs'
-        required: true
-        default: ''
-        output_dir:
-          description: 'Output directory (maps to OUTPUT_DIR)'
-          required: false
-          default: 'output'
-        sspec:
-          description: 'SSPEC value (maps to SSPEC) e.g., L15H'
-          required: false
-          default: ''
-        ube:
-          description: 'UBE filename (maps to UBE)'
-          required: false
-          default: ''
-        mtlolf:
-          description: 'MTL_OLF.xml file path (maps to MTLOLF)'
-          required: false
-          default: ''
-        ituff:
-          description: 'ITF directory path (maps to ITUFF)'
-          required: false
-          default: ''
-        visualid_filter:
-          description: 'VisualID filter (maps to VISUALID_FILTER)'
-          required: false
-          default: ''
-        log:
-          description: 'Enable console logging (maps to LOG) true/false'
-          required: false
-          default: 'false'
-        html_stats:
-          description: 'Generate HTML statistics report (maps to HTML_STATS) true/false'
-          required: false
-          default: 'true'
+        name: FFR-Check
 
-jobs:
-  gui-headless:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: FFRCheck_Project
-    env:
-      PYTHONPATH: '.'
-      INPUT_DIR: ${{ github.event.inputs.input_dir }}
-      OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
-      SSPEC: ${{ github.event.inputs.sspec }}
-      UBE: ${{ github.event.inputs.ube }}
-      MTLOLF: ${{ github.event.inputs.mtlolf }}
-      ITUFF: ${{ github.event.inputs.ituff }}
-      VISUALID_FILTER: ${{ github.event.inputs.visualid_filter }}
-      LOG: ${{ github.event.inputs.log }}
-      HTML_STATS: ${{ github.event.inputs.html_stats }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        on:
+          workflow_dispatch:
+            inputs:
+              input_dir:
+                description: 'Input directory path (required) - folder containing UBE files or inputs'
+                required: true
+                default: ''
+              output_dir:
+                description: 'Output directory (maps to OUTPUT_DIR)'
+                required: false
+                default: 'output'
+              sspec:
+                description: 'SSPEC value (maps to SSPEC) e.g., L15H'
+                required: false
+                default: ''
+              ube:
+                description: 'UBE filename (maps to UBE)'
+                required: false
+                default: ''
+              mtlolf:
+                description: 'MTL_OLF.xml file path (maps to MTLOLF)'
+                required: false
+                default: ''
+              ituff:
+                description: 'ITF directory path (maps to ITUFF)'
+                required: false
+                default: ''
+              visualid_filter:
+                description: 'VisualID filter (maps to VISUALID_FILTER)'
+                required: false
+                default: ''
+              log:
+                description: 'Enable console logging (maps to LOG) true/false'
+                required: false
+                default: 'false'
+              html_stats:
+                description: 'Generate HTML statistics report (maps to HTML_STATS) true/false'
+                required: false
+                default: 'true'
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+        jobs:
+          gui-headless:
+            name: Headless GUI smoke test
+            runs-on: ubuntu-latest
+            defaults:
+              run:
+                working-directory: FFRCheck_Project
+            env:
+              PYTHONPATH: '${{ github.workspace }}/FFRCheck_Project'
+              INPUT_DIR: '${{ github.event.inputs.input_dir }}'
+              OUTPUT_DIR: '${{ github.event.inputs.output_dir }}'
+              SSPEC: '${{ github.event.inputs.sspec }}'
+              UBE: '${{ github.event.inputs.ube }}'
+              MTLOLF: '${{ github.event.inputs.mtlolf }}'
+              ITUFF: '${{ github.event.inputs.ituff }}'
+              VISUALID_FILTER: '${{ github.event.inputs.visualid_filter }}'
+              LOG: '${{ github.event.inputs.log }}'
+              HTML_STATS: '${{ github.event.inputs.html_stats }}'
+            steps:
+              - name: Checkout repository
+                uses: actions/checkout@v4
 
-      - name: Install system packages (Xvfb, tkinter, imagemagick)
-        run: |
-          sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb x11-utils python3-tk imagemagick
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                  python-version: '3.10'
 
-      - name: Install Python dependencies
-        run: python -m pip install --upgrade pip; pip install -r requirements.txt
+              - name: Install system packages (Xvfb, tkinter, imagemagick)
+                run: |
+                  sudo apt-get update
+                  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb x11-utils python3-tk imagemagick
 
-      - name: Start X virtual framebuffer (Xvfb)
-        run: |
-          Xvfb :99 -screen 0 1024x768x24 &
-          sleep 2
-        env:
-          DISPLAY: ":99"
+              - name: Install Python dependencies
+                run: python -m pip install --upgrade pip; pip install -r requirements.txt
 
-      - name: Run GUI smoke test (headless)
-        run: |
-          export DISPLAY=:99
-          python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python tests/gui_smoke.py
-        env:
-          DISPLAY: ":99"
+              - name: Start X virtual framebuffer (Xvfb)
+                run: |
+                  Xvfb :99 -screen 0 1024x768x24 &
+                  sleep 2
+                env:
+                  DISPLAY: ':99'
 
-      - name: Capture screenshot of a simple X11 window (diagnostic)
-        run: |
-          sleep 1
-          import -window root /tmp/screen.png || true
-        shell: bash
+              - name: Run GUI smoke test (headless)
+                run: |
+                  export DISPLAY=:99
+                  python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  python tests/gui_smoke.py
+                env:
+                  DISPLAY: ':99'
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: gui-artifacts
-          path: /tmp/screen.png
+              - name: Capture screenshot of a simple X11 window (diagnostic)
+                run: |
+                  sleep 1
+                  import -window root /tmp/screen.png || true
+                shell: bash
 
-  gui-windows:
-    runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: FFRCheck_Project
-    env:
-      PYTHONPATH: '.'
-      INPUT_DIR: ${{ github.event.inputs.input_dir }}
-      OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
-      SSPEC: ${{ github.event.inputs.sspec }}
-      UBE: ${{ github.event.inputs.ube }}
-      MTLOLF: ${{ github.event.inputs.mtlolf }}
-      ITUFF: ${{ github.event.inputs.ituff }}
-      VISUALID_FILTER: ${{ github.event.inputs.visualid_filter }}
-      LOG: ${{ github.event.inputs.log }}
-      HTML_STATS: ${{ github.event.inputs.html_stats }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+              - name: Upload artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                  name: gui-artifacts
+                  path: /tmp/screen.png
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+          gui-windows:
+            name: Windows GUI smoke test
+            runs-on: windows-latest
+            defaults:
+              run:
+                working-directory: FFRCheck_Project
+            env:
+              PYTHONPATH: '${{ github.workspace }}/FFRCheck_Project'
+              INPUT_DIR: '${{ github.event.inputs.input_dir }}'
+              OUTPUT_DIR: '${{ github.event.inputs.output_dir }}'
+              SSPEC: '${{ github.event.inputs.sspec }}'
+              UBE: '${{ github.event.inputs.ube }}'
+              MTLOLF: '${{ github.event.inputs.mtlolf }}'
+              ITUFF: '${{ github.event.inputs.ituff }}'
+              VISUALID_FILTER: '${{ github.event.inputs.visualid_filter }}'
+              LOG: '${{ github.event.inputs.log }}'
+              HTML_STATS: '${{ github.event.inputs.html_stats }}'
+            steps:
+              - name: Checkout repository
+                uses: actions/checkout@v4
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pillow
+              - name: Set up Python
+                uses: actions/setup-python@v4
+                with:
+                  python-version: '3.10'
 
-      - name: Run GUI smoke test on Windows
-        run: |
-          python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
-          python tests/gui_smoke.py
+              - name: Install Python dependencies
+                run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install pillow
 
-      - name: Capture screenshot with Pillow (Windows)
-        shell: pwsh
-        run: |
-          $script = @'
-from PIL import ImageGrab
-img = ImageGrab.grab()
-img.save("screen_windows.png")
-print("Saved screen_windows.png")
-'@
-          $script | Out-File -FilePath screenshot.py -Encoding utf8
-          python screenshot.py
+              - name: Run GUI smoke test on Windows
+                run: |
+                  python -c "import tkinter; print('tkinter version', tkinter.TkVersion)"
+                  python tests/gui_smoke.py
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: gui-artifacts-windows
-          path: screen_windows.png
+              - name: Capture screenshot with Pillow (Windows)
+                shell: pwsh
+                run: |
+                  $script = @'
+        from PIL import ImageGrab
+        img = ImageGrab.grab()
+        img.save("screen_windows.png")
+        print("Saved screen_windows.png")
+        '@
+                  $script | Out-File -FilePath screenshot.py -Encoding utf8
+                  python screenshot.py
+
+              - name: Upload Windows artifact
+                uses: actions/upload-artifact@v4
+                with:
+                  name: gui-artifacts-windows
+                  path: screen_windows.png
