@@ -8,15 +8,15 @@ on:
   workflow_dispatch:
     inputs:
       input_dir:
-        description: 'Input directory path (optional)'
-        required: false
+        description: 'Input directory path (required) - folder containing UBE files or inputs'
+        required: true
         default: ''
       output_dir:
         description: 'Output directory path (optional)'
         required: false
         default: 'output'
       sspec:
-        description: 'SSPEC (optional)'
+        description: 'SSPEC (optional) - e.g., L15H or L0V8,L0VS'
         required: false
         default: ''
       mtlolf:
@@ -24,11 +24,11 @@ on:
         required: false
         default: ''
       ituff:
-        description: 'ITF/ITUFF directory path (optional)'
+        description: 'ITF directory path (optional)'
         required: false
         default: ''
       visualid_filter:
-        description: 'VisualID filter (optional)'
+        description: 'VisualID Filter (optional) - comma separated or single value'
         required: false
         default: ''
       log:
@@ -144,13 +144,16 @@ jobs:
           python tests/gui_smoke.py
 
       - name: Capture screenshot with Pillow (Windows)
+        shell: pwsh
         run: |
-          python - <<'PY'
-          from PIL import ImageGrab
-          img = ImageGrab.grab()
-          img.save('screen_windows.png')
-          print('Saved screen_windows.png')
-          PY
+          $script = @'
+from PIL import ImageGrab
+img = ImageGrab.grab()
+img.save("screen_windows.png")
+print("Saved screen_windows.png")
+'@
+          $script | Out-File -FilePath screenshot.py -Encoding utf8
+          python screenshot.py
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
