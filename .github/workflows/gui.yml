@@ -1,5 +1,7 @@
 name: FFR-Check
 
+name: FFR-Check
+
 on:
         PYTHONPATH: "${{ github.workspace }}/FFRCheck_Project"
         INPUT_DIR: "${{ github.event.inputs.input_dir }}"
