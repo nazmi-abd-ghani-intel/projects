@@ -45,11 +45,11 @@
     .vis-item.vis-line { display: none !important; }
     .vis-item.vis-box {
       padding: 1px 4px !important;
-      font-size: 18px !important;
+      font-size: 16px !important;
       line-height: 1 !important;
       min-height: auto !important;
       border-radius: 3px !important;
-      height: 24px !important;
+      height: 20px !important;
       display: flex !important;
       align-items: center !important;
     }
@@ -412,7 +412,7 @@
   <script src="https://unpkg.com/vis-timeline@7.4.9/standalone/umd/vis-timeline-graph2d.min.js"></script>
   <script>
     const INLINE_JSON = {
-    "statement_id":  "01f0ca66-a501-1ac7-bf63-6bfeb5072570",
+    "statement_id":  "01f0ca9b-1f2f-1979-bb5b-89adaa3979bd",
     "status":  {
                    "state":  "SUCCEEDED"
                },
@@ -584,19 +584,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053614"
                                       ],
                                       [
-                                          "10052102",
-                                          "Nova Lake Hub 4LPE Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2025-02-21T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Execution",
-                                          "202508",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10052102"
-                                      ],
-                                      [
                                           "10055602",
                                           "PIXE3-S 32EU Die",
                                           "Die",
@@ -608,6 +595,19 @@
                                           "202508",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10055602"
+                                      ],
+                                      [
+                                          "10052102",
+                                          "Nova Lake Hub 4LPE Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2025-02-21T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Execution",
+                                          "202508",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10052102"
                                       ],
                                       [
                                           "10048215",
@@ -3589,7 +3589,7 @@
                                   ]
                },
     "metadata":  {
-                     "last_updated":  "2025-11-25 17:24:30 (PST)"
+                     "last_updated":  "2025-11-25 23:40:08 (PST)"
                  }
 }
 ;
@@ -3661,7 +3661,7 @@
           const itemObj = {
             id,
             group: groupsMap.get(groupKey).id,
-            content: `<span style="font-size:20px">●</span> <span style="font-size:13px">${obj.Milestone || ''}</span>`,
+            content: `<span style="font-size:16px">●</span> <span style="font-size:12px;font-weight:400;">${obj.Stepping ? `[${obj.Stepping}]` : ''}${obj.Milestone || ''}</span>`,
             start: start,
             title: `${obj.AtlasProjectName || ''}\n${obj.Milestone || ''}\n${obj.MilestoneDate || ''}`,
             className: className,
@@ -3779,17 +3779,15 @@
         // Toggle show name mode
         document.getElementById('colorModeToggle').addEventListener('change', function() {
           showNameMode = this.checked;
-          // Update all items to show/hide milestone names
+          // Update all items to show/hide milestone names and stepping
           const currentItems = dataset.get();
           currentItems.forEach(item => {
             if (showNameMode) {
-              // Show colored dot with milestone name
-              item.content = `<span style="font-size:20px">●</span> <span style="font-size:13px">${item.milestoneName}</span>`;
+              item.content = `<span style="font-size:16px">●</span> <span style="font-size:12px;font-weight:400;">${item.raw && item.raw.Stepping ? `[${item.raw.Stepping}]` : ''}${item.milestoneName}</span>`;
             } else {
-              // Show only colored dot (no text)
-              item.content = `<span style="font-size:20px">●</span>`;
+              item.content = `<span style="font-size:16px">●</span>`;
             }
-            item.style = `color: ${item.dotColor}; font-weight: bold;`;
+            item.style = `color: ${item.dotColor}; font-weight: 400;`;
           });
           dataset.update(currentItems);
         });

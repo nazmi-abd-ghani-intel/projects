@@ -1,5 +1,5 @@
 ﻿{
-    "statement_id":  "01f0ca66-a501-1ac7-bf63-6bfeb5072570",
+    "statement_id":  "01f0ca9b-1f2f-1979-bb5b-89adaa3979bd",
     "status":  {
                    "state":  "SUCCEEDED"
                },
@@ -171,19 +171,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053614"
                                       ],
                                       [
-                                          "10052102",
-                                          "Nova Lake Hub 4LPE Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2025-02-21T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Execution",
-                                          "202508",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10052102"
-                                      ],
-                                      [
                                           "10055602",
                                           "PIXE3-S 32EU Die",
                                           "Die",
@@ -195,6 +182,19 @@
                                           "202508",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10055602"
+                                      ],
+                                      [
+                                          "10052102",
+                                          "Nova Lake Hub 4LPE Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2025-02-21T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Execution",
+                                          "202508",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10052102"
                                       ],
                                       [
                                           "10048215",
@@ -3176,6 +3176,6 @@
                                   ]
                },
     "metadata":  {
-                     "last_updated":  "2025-11-25 17:24:30 (PST)"
+                     "last_updated":  "2025-11-25 23:40:08 (PST)"
                  }
 }
