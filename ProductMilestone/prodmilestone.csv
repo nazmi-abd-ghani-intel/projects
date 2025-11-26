@@ -1,0 +1,238 @@
+﻿AtlasProjectItemId,AtlasProjectName,AtlastProjectItemType,Milestone,MilestoneDate,MilestoneOrder,Stepping,AtlasProjectPlanningState,MilestoneDateYYYYWW,Comment,Atlas-link
+10048215,PIXE3-P 192EU Die,Die,Tape In,2024-02-02T00:00:00.000Z,20200,A0,Design-Complete,202405,null,https://atlas.intel.com/ProductDashboard/10048215
+10048215,PIXE3-P 192EU Die,Die,Sort PO*,2024-05-10T00:00:00.000Z,20200,A0,Design-Complete,202419,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10048215
+10048215,PIXE3-P 192EU Die,Die,Tape In,2024-11-29T00:00:00.000Z,20200,B0,Design-Complete,202448,null,https://atlas.intel.com/ProductDashboard/10048215
+10048216,PIXE3-U 64EU Die,Die,Tape In,2024-12-13T00:00:00.000Z,20200,A0,Design-Complete,202450,null,https://atlas.intel.com/ProductDashboard/10048216
+10052492,Nova Lake CPU 8P+16E Int Die,Die,Tape In,2025-01-17T00:00:00.000Z,20200,A0,Design-Complete,202503,null,https://atlas.intel.com/ProductDashboard/10052492
+10053614,Nova Lake PCD-S Die,Die,Tape In,2025-02-13T00:00:00.000Z,20200,A0,Execution,202507,null,https://atlas.intel.com/ProductDashboard/10053614
+10052102,Nova Lake Hub 4LPE Die,Die,Tape In,2025-02-21T00:00:00.000Z,20200,A0,Execution,202508,null,https://atlas.intel.com/ProductDashboard/10052102
+10055602,PIXE3-S 32EU Die,Die,Tape In,2025-02-21T00:00:00.000Z,20200,A0,Design-Complete,202508,null,https://atlas.intel.com/ProductDashboard/10055602
+10058305,PIXE3-H 64EU Die,Die,Tape In,2025-03-07T00:00:00.000Z,20200,A0,Execution,202510,null,https://atlas.intel.com/ProductDashboard/10058305
+10048215,PIXE3-P 192EU Die,Die,Sort PO*,2025-03-07T00:00:00.000Z,20200,B0,Design-Complete,202510,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10048215
+10044302,Nova Lake PCH-S Die,Die,Tape In,2025-03-13T00:00:00.000Z,20200,A0,Execution,202511,null,https://atlas.intel.com/ProductDashboard/10044302
+10048216,PIXE3-U 64EU Die,Die,Sort PO*,2025-03-21T00:00:00.000Z,20200,A0,Design-Complete,202512,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10048216
+10052492,Nova Lake CPU 8P+16E Int Die,Die,Sort PO*,2025-04-25T00:00:00.000Z,20200,A0,Design-Complete,202517,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10052492
+10053346,Nova Lake PCD-H Die,Die,Tape In,2025-05-08T00:00:00.000Z,20200,A0,Execution,202519,null,https://atlas.intel.com/ProductDashboard/10053346
+10053614,Nova Lake PCD-S Die,Die,Sort PO*,2025-05-22T00:00:00.000Z,20200,A0,Execution,202521,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053614
+10044315,Nova Lake PCH-S Product,Si Product,Class Power On,2025-05-29T00:00:00.000Z,20105,A0,Execution,202522,null,https://atlas.intel.com/ProductDashboard/10044315
+10052102,Nova Lake Hub 4LPE Die,Die,Sort PO*,2025-05-30T00:00:00.000Z,20200,A0,Execution,202522,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10052102
+10055602,PIXE3-S 32EU Die,Die,Sort PO*,2025-05-30T00:00:00.000Z,20200,A0,Design-Complete,202522,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10055602
+10048216,PIXE3-U 64EU Die,Die,Tape In,2025-06-13T00:00:00.000Z,20200,A1,Design-Complete,202524,null,https://atlas.intel.com/ProductDashboard/10048216
+10058305,PIXE3-H 64EU Die,Die,ECO Cut-off,2025-06-13T00:00:00.000Z,20100,A1,Execution,202524,null,https://atlas.intel.com/ProductDashboard/10058305
+10058305,PIXE3-H 64EU Die,Die,Sort PO*,2025-06-13T00:00:00.000Z,20200,A0,Execution,202524,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10058305
+10058305,PIXE3-H 64EU Die,Die,Tape In,2025-06-19T00:00:00.000Z,20200,A1,Execution,202525,null,https://atlas.intel.com/ProductDashboard/10058305
+10044302,Nova Lake PCH-S Die,Die,Sort PO*,2025-06-19T00:00:00.000Z,20200,A0,Execution,202525,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10044302
+10053312,PIXE3plus-P 192EU Die,Die,Tape In,2025-06-27T00:00:00.000Z,20200,A0,Execution,202526,null,https://atlas.intel.com/ProductDashboard/10053312
+10056187,Nova Lake S 28C Int Product,Si Product,PO Start,2025-07-04T00:00:00.000Z,20500,A0,Completed,202527,null,https://atlas.intel.com/ProductDashboard/10056187
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Tape In,2025-07-03T00:00:00.000Z,20200,P0,Execution,202527,null,https://atlas.intel.com/ProductDashboard/10056148
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2025-07-10T00:00:00.000Z,20500,A0,Execution,202528,null,https://atlas.intel.com/ProductDashboard/10044315
+10044302,Nova Lake PCH-S Die,Die,Tape In,2025-07-17T00:00:00.000Z,20200,B0,Execution,202529,null,https://atlas.intel.com/ProductDashboard/10044302
+10064813,Nova Lake CPU 4P+8E Ext Die,Die,Tape In,2025-07-31T00:00:00.000Z,20200,T0,Design-Complete,202531,null,https://atlas.intel.com/ProductDashboard/10064813
+10053346,Nova Lake PCD-H Die,Die,Sort PO*,2025-08-14T00:00:00.000Z,20200,A0,Execution,202533,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053346
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2025-09-18T00:00:00.000Z,20500,A0,Execution,202538,null,https://atlas.intel.com/ProductDashboard/10044315
+10056163,Nova Lake HX Int Product,Si Product,PO Start,2025-09-18T00:00:00.000Z,20500,A0,Execution,202538,null,https://atlas.intel.com/ProductDashboard/10056163
+10048216,PIXE3-U 64EU Die,Die,Sort PO*,2025-09-19T00:00:00.000Z,20200,A1,Design-Complete,202538,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10048216
+10058305,PIXE3-H 64EU Die,Die,Sort PO*,2025-09-25T00:00:00.000Z,20200,A1,Execution,202539,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10058305
+10053312,PIXE3plus-P 192EU Die,Die,Sort PO*,2025-10-03T00:00:00.000Z,20200,A0,Execution,202540,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053312
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2025-10-09T00:00:00.000Z,20500,B0,Execution,202541,null,https://atlas.intel.com/ProductDashboard/10044315
+10056157,Nova Lake S 52C Int Product,Si Product,PO Start,2025-10-09T00:00:00.000Z,20500,A0,Completed,202541,null,https://atlas.intel.com/ProductDashboard/10056157
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Sort PO*,2025-10-09T00:00:00.000Z,20200,P0,Execution,202541,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056148
+10056163,Nova Lake HX Int Product,Si Product,PO Start,2025-10-16T00:00:00.000Z,20500,A1,Execution,202542,null,https://atlas.intel.com/ProductDashboard/10056163
+10044315,Nova Lake PCH-S Product,Si Product,ES1,2025-10-23T00:00:00.000Z,20900,A0,Execution,202543,null,https://atlas.intel.com/ProductDashboard/10044315
+10044302,Nova Lake PCH-S Die,Die,Sort PO*,2025-10-23T00:00:00.000Z,20200,B0,Execution,202543,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10044302
+10056187,Nova Lake S 28C Int Product,Si Product,ES1,2025-10-30T00:00:00.000Z,20900,A0,Completed,202544,null,https://atlas.intel.com/ProductDashboard/10056187
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2025-11-06T00:00:00.000Z,20500,B0,Execution,202545,null,https://atlas.intel.com/ProductDashboard/10044315
+10072546,Nova Lake CPU 8P+16E Ext Debug Package,Si Product,PO Start,2025-11-07T00:00:00.000Z,20500,A0,Execution,202545,null,https://atlas.intel.com/ProductDashboard/10072546
+10064813,Nova Lake CPU 4P+8E Ext Die,Die,Sort PO*,2025-11-06T00:00:00.000Z,20200,T0,Design-Complete,202545,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10064813
+10055602,PIXE3-S 32EU Die,Die,Tape In,2025-11-20T00:00:00.000Z,20200,B0,Design-Complete,202547,null,https://atlas.intel.com/ProductDashboard/10055602
+10053348,Nova Lake S 28C Product,Si Product,PO Start,2025-11-27T00:00:00.000Z,20500,B0,Execution,202548,null,https://atlas.intel.com/ProductDashboard/10053348
+10053614,Nova Lake PCD-S Die,Die,Tape In,2025-11-28T00:00:00.000Z,20200,B0,Execution,202548,null,https://atlas.intel.com/ProductDashboard/10053614
+10071542,Nova Lake P (Z0 Debug) Product,Si Product,PO Start,2025-12-04T00:00:00.000Z,20500,Z0,Execution,202549,null,https://atlas.intel.com/ProductDashboard/10071542
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Tape In,2025-12-04T00:00:00.000Z,20200,R0,Execution,202549,null,https://atlas.intel.com/ProductDashboard/10056148
+10056007,Nova Lake CPU 8P+16E BLLC Ext Die,Die,Tape In,2025-12-11T00:00:00.000Z,20200,L0,Execution,202550,null,https://atlas.intel.com/ProductDashboard/10056007
+10052102,Nova Lake Hub 4LPE Die,Die,Tape In,2025-12-18T00:00:00.000Z,20200,B0,Execution,202551,null,https://atlas.intel.com/ProductDashboard/10052102
+10044321,Nova Lake CPU 4P+0E Int Die,Die,Tape In,2026-01-01T00:00:00.000Z,20200,H0,Execution,202601,null,https://atlas.intel.com/ProductDashboard/10044321
+10058305,PIXE3-H 64EU Die,Die,Tape In,2026-01-15T00:00:00.000Z,20200,B0,Execution,202603,null,https://atlas.intel.com/ProductDashboard/10058305
+10060862,Nova Lake MH-AX 4LPE Die,Die,Tape In,2026-01-22T00:00:00.000Z,20200,A0,Execution,202604,null,https://atlas.intel.com/ProductDashboard/10060862
+10044302,Nova Lake PCH-S Die,Die,Tape In,2026-01-22T00:00:00.000Z,20200,C0,Execution,202604,null,https://atlas.intel.com/ProductDashboard/10044302
+10053346,Nova Lake PCD-H Die,Die,Tape In,2026-01-22T00:00:00.000Z,20200,B0,Execution,202604,null,https://atlas.intel.com/ProductDashboard/10053346
+10051746,Nova Lake H Product,Si Product,PO Start,2026-01-29T00:00:00.000Z,20500,A0,Execution,202605,null,https://atlas.intel.com/ProductDashboard/10051746
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Tape In,2026-01-29T00:00:00.000Z,20200,R1,Execution,202605,null,https://atlas.intel.com/ProductDashboard/10056148
+10056163,Nova Lake HX Int Product,Si Product,ES1,2026-02-05T00:00:00.000Z,20900,A1,Execution,202606,null,https://atlas.intel.com/ProductDashboard/10056163
+10044315,Nova Lake PCH-S Product,Si Product,ES1,2026-02-05T00:00:00.000Z,20900,A0,Execution,202606,null,https://atlas.intel.com/ProductDashboard/10044315
+10064813,Nova Lake CPU 4P+8E Ext Die,Die,Tape In,2026-02-06T00:00:00.000Z,20200,U0,Design-Complete,202606,null,https://atlas.intel.com/ProductDashboard/10064813
+10046219,Nova Lake P Product,Si Product,PO Start,2026-02-12T00:00:00.000Z,20500,A0,Execution,202607,null,https://atlas.intel.com/ProductDashboard/10046219
+10044320,Nova Lake S 16C Product,Si Product,PO Start,2026-02-19T00:00:00.000Z,20500,A0,Execution,202608,null,https://atlas.intel.com/ProductDashboard/10044320
+10056007,Nova Lake CPU 8P+16E BLLC Ext Die,Die,Tape In,2026-02-27T00:00:00.000Z,20200,L1,Execution,202609,null,https://atlas.intel.com/ProductDashboard/10056007
+10051722,Nova Lake HX Product,Si Product,PO Start,2026-02-26T00:00:00.000Z,20500,B0,Execution,202609,null,https://atlas.intel.com/ProductDashboard/10051722
+10055602,PIXE3-S 32EU Die,Die,Sort PO*,2026-02-26T00:00:00.000Z,20200,B0,Design-Complete,202609,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10055602
+10060269,PIXE3plus-AX 512EU Die,Die,Tape In,2026-03-06T00:00:00.000Z,20200,A0,Execution,202610,null,https://atlas.intel.com/ProductDashboard/10060269
+10053614,Nova Lake PCD-S Die,Die,Sort PO*,2026-03-06T00:00:00.000Z,20200,B0,Execution,202610,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053614
+10044315,Nova Lake PCH-S Product,Si Product,ES2,2026-03-12T00:00:00.000Z,21100,B0,Execution,202611,null,https://atlas.intel.com/ProductDashboard/10044315
+10072531,Nova Lake S 28C (Dunlow) Product,Finished Good Group,PO Start,2026-03-12T00:00:00.000Z,20500,B0,Execution,202611,null,https://atlas.intel.com/ProductDashboard/10072531
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Sort PO*,2026-03-12T00:00:00.000Z,20200,R0,Execution,202611,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056148
+10053348,Nova Lake S 28C Product,Si Product,ES2,2026-03-19T00:00:00.000Z,21100,B0,Execution,202612,null,https://atlas.intel.com/ProductDashboard/10053348
+10056007,Nova Lake CPU 8P+16E BLLC Ext Die,Die,Sort PO*,2026-03-19T00:00:00.000Z,20200,L0,Execution,202612,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056007
+10063838,Nova Lake CPU 2P+0E Int Die,Die,Tape In,2026-03-27T00:00:00.000Z,20200,J0,Execution,202613,null,https://atlas.intel.com/ProductDashboard/10063838
+10052102,Nova Lake Hub 4LPE Die,Die,Sort PO*,2026-03-26T00:00:00.000Z,20200,B0,Execution,202613,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10052102
+10044321,Nova Lake CPU 4P+0E Int Die,Die,Sort PO*,2026-04-09T00:00:00.000Z,20200,H0,Execution,202615,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10044321
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2026-04-16T00:00:00.000Z,20500,C0,Execution,202616,null,https://atlas.intel.com/ProductDashboard/10044315
+10058305,PIXE3-H 64EU Die,Die,Sort PO*,2026-04-23T00:00:00.000Z,20200,B0,Execution,202617,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10058305
+10053312,PIXE3plus-P 192EU Die,Die,Tape In,2026-04-30T00:00:00.000Z,20200,B0,Execution,202618,null,https://atlas.intel.com/ProductDashboard/10053312
+10053348,Nova Lake S 28C Product,Si Product,PO Start,2026-04-30T00:00:00.000Z,20500,C0,Execution,202618,null,https://atlas.intel.com/ProductDashboard/10053348
+10051746,Nova Lake H Product,Si Product,ES1,2026-04-30T00:00:00.000Z,20900,A0,Execution,202618,null,https://atlas.intel.com/ProductDashboard/10051746
+10044302,Nova Lake PCH-S Die,Die,Sort PO*,2026-04-30T00:00:00.000Z,20200,C0,Execution,202618,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10044302
+10053346,Nova Lake PCD-H Die,Die,Sort PO*,2026-04-30T00:00:00.000Z,20200,B0,Execution,202618,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053346
+10060862,Nova Lake MH-AX 4LPE Die,Die,Sort PO*,2026-04-30T00:00:00.000Z,20200,A0,Execution,202618,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10060862
+10056148,Nova Lake CPU 8P+16E Ext Die,Die,Sort PO*,2026-05-07T00:00:00.000Z,20200,R1,Execution,202619,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056148
+10056462,Nova Lake S 28C BLLC Product,Si Product,PO Start,2026-05-14T00:00:00.000Z,20500,A0,Execution,202620,null,https://atlas.intel.com/ProductDashboard/10056462
+10064813,Nova Lake CPU 4P+8E Ext Die,Die,Sort PO*,2026-05-15T00:00:00.000Z,20200,U0,Design-Complete,202620,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10064813
+10044320,Nova Lake S 16C Product,Si Product,ES2,2026-05-22T00:00:00.000Z,21100,A0,Execution,202621,null,https://atlas.intel.com/ProductDashboard/10044320
+10046174,Razor Lake CPU 8P+16E Die,Die,Tape In,2026-05-22T00:00:00.000Z,20200,P0,Execution,202621,null,https://atlas.intel.com/ProductDashboard/10046174
+10044315,Nova Lake PCH-S Product,Si Product,PO Start,2026-05-21T00:00:00.000Z,20500,C0,Execution,202621,null,https://atlas.intel.com/ProductDashboard/10044315
+10073256,PIXE3plus-P 192EU Ext Die,Die,Tape In,2026-05-29T00:00:00.000Z,20200,B0,Execution,202622,null,https://atlas.intel.com/ProductDashboard/10073256
+10056007,Nova Lake CPU 8P+16E BLLC Ext Die,Die,Sort PO*,2026-06-05T00:00:00.000Z,20200,L1,Execution,202623,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056007
+10044318,Nova Lake U Product,Si Product,PO Start,2026-06-11T00:00:00.000Z,20500,A0,Execution,202624,null,https://atlas.intel.com/ProductDashboard/10044318
+10060269,PIXE3plus-AX 512EU Die,Die,Sort PO*,2026-06-12T00:00:00.000Z,20200,A0,Execution,202624,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10060269
+10053348,Nova Lake S 28C Product,Si Product,PO Start,2026-06-25T00:00:00.000Z,20500,C1,Execution,202626,null,https://atlas.intel.com/ProductDashboard/10053348
+10044315,Nova Lake PCH-S Product,Si Product,ES2,2026-06-25T00:00:00.000Z,21100,B0,Execution,202626,null,https://atlas.intel.com/ProductDashboard/10044315
+10071900,Nova Lake S 52C BLLC Product,Si Product,Class Power On,2026-06-25T00:00:00.000Z,20105,B0,Execution,202626,null,https://atlas.intel.com/ProductDashboard/10071900
+10051722,Nova Lake HX Product,Si Product,ES2,2026-06-25T00:00:00.000Z,21100,B0,Execution,202626,null,https://atlas.intel.com/ProductDashboard/10051722
+10063838,Nova Lake CPU 2P+0E Int Die,Die,Sort PO*,2026-07-03T00:00:00.000Z,20200,J0,Execution,202627,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10063838
+10051746,Nova Lake H Product,Si Product,ES2,2026-07-09T00:00:00.000Z,21100,A0,Execution,202628,null,https://atlas.intel.com/ProductDashboard/10051746
+10056462,Nova Lake S 28C BLLC Product,Si Product,PO Start,2026-07-09T00:00:00.000Z,20500,A1,Execution,202628,null,https://atlas.intel.com/ProductDashboard/10056462
+10051746,Nova Lake H Product,Si Product,PO Start,2026-07-09T00:00:00.000Z,20500,B0,Execution,202628,null,https://atlas.intel.com/ProductDashboard/10051746
+10072531,Nova Lake S 28C (Dunlow) Product,Finished Good Group,ES2,2026-07-16T00:00:00.000Z,21100,B0,Execution,202629,null,https://atlas.intel.com/ProductDashboard/10072531
+10044320,Nova Lake S 16C Product,Si Product,PO Start,2026-07-23T00:00:00.000Z,20500,B0,Execution,202630,null,https://atlas.intel.com/ProductDashboard/10044320
+10044315,Nova Lake PCH-S Product,Si Product,QS,2026-07-30T00:00:00.000Z,21300,C0,Execution,202631,null,https://atlas.intel.com/ProductDashboard/10044315
+10062746,Nova Lake S 8C Product,Si Product,PO Start,2026-08-06T00:00:00.000Z,20500,A0,Execution,202632,null,https://atlas.intel.com/ProductDashboard/10062746
+10053348,Nova Lake S 28C Product,Si Product,QS,2026-08-06T00:00:00.000Z,21300,C0,Execution,202632,null,https://atlas.intel.com/ProductDashboard/10053348
+10053312,PIXE3plus-P 192EU Die,Die,Sort PO*,2026-08-06T00:00:00.000Z,20200,B0,Execution,202632,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10053312
+10051722,Nova Lake HX Product,Si Product,PO Start,2026-08-13T00:00:00.000Z,20500,C0,Execution,202633,null,https://atlas.intel.com/ProductDashboard/10051722
+10046219,Nova Lake P Product,Si Product,ES2,2026-08-13T00:00:00.000Z,21100,A0,Execution,202633,null,https://atlas.intel.com/ProductDashboard/10046219
+10060860,Nova Lake AX Product,Si Product,PO Start,2026-08-21T00:00:00.000Z,20500,A0,Execution,202634,null,https://atlas.intel.com/ProductDashboard/10060860
+10071900,Nova Lake S 52C BLLC Product,Si Product,PO Start,2026-08-27T00:00:00.000Z,20500,B0,Execution,202635,null,https://atlas.intel.com/ProductDashboard/10071900
+10046174,Razor Lake CPU 8P+16E Die,Die,Sort PO*,2026-08-28T00:00:00.000Z,20200,P0,Execution,202635,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10046174
+10056462,Nova Lake S 28C BLLC Product,Si Product,QS,2026-09-03T00:00:00.000Z,21300,A0,Execution,202636,null,https://atlas.intel.com/ProductDashboard/10056462
+10073256,PIXE3plus-P 192EU Ext Die,Die,Sort PO*,2026-09-04T00:00:00.000Z,20200,B0,Execution,202636,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10073256
+10044315,Nova Lake PCH-S Product,Si Product,PRQ,2026-09-17T00:00:00.000Z,21400,C0,Execution,202638,null,https://atlas.intel.com/ProductDashboard/10044315
+10072694,Razor Lake CPU 2P+0E Int Die,Die,Tape In,2026-09-18T00:00:00.000Z,20200,A0,Feasibility,202638,null,https://atlas.intel.com/ProductDashboard/10072694
+10044318,Nova Lake U Product,Si Product,QS,2026-09-17T00:00:00.000Z,21300,A0,Execution,202638,null,https://atlas.intel.com/ProductDashboard/10044318
+10044315,Nova Lake PCH-S Product,Si Product,QS,2026-09-17T00:00:00.000Z,21300,C0,Execution,202638,null,https://atlas.intel.com/ProductDashboard/10044315
+10053348,Nova Lake S 28C Product,Si Product,QS,2026-09-24T00:00:00.000Z,21300,C1,Execution,202639,null,https://atlas.intel.com/ProductDashboard/10053348
+10051722,Nova Lake HX Product,Si Product,PO Start,2026-09-24T00:00:00.000Z,20500,C1,Execution,202639,null,https://atlas.intel.com/ProductDashboard/10051722
+10046219,Nova Lake P Product,Si Product,PO Start,2026-09-24T00:00:00.000Z,20500,B0,Execution,202639,null,https://atlas.intel.com/ProductDashboard/10046219
+10053348,Nova Lake S 28C Product,Si Product,PRQ,2026-09-24T00:00:00.000Z,21400,C0,Execution,202639,null,https://atlas.intel.com/ProductDashboard/10053348
+10070459,Nova Lake P (B0) Product,Si Product,PO Start,2026-09-25T00:00:00.000Z,20500,B0,Execution,202639,null,https://atlas.intel.com/ProductDashboard/10070459
+10071900,Nova Lake S 52C BLLC Product,Si Product,PO Start,2026-10-01T00:00:00.000Z,20500,B1,Execution,202640,null,https://atlas.intel.com/ProductDashboard/10071900
+10046183,Razor Lake S 28C Product,Si Product,PO Start,2026-10-16T00:00:00.000Z,20500,A0,Execution,202642,null,https://atlas.intel.com/ProductDashboard/10046183
+10051746,Nova Lake H Product,Si Product,QS,2026-10-15T00:00:00.000Z,21300,B0,Execution,202642,null,https://atlas.intel.com/ProductDashboard/10051746
+10056462,Nova Lake S 28C BLLC Product,Si Product,PRQ,2026-10-22T00:00:00.000Z,21400,A0,Execution,202643,null,https://atlas.intel.com/ProductDashboard/10056462
+10056462,Nova Lake S 28C BLLC Product,Si Product,QS,2026-10-22T00:00:00.000Z,21300,A1,Execution,202643,null,https://atlas.intel.com/ProductDashboard/10056462
+10060269,PIXE3plus-AX 512EU Die,Die,Tape In,2026-10-30T00:00:00.000Z,20200,A1,Execution,202644,null,https://atlas.intel.com/ProductDashboard/10060269
+10044320,Nova Lake S 16C Product,Si Product,QS,2026-10-29T00:00:00.000Z,21300,B0,Execution,202644,null,https://atlas.intel.com/ProductDashboard/10044320
+10051729,Razor Lake HX Product,Si Product,PO Start,2026-10-30T00:00:00.000Z,20500,A0,Execution,202644,null,https://atlas.intel.com/ProductDashboard/10051729
+10044318,Nova Lake U Product,Si Product,PRQ,2026-11-05T00:00:00.000Z,21400,A0,Execution,202645,null,https://atlas.intel.com/ProductDashboard/10044318
+10044315,Nova Lake PCH-S Product,Si Product,PRQ,2026-11-05T00:00:00.000Z,21400,C0,Execution,202645,null,https://atlas.intel.com/ProductDashboard/10044315
+10064678,PIXE3plus-AX 256EU Die,Die,Tape In,2026-11-06T00:00:00.000Z,20200,A0,Execution,202645,null,https://atlas.intel.com/ProductDashboard/10064678
+10060269,PIXE3plus-AX 512EU Die,Die,Tape In,2026-11-13T00:00:00.000Z,20200,B0,Execution,202646,null,https://atlas.intel.com/ProductDashboard/10060269
+10053348,Nova Lake S 28C Product,Si Product,PRQ,2026-11-12T00:00:00.000Z,21400,C1,Execution,202646,null,https://atlas.intel.com/ProductDashboard/10053348
+10062746,Nova Lake S 8C Product,Si Product,QS,2026-11-12T00:00:00.000Z,21300,A0,Execution,202646,null,https://atlas.intel.com/ProductDashboard/10062746
+10072531,Nova Lake S 28C (Dunlow) Product,Finished Good Group,PO Start,2026-11-19T00:00:00.000Z,20500,C0,Execution,202647,null,https://atlas.intel.com/ProductDashboard/10072531
+10063907,Nova Lake UL Product,Si Product,PO Start,2026-11-19T00:00:00.000Z,20500,A0,Execution,202647,null,https://atlas.intel.com/ProductDashboard/10063907
+10060862,Nova Lake MH-AX 4LPE Die,Die,Tape In,2026-11-27T00:00:00.000Z,20200,A1,Execution,202648,null,https://atlas.intel.com/ProductDashboard/10060862
+10051722,Nova Lake HX Product,Si Product,QS,2026-11-26T00:00:00.000Z,21300,C0,Execution,202648,null,https://atlas.intel.com/ProductDashboard/10051722
+10071621,PIXE3pv4 8Xe Die,Die,Tape In,2026-12-04T00:00:00.000Z,20200,A0,Concept,202649,null,https://atlas.intel.com/ProductDashboard/10071621
+10051746,Nova Lake H Product,Si Product,PRQ,2026-12-03T00:00:00.000Z,21400,B0,Execution,202649,null,https://atlas.intel.com/ProductDashboard/10051746
+10056462,Nova Lake S 28C BLLC Product,Si Product,PRQ,2026-12-10T00:00:00.000Z,21400,A1,Execution,202650,null,https://atlas.intel.com/ProductDashboard/10056462
+10060860,Nova Lake AX Product,Si Product,ES1,2026-12-11T00:00:00.000Z,20903,A0,Execution,202650,null,https://atlas.intel.com/ProductDashboard/10060860
+10063573,Titan Lake PCD-H Die,Die,Tape In,2026-12-11T00:00:00.000Z,20200,A0,Concept,202650,null,https://atlas.intel.com/ProductDashboard/10063573
+10046219,Nova Lake P Product,Si Product,QS,2026-12-17T00:00:00.000Z,21300,B0,Execution,202651,null,https://atlas.intel.com/ProductDashboard/10046219
+10044320,Nova Lake S 16C Product,Si Product,PRQ,2026-12-17T00:00:00.000Z,21400,B0,Execution,202651,null,https://atlas.intel.com/ProductDashboard/10044320
+10048294,PIXE3pv4 16Xe Die,Die,Tape In,2026-12-25T00:00:00.000Z,20200,A0,Concept,202652,null,https://atlas.intel.com/ProductDashboard/10048294
+10072694,Razor Lake CPU 2P+0E Int Die,Die,Sort PO*,2026-12-25T00:00:00.000Z,20200,A0,Feasibility,202652,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10072694
+10051722,Nova Lake HX Product,Si Product,QS,2026-12-31T00:00:00.000Z,21300,C1,Execution,202701,null,https://atlas.intel.com/ProductDashboard/10051722
+10062746,Nova Lake S 8C Product,Si Product,PRQ,2026-12-31T00:00:00.000Z,21400,A0,Execution,202701,null,https://atlas.intel.com/ProductDashboard/10062746
+10072549,Nova Lake S 8C (Dunlow) Product,Finished Good Group,PO Start,2027-01-07T00:00:00.000Z,20500,A0,Execution,202702,null,https://atlas.intel.com/ProductDashboard/10072549
+10072548,Nova Lake S 16C (Dunlow) Product,Finished Good Group,PO Start,2027-01-07T00:00:00.000Z,20500,B0,Execution,202702,null,https://atlas.intel.com/ProductDashboard/10072548
+10070459,Nova Lake P (B0) Product,Si Product,QS,2027-01-07T00:00:00.000Z,21300,B0,Execution,202702,null,https://atlas.intel.com/ProductDashboard/10070459
+10051722,Nova Lake HX Product,Si Product,PRQ,2027-01-14T00:00:00.000Z,21400,C0,Execution,202703,null,https://atlas.intel.com/ProductDashboard/10051722
+10071900,Nova Lake S 52C BLLC Product,Si Product,QS,2027-01-21T00:00:00.000Z,21300,B0,Execution,202704,null,https://atlas.intel.com/ProductDashboard/10071900
+10046219,Nova Lake P Product,Si Product,PRQ,2027-02-04T00:00:00.000Z,21400,B0,Execution,202706,null,https://atlas.intel.com/ProductDashboard/10046219
+10046174,Razor Lake CPU 8P+16E Die,Die,Tape In,2027-02-05T00:00:00.000Z,20200,R0,Execution,202706,null,https://atlas.intel.com/ProductDashboard/10046174
+10060269,PIXE3plus-AX 512EU Die,Die,Sort PO*,2027-02-05T00:00:00.000Z,20200,A1,Execution,202706,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10060269
+10071900,Nova Lake S 52C BLLC Product,Si Product,QS,2027-02-11T00:00:00.000Z,21300,B1,Execution,202707,null,https://atlas.intel.com/ProductDashboard/10071900
+10046173,Razor Lake CPU 4P+8E Ext Die,Die,Tape In,2027-02-12T00:00:00.000Z,20200,T0,Feasibility,202707,null,https://atlas.intel.com/ProductDashboard/10046173
+10072719,Razor Lake UL Product,Si Product,PO Start,2027-02-12T00:00:00.000Z,20500,A0,Feasibility,202707,null,https://atlas.intel.com/ProductDashboard/10072719
+10064678,PIXE3plus-AX 256EU Die,Die,Sort PO*,2027-02-12T00:00:00.000Z,20200,A0,Execution,202707,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10064678
+10051722,Nova Lake HX Product,Si Product,PRQ,2027-02-18T00:00:00.000Z,21400,C1,Execution,202708,null,https://atlas.intel.com/ProductDashboard/10051722
+10058910,Razor Lake CPU 8P+16E BLLC Die,Die,Tape In,2027-02-19T00:00:00.000Z,20200,L0,Execution,202708,null,https://atlas.intel.com/ProductDashboard/10058910
+10060860,Nova Lake AX Product,Si Product,ES2,2027-02-19T00:00:00.000Z,21103,A0,Execution,202708,null,https://atlas.intel.com/ProductDashboard/10060860
+10060269,PIXE3plus-AX 512EU Die,Die,Sort PO*,2027-02-19T00:00:00.000Z,20200,B0,Execution,202708,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10060269
+10070459,Nova Lake P (B0) Product,Si Product,PRQ,2027-02-26T00:00:00.000Z,21400,B0,Execution,202709,null,https://atlas.intel.com/ProductDashboard/10070459
+10063907,Nova Lake UL Product,Si Product,QS,2027-03-04T00:00:00.000Z,21300,A0,Execution,202710,null,https://atlas.intel.com/ProductDashboard/10063907
+10073137,Nova Lake S 52C BLLC (Dunlow) Product,Finished Good Group,PO Start,2027-03-04T00:00:00.000Z,20500,B0,Execution,202710,null,https://atlas.intel.com/ProductDashboard/10073137
+10060860,Nova Lake AX Product,Si Product,PO Start,2027-03-05T00:00:00.000Z,20500,A1,Execution,202710,null,https://atlas.intel.com/ProductDashboard/10060860
+10060862,Nova Lake MH-AX 4LPE Die,Die,Sort PO*,2027-03-05T00:00:00.000Z,20200,A1,Execution,202710,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10060862
+10071900,Nova Lake S 52C BLLC Product,Si Product,PRQ,2027-03-11T00:00:00.000Z,21400,B0,Execution,202711,null,https://atlas.intel.com/ProductDashboard/10071900
+10071621,PIXE3pv4 8Xe Die,Die,Sort PO*,2027-03-12T00:00:00.000Z,20200,A0,Concept,202711,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10071621
+10072531,Nova Lake S 28C (Dunlow) Product,Finished Good Group,QS,2027-03-18T00:00:00.000Z,21300,C0,Execution,202712,null,https://atlas.intel.com/ProductDashboard/10072531
+10063573,Titan Lake PCD-H Die,Die,Sort PO*,2027-03-19T00:00:00.000Z,20200,A0,Concept,202712,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10063573
+10046183,Razor Lake S 28C Product,Si Product,ES1,2027-03-26T00:00:00.000Z,20900,A0,Execution,202713,null,https://atlas.intel.com/ProductDashboard/10046183
+10071900,Nova Lake S 52C BLLC Product,Si Product,PRQ,2027-04-01T00:00:00.000Z,21400,B1,Execution,202714,null,https://atlas.intel.com/ProductDashboard/10071900
+10046183,Razor Lake S 28C Product,Si Product,PO Start,2027-04-02T00:00:00.000Z,20500,A3,Execution,202714,null,https://atlas.intel.com/ProductDashboard/10046183
+10048294,PIXE3pv4 16Xe Die,Die,Sort PO*,2027-04-02T00:00:00.000Z,20200,A0,Concept,202714,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10048294
+10051729,Razor Lake HX Product,Si Product,ES1,2027-04-09T00:00:00.000Z,20900,A0,Execution,202715,null,https://atlas.intel.com/ProductDashboard/10051729
+10072548,Nova Lake S 16C (Dunlow) Product,Finished Good Group,QS,2027-04-15T00:00:00.000Z,21300,B0,Execution,202716,null,https://atlas.intel.com/ProductDashboard/10072548
+10051729,Razor Lake HX Product,Si Product,PO Start,2027-04-16T00:00:00.000Z,20500,A3,Execution,202716,null,https://atlas.intel.com/ProductDashboard/10051729
+10072549,Nova Lake S 8C (Dunlow) Product,Finished Good Group,QS,2027-04-15T00:00:00.000Z,21300,A0,Execution,202716,null,https://atlas.intel.com/ProductDashboard/10072549
+10063907,Nova Lake UL Product,Si Product,PRQ,2027-04-22T00:00:00.000Z,21400,A0,Execution,202717,null,https://atlas.intel.com/ProductDashboard/10063907
+10060860,Nova Lake AX Product,Si Product,PO Start,2027-04-30T00:00:00.000Z,20500,B0,Execution,202718,null,https://atlas.intel.com/ProductDashboard/10060860
+10072531,Nova Lake S 28C (Dunlow) Product,Finished Good Group,PRQ,2027-05-06T00:00:00.000Z,21400,C0,Execution,202719,null,https://atlas.intel.com/ProductDashboard/10072531
+10046174,Razor Lake CPU 8P+16E Die,Die,Sort PO*,2027-05-14T00:00:00.000Z,20200,R0,Execution,202720,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10046174
+10046173,Razor Lake CPU 4P+8E Ext Die,Die,Sort PO*,2027-05-21T00:00:00.000Z,20200,T0,Feasibility,202721,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10046173
+10058910,Razor Lake CPU 8P+16E BLLC Die,Die,Sort PO*,2027-05-28T00:00:00.000Z,20200,L0,Execution,202722,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10058910
+10055846,Titan Lake HM Product,Si Product,PO Start,2027-06-04T00:00:00.000Z,20500,A0,Roadmap,202723,null,https://atlas.intel.com/ProductDashboard/10055846
+10072549,Nova Lake S 8C (Dunlow) Product,Finished Good Group,PRQ,2027-06-03T00:00:00.000Z,21400,A0,Execution,202723,null,https://atlas.intel.com/ProductDashboard/10072549
+10072694,Razor Lake CPU 2P+0E Int Die,Die,Tape In,2027-06-04T00:00:00.000Z,20200,B0,Feasibility,202723,null,https://atlas.intel.com/ProductDashboard/10072694
+10072548,Nova Lake S 16C (Dunlow) Product,Finished Good Group,PRQ,2027-06-03T00:00:00.000Z,21400,B0,Execution,202723,null,https://atlas.intel.com/ProductDashboard/10072548
+10060860,Nova Lake AX Product,Si Product,QS,2027-06-11T00:00:00.000Z,21303,A1,Execution,202724,null,https://atlas.intel.com/ProductDashboard/10060860
+10073137,Nova Lake S 52C BLLC (Dunlow) Product,Finished Good Group,QS,2027-06-10T00:00:00.000Z,21300,B0,Execution,202724,null,https://atlas.intel.com/ProductDashboard/10073137
+10061167,Nova Lake AM Product,Si Product,PO Start,2027-07-02T00:00:00.000Z,20500,A0,Execution,202727,null,https://atlas.intel.com/ProductDashboard/10061167
+10046183,Razor Lake S 28C Product,Si Product,PO Start,2027-07-16T00:00:00.000Z,20500,B0,Execution,202729,null,https://atlas.intel.com/ProductDashboard/10046183
+10060860,Nova Lake AX Product,Si Product,PRQ,2027-07-30T00:00:00.000Z,21403,A1,Execution,202731,null,https://atlas.intel.com/ProductDashboard/10060860
+10051729,Razor Lake HX Product,Si Product,PO Start,2027-07-30T00:00:00.000Z,20500,B0,Execution,202731,null,https://atlas.intel.com/ProductDashboard/10051729
+10073137,Nova Lake S 52C BLLC (Dunlow) Product,Finished Good Group,PRQ,2027-07-29T00:00:00.000Z,21400,B0,Execution,202731,null,https://atlas.intel.com/ProductDashboard/10073137
+10060860,Nova Lake AX Product,Si Product,QS,2027-08-05T00:00:00.000Z,21300,B0,Execution,202732,null,https://atlas.intel.com/ProductDashboard/10060860
+10053366,Razor Lake S 28C BLLC Product,Si Product,PO Start,2027-08-20T00:00:00.000Z,20500,A0,Execution,202734,null,https://atlas.intel.com/ProductDashboard/10053366
+10072807,Razor Lake S 52C BLLC Product,Si Product,PO Start,2027-09-10T00:00:00.000Z,20500,A0,Execution,202737,null,https://atlas.intel.com/ProductDashboard/10072807
+10072694,Razor Lake CPU 2P+0E Int Die,Die,Sort PO*,2027-09-10T00:00:00.000Z,20200,B0,Feasibility,202737,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10072694
+10060860,Nova Lake AX Product,Si Product,PRQ,2027-09-23T00:00:00.000Z,21400,B0,Execution,202739,null,https://atlas.intel.com/ProductDashboard/10060860
+10061167,Nova Lake AM Product,Si Product,QS,2027-10-08T00:00:00.000Z,21300,A0,Execution,202741,null,https://atlas.intel.com/ProductDashboard/10061167
+10055820,Hammer Lake CPU 8P+16E Ext Die,Die,Tape In,2027-10-15T00:00:00.000Z,20200,P0,Concept,202742,null,https://atlas.intel.com/ProductDashboard/10055820
+10046183,Razor Lake S 28C Product,Si Product,QS,2027-10-22T00:00:00.000Z,21300,B0,Execution,202743,null,https://atlas.intel.com/ProductDashboard/10046183
+10063573,Titan Lake PCD-H Die,Die,Tape In,2027-10-29T00:00:00.000Z,20200,A1,Concept,202744,null,https://atlas.intel.com/ProductDashboard/10063573
+10056046,PIXE3pv4 4Xe Die,Die,Tape In,2027-10-29T00:00:00.000Z,20200,A0,Concept,202744,null,https://atlas.intel.com/ProductDashboard/10056046
+10051729,Razor Lake HX Product,Si Product,QS,2027-11-05T00:00:00.000Z,21300,B0,Execution,202745,null,https://atlas.intel.com/ProductDashboard/10051729
+10061167,Nova Lake AM Product,Si Product,PRQ,2027-11-26T00:00:00.000Z,21400,A0,Execution,202748,null,https://atlas.intel.com/ProductDashboard/10061167
+10053366,Razor Lake S 28C BLLC Product,Si Product,QS,2027-12-03T00:00:00.000Z,21300,A0,Execution,202749,null,https://atlas.intel.com/ProductDashboard/10053366
+10046183,Razor Lake S 28C Product,Si Product,PRQ,2027-12-10T00:00:00.000Z,21400,B0,Execution,202750,null,https://atlas.intel.com/ProductDashboard/10046183
+10072807,Razor Lake S 52C BLLC Product,Si Product,QS,2027-12-17T00:00:00.000Z,21300,A0,Execution,202751,null,https://atlas.intel.com/ProductDashboard/10072807
+10051729,Razor Lake HX Product,Si Product,PRQ,2027-12-24T00:00:00.000Z,21400,B0,Execution,202752,null,https://atlas.intel.com/ProductDashboard/10051729
+10053366,Razor Lake S 28C BLLC Product,Si Product,PRQ,2028-01-21T00:00:00.000Z,21400,A0,Execution,202804,null,https://atlas.intel.com/ProductDashboard/10053366
+10055820,Hammer Lake CPU 8P+16E Ext Die,Die,Sort PO*,2028-01-21T00:00:00.000Z,20200,P0,Concept,202804,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10055820
+10072807,Razor Lake S 52C BLLC Product,Si Product,PRQ,2028-02-04T00:00:00.000Z,21400,A0,Execution,202806,null,https://atlas.intel.com/ProductDashboard/10072807
+10063573,Titan Lake PCD-H Die,Die,Sort PO*,2028-02-04T00:00:00.000Z,20200,A1,Concept,202806,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10063573
+10056046,PIXE3pv4 4Xe Die,Die,Sort PO*,2028-02-04T00:00:00.000Z,20200,A0,Concept,202806,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10056046
+10072719,Razor Lake UL Product,Si Product,PRQ,2028-03-18T00:00:00.000Z,21400,B0,Feasibility,202812,null,https://atlas.intel.com/ProductDashboard/10072719
+10055851,Hammer Lake SB Product,Si Product,PO Start,2028-04-01T00:00:00.000Z,20500,A0,Concept,202814,null,https://atlas.intel.com/ProductDashboard/10055851
+10055846,Titan Lake HM Product,Si Product,PO Start,2028-04-15T00:00:00.000Z,20500,B0,Roadmap,202816,null,https://atlas.intel.com/ProductDashboard/10055846
+10055847,Titan Lake HPX Product,Si Product,PO Start,2028-04-29T00:00:00.000Z,20500,A0,Roadmap,202818,null,https://atlas.intel.com/ProductDashboard/10055847
+10055856,Hammer Lake SM Product,Si Product,PO Start,2028-05-27T00:00:00.000Z,20500,A0,Concept,202822,null,https://atlas.intel.com/ProductDashboard/10055856
+10055820,Hammer Lake CPU 8P+16E Ext Die,Die,Tape In,2028-07-22T00:00:00.000Z,20200,Q0,Concept,202830,null,https://atlas.intel.com/ProductDashboard/10055820
+10055846,Titan Lake HM Product,Si Product,PRQ,2028-09-02T00:00:00.000Z,21400,B0,Roadmap,202836,null,https://atlas.intel.com/ProductDashboard/10055846
+10056060,Hammer Lake SX Product,Si Product,PRQ,2028-09-08T00:00:00.000Z,21403,A0,Concept,202837,null,https://atlas.intel.com/ProductDashboard/10056060
+10055818,Titan Lake HL Product,Si Product,PRQ,2028-09-30T00:00:00.000Z,21400,A0,Roadmap,202840,null,https://atlas.intel.com/ProductDashboard/10055818
+10055820,Hammer Lake CPU 8P+16E Ext Die,Die,Sort PO*,2028-10-28T00:00:00.000Z,20200,Q0,Concept,202844,Estimate ~TI+14WW,https://atlas.intel.com/ProductDashboard/10055820
+10055847,Titan Lake HPX Product,Si Product,PO Start,2028-12-16T00:00:00.000Z,20500,B0,Roadmap,202851,null,https://atlas.intel.com/ProductDashboard/10055847
+10055851,Hammer Lake SB Product,Si Product,PO Start,2028-12-30T00:00:00.000Z,20500,B0,Concept,202853,null,https://atlas.intel.com/ProductDashboard/10055851

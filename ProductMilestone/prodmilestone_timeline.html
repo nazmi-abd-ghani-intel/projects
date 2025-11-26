@@ -1,0 +1,994 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Product Milestone Timeline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://unpkg.com/vis-timeline@7.4.9/styles/vis-timeline-graph2d.min.css" rel="stylesheet" />
+  <style>
+    :root { 
+      --bg: #f5f7fa; 
+      --muted: #666; 
+      --panel: #ffffff; 
+      --border: #e1e4e8;
+      --primary: #0366d6;
+      --primary-hover: #0256c7;
+      --text: #24292e;
+    }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: var(--bg); 
+      color: var(--text);
+      line-height: 1.5;
+    }
+    #controls { 
+      padding: 16px 20px; 
+      background: var(--panel); 
+      border-bottom: 2px solid var(--border); 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      flex-wrap: wrap;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    #timeline { 
+      height: 420px; 
+      border-bottom: 1px solid var(--border); 
+      background: #ffffff;
+      transition: height 0.3s ease;
+    }
+    #timeline.expanded {
+      height: 600px;
+    }
+    .vis-item.vis-line { display: none !important; }
+    .vis-item.vis-box {
+      padding: 1px 4px !important;
+      font-size: 18px !important;
+      line-height: 1 !important;
+      min-height: auto !important;
+      border-radius: 3px !important;
+      height: 24px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    .vis-item .vis-item-content {
+      padding: 0px 2px !important;
+      line-height: 1 !important;
+      display: flex !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+    }
+    .vis-group { 
+      font-size: 14px !important; 
+      font-weight: 600 !important; 
+      color: #0366d6 !important; 
+      background: #f6f8fa !important; 
+      border-bottom: 1px solid #e1e4e8 !important; 
+      padding: 8px 12px !important;
+    }
+    .vis-labelset { background: #f6f8fa !important; }
+    .collapseBtn { margin-left: 8px !important; font-size: 11px !important; }
+    .atlas-header { 
+      font-size: 15px; 
+      font-weight: 700; 
+      color: #0366d6; 
+      background: #f1f8ff; 
+      padding: 8px 14px; 
+      border-bottom: 2px solid #c8e1ff;
+    }
+    #details { 
+      min-height: 60px; 
+      overflow: hidden; 
+      padding: 12px 20px; 
+      border-top: 2px solid var(--border); 
+      background: var(--panel); 
+      color: var(--muted); 
+      display: flex; 
+      align-items: center;
+      box-shadow: 0 -1px 3px rgba(0,0,0,0.04);
+    }
+    #detailPanel { 
+      position: fixed; 
+      right: 24px; 
+      top: 100px; 
+      width: 460px; 
+      max-height: 75vh; 
+      background: #ffffff; 
+      border: 1px solid var(--border); 
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+      z-index: 2000; 
+      padding: 20px; 
+      overflow: auto; 
+      display: none; 
+      border-radius: 8px;
+    }
+    #detailPanel h3 { margin-top: 0; color: var(--text); font-size: 18px; }
+    #detailClose { 
+      position: absolute; 
+      right: 12px; 
+      top: 12px; 
+      background: transparent; 
+      border: 0; 
+      font-size: 20px; 
+      cursor: pointer; 
+      color: var(--muted);
+      padding: 4px 8px;
+    }
+    #detailClose:hover { color: var(--text); background: #f6f8fa; border-radius: 4px; }
+    .placeholder { color: var(--muted); font-style: italic; }
+    #details .placeholder { color: var(--muted); font-style: italic; padding: 20px 8px; text-align: center; }
+    .detail-row { 
+      padding: 10px 0; 
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+    }
+    .detail-key { 
+      font-weight: 600; 
+      min-width: 180px; 
+      color: #586069;
+      flex-shrink: 0;
+    }
+    .detail-value { flex: 1; color: var(--text); word-break: break-word; }
+    .btn { 
+      padding: 8px 14px; 
+      border: 1px solid var(--border); 
+      background: var(--panel); 
+      cursor: pointer; 
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .btn:hover { 
+      background: #f6f8fa; 
+      border-color: #c8ccd0;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn:active { 
+      transform: translateY(0); 
+      box-shadow: none;
+    }
+    #search { 
+      width: 280px; 
+      padding: 8px 12px; 
+      border: 1px solid var(--border); 
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    #search:focus { 
+      outline: none; 
+      border-color: var(--primary); 
+      box-shadow: 0 0 0 3px rgba(3,102,214,0.1);
+    }
+    .milestone-chip { 
+      display: inline-block; 
+      padding: 4px 10px; 
+      border-radius: 12px; 
+      font-size: 12px; 
+      color: #fff;
+      font-weight: 500;
+    }
+    .milestone-default { background: #777; }
+    .tooltip { 
+      pointer-events: none; 
+      position: absolute; 
+      background: #24292e; 
+      color: #fff; 
+      padding: 8px 12px; 
+      border-radius: 6px; 
+      font-size: 13px; 
+      z-index: 1000; 
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .compact-dot { 
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%; 
+      display: inline-block; 
+      vertical-align: middle;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+      border: 2px solid #777;
+      background: #777;
+    }
+    .dot-TapeIn { background: #2b8cbe !important; border-color: #2b8cbe !important; }
+    .dot-SortPO { background: #2ca02c !important; border-color: #2ca02c !important; }
+    .dot-DesignComplete { background: #9467bd !important; border-color: #9467bd !important; }
+    .dot-Execution { background: #ff7f0e !important; border-color: #ff7f0e !important; }
+    .dot-ECOCutoff { background: #e377c2 !important; border-color: #e377c2 !important; }
+    .dot-ClassPowerOn { background: #8c564b !important; border-color: #8c564b !important; }
+    .dot-POStart { background: #d62728 !important; border-color: #d62728 !important; }
+    .dot-ES1 { background: #17becf !important; border-color: #17becf !important; }
+    .dot-ES2 { background: #bcbd22 !important; border-color: #bcbd22 !important; }
+    .dot-PRQ { background: #7f7f7f !important; border-color: #7f7f7f !important; }
+    .dot-MPSample { background: #e7ba52 !important; border-color: #e7ba52 !important; }
+    .dot-QS { background: #1f77b4 !important; border-color: #1f77b4 !important; }
+    .dot-MPStart { background: #9edae5 !important; border-color: #9edae5 !important; }
+    .dot-default { background: #777 !important; border-color: #777 !important; }
+    .layout { display: flex; flex-direction: column; height: 100vh; }
+    #topHint { 
+      position: fixed; 
+      top: 16px; 
+      right: 24px; 
+      background: rgba(255,255,255,0.98); 
+      padding: 10px 14px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border); 
+      font-size: 13px; 
+      color: var(--muted); 
+      z-index: 3000; 
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    #timeline-debug {
+      padding: 10px 20px;
+      background: #f1f8ff;
+      border-bottom: 1px solid #c8e1ff;
+      color: #0366d6;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .top { flex: 0 0 auto; }
+    .mid { flex: 0 0 auto; }
+    .bottom { flex: 1 1 auto; overflow: auto; }
+    label { font-size: 13px; color: var(--text); font-weight: 500; }
+    label small { color: var(--muted); font-weight: 400; }
+    input[type="date"] {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    select {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+      min-width: 100px;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(3,102,214,0.1);
+    }
+    select.has-selection {
+      background: #e3f2fd;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+    #info {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 6px 12px;
+      background: #f6f8fa;
+      border-radius: 6px;
+    }
+    #legend .btn {
+      font-size: 12px;
+      padding: 6px 10px;
+    }
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    kbd {
+      background: #f6f8fa;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 2px 6px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--primary);
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+      <div class="top">
+      <div style="background:#f1f8ff;border-bottom:1px solid #c8e1ff;padding:8px 20px;text-align:center;font-size:13px;color:#0366d6;font-weight:600">
+        <span id="lastUpdated">Loading data...</span>
+      </div>
+      <div id="controls">
+        <div style="display:flex;gap:8px;align-items:center;padding-right:12px;border-right:2px solid var(--border)">
+          <button id="zoomIn" class="btn">🔍+ Zoom In</button>
+          <button id="zoomOut" class="btn">🔍− Zoom Out</button>
+          <button id="fit" class="btn">⬛ Fit All</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;padding-right:12px;border-right:2px solid var(--border)">
+          <input id="search" placeholder="🔎 Search projects or milestones..." />
+          <label style="display:flex;gap:6px;align-items:center"><small>Type</small><select id="itemTypeFilter"><option value="">All</option></select></label>
+          <label style="display:flex;gap:6px;align-items:center"><small>From</small><input id="fromDate" type="date" /></label>
+          <label style="display:flex;gap:6px;align-items:center"><small>To</small><input id="toDate" type="date" /></label>
+        </div>
+        <div id="legend" style="display:flex; gap:6px; align-items:center; padding-right:12px; border-right:2px solid var(--border); flex-wrap:wrap"></div>
+        <button id="clearFilters" class="btn" style="background:#fee;border-color:#fcc">🗑️ Clear Filters</button>
+        <button id="exportCsv" class="btn">📥 Export CSV</button>
+        <div style="display:flex;gap:8px;align-items:center;padding-right:12px;border-right:2px solid var(--border)">
+          <label style="display:flex;gap:8px;align-items:center;margin:0;">
+            <span style="font-size:12px;font-weight:500;">Show Name</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="colorModeToggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </label>
+        </div>
+        <div id="info"></div>
+      </div>
+      <div id="timeline" class="mid" aria-label="Product milestone timeline"></div>
+    </div>
+    <div id="details" class="bottom"></div>
+  </div>
+
+  <div id="topHint">Click any timeline point to see full details here. Press <kbd>?</kbd> for shortcuts. <button id="hintClose" title="dismiss" style="margin-left:8px;border:0;background:transparent;cursor:pointer;font-size:12px">×</button></div>
+
+  <div id="shortcutsPanel" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:24px;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.2);z-index:4000;min-width:400px">
+    <h3 style="margin:0 0 16px 0;color:var(--text)">Keyboard Shortcuts</h3>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px">
+      <kbd>?</kbd><span>Show/hide shortcuts</span>
+      <kbd>Ctrl+F</kbd><span>Focus search</span>
+      <kbd>+</kbd><span>Zoom in</span>
+      <kbd>-</kbd><span>Zoom out</span>
+      <kbd>0</kbd><span>Fit all</span>
+      <kbd>Esc</kbd><span>Close panels</span>
+    </div>
+    <button id="shortcutsClose" style="margin-top:16px;padding:6px 12px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer">Close</button>
+  </div>
+
+  <div id="vis-tooltip" class="tooltip"></div>
+
+  <script src="https://unpkg.com/vis-timeline@7.4.9/standalone/umd/vis-timeline-graph2d.min.js"></script>
+  <script>
+    <!-- INLINE_JSON_MARKER -->
+  </script>
+  <script>
+    async function loadData() {
+      try {
+        let json = undefined;
+        if (typeof INLINE_JSON !== 'undefined') {
+          json = INLINE_JSON;
+        } else {
+          // try main path, then Data/ fallback
+          const paths = ['prodmilestone.json', 'Data/prodmilestone.json'];
+          let lastErr = null;
+          for (const p of paths) {
+            try {
+              const res = await fetch(p);
+              if (!res.ok) throw new Error(`${p} returned ${res.status} ${res.statusText}`);
+              json = await res.json();
+              break;
+            } catch (e) {
+              lastErr = e;
+            }
+          }
+          if (!json) throw new Error('Could not load prodmilestone JSON: ' + (lastErr && lastErr.message ? lastErr.message : 'unknown'));
+        }
+
+        // Display last updated timestamp
+        const lastUpdated = json.metadata?.last_updated || 'Unknown';
+        document.getElementById('lastUpdated').textContent = `Data last updated: ${lastUpdated}`;
+
+        const dataArray = json.result?.data_array || json.result?.data || json.data || [];
+        const manifestCols = json.manifest?.schema?.columns || json.result?.schema?.columns || [];
+        const cols = manifestCols.map(c => c.name);
+
+        const groupsMap = new Map();
+        const items = [];
+        const rawById = new Map();
+        for (const row of dataArray) {
+          const obj = {};
+          for (let i = 0; i < cols.length; i++) obj[cols[i]] = row[i];
+
+          const id = `${obj.AtlasProjectItemId || 'X'}-${(obj.Milestone||'')}-${obj.MilestoneDate || ''}`;
+          const groupKey = obj.AtlasProjectName || (`Item-${obj.AtlasProjectItemId || 'unknown'}`);
+          if (!groupsMap.has(groupKey)) groupsMap.set(groupKey, { id: groupsMap.size + 1, content: groupKey });
+
+          const start = obj.MilestoneDate;
+          const safeMil = (obj.Milestone || '').replace(/[^A-Za-z0-9]/g,'') || 'default';
+          const className = 'milestone-' + safeMil;
+          
+          // Determine color based on milestone
+          const milestoneColors = {
+            'Tape In': '#2b8cbe',
+            'Sort PO*': '#2ca02c',
+            'Design-Complete': '#9467bd',
+            'Execution': '#ff7f0e',
+            'ECO Cut-off': '#e377c2',
+            'Class Power On': '#8c564b',
+            'PO Start': '#d62728',
+            'ES1': '#17becf',
+            'ES2': '#bcbd22',
+            'PRQ': '#7f7f7f',
+            'MP Sample': '#e7ba52',
+            'QS': '#1f77b4',
+            'MP Start': '#9edae5',
+          };
+          const dotColor = milestoneColors[obj.Milestone] || '#777';
+          
+          const itemObj = {
+            id,
+            group: groupsMap.get(groupKey).id,
+            content: `<span style="font-size:20px">●</span> <span style="font-size:13px">${obj.Milestone || ''}</span>`,
+            start: start,
+            title: `${obj.AtlasProjectName || ''}\n${obj.Milestone || ''}\n${obj.MilestoneDate || ''}`,
+            className: className,
+            raw: obj,
+            dotColor: dotColor,
+            milestoneName: obj.Milestone || '',
+            style: `color: ${dotColor}; font-weight: bold;`
+          };
+          
+          items.push(itemObj);
+          rawById.set(id, obj);
+        }
+
+        const groups = Array.from(groupsMap.values());
+        const container = document.getElementById('timeline');
+        const dataset = new vis.DataSet(items);
+        const groupSet = new vis.DataSet(groups);
+        // keep originals for search restore
+        const originalItems = items.slice();
+        const originalGroups = groups.slice();
+
+        // Diagnostics: show item/group count
+        const debugDiv = document.createElement('div');
+        debugDiv.style = 'color:#d62728;font-weight:bold;padding:8px;';
+        debugDiv.id = 'timeline-debug';
+        debugDiv.innerText = `Loaded ${items.length} items, ${groups.length} groups.`;
+        container.parentElement.insertBefore(debugDiv, container);
+
+        if (items.length === 0 || groups.length === 0) {
+          container.innerHTML = '<div style="color:#d62728;font-size:18px;padding:24px;">No data loaded. Check prodmilestone.json and SQL output.</div>';
+          return;
+        }
+
+        // Populate AtlasProjectItemType dropdown
+        const itemTypes = new Set();
+        originalItems.forEach(item => {
+          const type = item.raw?.AtlastProjectItemType || item.raw?.AtlasProjectItemType;
+          if (type) itemTypes.add(type);
+        });
+        const itemTypeFilter = document.getElementById('itemTypeFilter');
+        Array.from(itemTypes).sort().forEach(type => {
+          const option = document.createElement('option');
+          option.value = type;
+          option.textContent = type;
+          itemTypeFilter.appendChild(option);
+        });
+
+        const milestonePalette = {
+          'Tape In': '#2b8cbe',
+          'Sort PO*': '#2ca02c',
+          'Design-Complete': '#9467bd',
+          'Execution': '#ff7f0e',
+          'ECO Cut-off': '#e377c2',
+          'Class Power On': '#8c564b',
+          'PO Start': '#d62728',
+          'ES1': '#17becf',
+          'ES2': '#bcbd22',
+          'PRQ': '#7f7f7f',
+          'MP Sample': '#e7ba52',
+          'QS': '#1f77b4',
+          'MP Start': '#9edae5',
+          'default': '#777',
+        };
+        
+        const milestoneToClass = {
+          'Tape In': 'TapeIn',
+          'Sort PO*': 'SortPO',
+          'Design-Complete': 'DesignComplete',
+          'Execution': 'Execution',
+          'ECO Cut-off': 'ECOCutoff',
+          'Class Power On': 'ClassPowerOn',
+          'PO Start': 'POStart',
+          'ES1': 'ES1',
+          'ES2': 'ES2',
+          'PRQ': 'PRQ',
+          'MP Sample': 'MPSample',
+          'QS': 'QS',
+          'MP Start': 'MPStart',
+        };
+        
+        function getDotClass(item) {
+          try {
+            const m = (item.raw && item.raw.Milestone) ? item.raw.Milestone : 'default';
+            return 'dot-' + (milestoneToClass[m] || 'default');
+          } catch (e) { return 'dot-default'; }
+        }
+        
+        function colorFor(item) {
+          try {
+            const m = (item.raw && item.raw.Milestone) ? item.raw.Milestone : 'default';
+            return milestonePalette[m] || milestonePalette['default'];
+          } catch (e) { return milestonePalette['default']; }
+        }
+        
+        // Display mode: true = show name, false = show only colored dot
+        let showNameMode = true;
+        
+        const options = {
+          stack: true,
+          verticalScroll: true,
+          zoomKey: 'ctrlKey',
+          horizontalScroll: true,
+          maxHeight: 'none',
+          groupOrder: 'content',
+          orientation: { axis: 'top' },
+          showCurrentTime: true
+        };
+
+        const timeline = new vis.Timeline(container, dataset, groupSet, options);
+
+        document.getElementById('zoomIn').onclick = () => timeline.zoomIn(0.5);
+        document.getElementById('zoomOut').onclick = () => timeline.zoomOut(0.5);
+        document.getElementById('fit').onclick = () => timeline.fit();
+
+        // Toggle show name mode
+        document.getElementById('colorModeToggle').addEventListener('change', function() {
+          showNameMode = this.checked;
+          // Update all items to show/hide milestone names
+          const currentItems = dataset.get();
+          currentItems.forEach(item => {
+            if (showNameMode) {
+              // Show colored dot with milestone name
+              item.content = `<span style="font-size:20px">●</span> <span style="font-size:13px">${item.milestoneName}</span>`;
+            } else {
+              // Show only colored dot (no text)
+              item.content = `<span style="font-size:20px">●</span>`;
+            }
+            item.style = `color: ${item.dotColor}; font-weight: bold;`;
+          });
+          dataset.update(currentItems);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+          // Show shortcuts help
+          if (e.key === '?' && !e.ctrlKey && !e.altKey) {
+            const panel = document.getElementById('shortcutsPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            e.preventDefault();
+          }
+          // Focus search
+          if (e.ctrlKey && e.key === 'f') {
+            document.getElementById('search').focus();
+            e.preventDefault();
+          }
+          // Zoom shortcuts
+          if (e.key === '+' || e.key === '=') {
+            timeline.zoomIn(0.5);
+            e.preventDefault();
+          }
+          if (e.key === '-' || e.key === '_') {
+            timeline.zoomOut(0.5);
+            e.preventDefault();
+          }
+          if (e.key === '0') {
+            timeline.fit();
+            e.preventDefault();
+          }
+          // Close panels
+          if (e.key === 'Escape') {
+            document.getElementById('detailPanel').style.display = 'none';
+            document.getElementById('shortcutsPanel').style.display = 'none';
+          }
+        });
+
+        document.getElementById('shortcutsClose').onclick = () => {
+          document.getElementById('shortcutsPanel').style.display = 'none';
+        };
+
+        // Date range filter handlers (applyFilters implemented below)
+        const selectedMilestones = new Set();
+
+        function matchesFilters(it, q, fromVal, toVal, itemType) {
+          // item type check
+          if (itemType) {
+            const type = it.raw?.AtlastProjectItemType || it.raw?.AtlasProjectItemType;
+            if (type !== itemType) return false;
+          }
+          // date check
+          if (fromVal) {
+            const f = new Date(fromVal);
+            const d = new Date(it.raw?.MilestoneDate || it.start);
+            if (isNaN(d) || d < f) return false;
+          }
+          if (toVal) {
+            const t = new Date(toVal);
+            const d = new Date(it.raw?.MilestoneDate || it.start);
+            if (isNaN(d) || d > t) return false;
+          }
+          // milestone chip filter
+          if (selectedMilestones.size > 0) {
+            const m = ((it.raw && it.raw.Milestone) ? it.raw.Milestone : 'default');
+            if (!selectedMilestones.has(m)) return false;
+          }
+          // search text
+          if (q) {
+            const content = (it.content || '').toString().toLowerCase();
+            const title = (it.title || '').toString().toLowerCase();
+            const rawText = Object.values(it.raw||{}).join(' ').toLowerCase();
+            if (!(content.includes(q) || title.includes(q) || rawText.includes(q))) return false;
+          }
+          return true;
+        }
+
+        function applyFilters() {
+          requestAnimationFrame(() => {
+            const q = document.getElementById('search').value.trim().toLowerCase();
+            const fromVal = document.getElementById('fromDate').value;
+            const toVal = document.getElementById('toDate').value;
+            const itemType = document.getElementById('itemTypeFilter').value;
+            const filtered = originalItems.filter(it => matchesFilters(it, q, fromVal, toVal, itemType));
+            const matchedGroupIds = new Set(filtered.map(m => m.group));
+            // When any filter is active, only show groups that have matching items
+            let matchedGroups;
+            if (selectedMilestones.size > 0 || itemType || fromVal || toVal) {
+              matchedGroups = originalGroups.filter(g => matchedGroupIds.has(g.id));
+            } else {
+              matchedGroups = originalGroups.filter(g => g.content.toLowerCase().includes(q) || matchedGroupIds.has(g.id));
+            }
+            dataset.clear(); 
+            dataset.add(filtered);
+            groupSet.clear(); 
+            groupSet.add(matchedGroups);
+            document.getElementById('info').textContent = `${matchedGroups.length} project(s), ${filtered.length} item(s) shown`;
+          });
+        }
+
+        document.getElementById('fromDate').addEventListener('change', applyFilters);
+        document.getElementById('toDate').addEventListener('change', applyFilters);
+        document.getElementById('itemTypeFilter').addEventListener('change', function() {
+          // Toggle visual selection state
+          if (this.value) {
+            this.classList.add('has-selection');
+          } else {
+            this.classList.remove('has-selection');
+          }
+          applyFilters();
+        });
+
+        // Debounced search for better performance
+        let searchTimeout;
+        document.getElementById('search').addEventListener('input', function() {
+          clearTimeout(searchTimeout);
+          searchTimeout = setTimeout(applyFilters, 300);
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+          if (e.key === '?' && !e.ctrlKey && !e.altKey && document.activeElement.tagName !== 'INPUT') {
+            const panel = document.getElementById('shortcutsPanel');
+            if (panel) {
+              panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+              e.preventDefault();
+            }
+          }
+          if (e.ctrlKey && e.key === 'f') {
+            document.getElementById('search').focus();
+            e.preventDefault();
+          }
+          if ((e.key === '+' || e.key === '=') && document.activeElement.tagName !== 'INPUT') {
+            timeline.zoomIn(0.5);
+            e.preventDefault();
+          }
+          if ((e.key === '-' || e.key === '_') && document.activeElement.tagName !== 'INPUT') {
+            timeline.zoomOut(0.5);
+            e.preventDefault();
+          }
+          if (e.key === '0' && document.activeElement.tagName !== 'INPUT') {
+            timeline.fit();
+            e.preventDefault();
+          }
+          if (e.key === 'Escape') {
+            document.getElementById('detailPanel').style.display = 'none';
+            const shortcutsPanel = document.getElementById('shortcutsPanel');
+            if (shortcutsPanel) shortcutsPanel.style.display = 'none';
+          }
+        });
+
+        const shortcutsClose = document.getElementById('shortcutsClose');
+        if (shortcutsClose) {
+          shortcutsClose.onclick = () => {
+            document.getElementById('shortcutsPanel').style.display = 'none';
+          };
+        }
+
+        // Clear filters button logic
+        document.getElementById('clearFilters').onclick = () => {
+          document.getElementById('search').value = '';
+          const itemTypeFilter = document.getElementById('itemTypeFilter');
+          itemTypeFilter.value = '';
+          itemTypeFilter.classList.remove('has-selection');
+          document.getElementById('fromDate').value = '';
+          document.getElementById('toDate').value = '';
+          selectedMilestones.clear();
+          Array.from(document.querySelectorAll('#legend .btn')).forEach(btn => {
+            btn.style.opacity = '1';
+            btn.style.background = 'var(--panel)';
+          });
+          applyFilters();
+        };
+
+        // export visible CSV
+        document.getElementById('exportCsv').onclick = () => {
+          const visible = dataset.get();
+          if (!visible || visible.length === 0) return alert('No visible items to export');
+          const colsToExport = cols.slice();
+          const rows = visible.map(it => colsToExport.map(c => {
+            const v = (it.raw && it.raw[c]) != null ? it.raw[c] : '';
+            // escape quotes
+            if (typeof v === 'string' && v.includes(',')) return `"${v.replace(/"/g,'""')}"`;
+            return v;
+          }).join(','));
+          const csv = [colsToExport.join(',')].concat(rows).join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = 'prodmilestone_visible.csv'; a.click(); URL.revokeObjectURL(url);
+        };
+
+        timeline.on('itemover', function (props) {
+          const tooltip = document.getElementById('vis-tooltip');
+          const id = props.item;
+          if (!id) { tooltip.style.display = 'none'; return; }
+          const obj = rawById.get(id);
+          if (!obj) { tooltip.style.display = 'none'; return; }
+          tooltip.innerHTML = `<strong>${obj.AtlasProjectName || ''}</strong><br><small style="opacity:0.9">${obj.MilestoneDate || ''}</small><div style="margin-top:6px">${obj.Milestone || ''}</div>`;
+          tooltip.style.display = 'block';
+        });
+
+        timeline.on('itemout', function () { document.getElementById('vis-tooltip').style.display = 'none'; });
+
+        // show details in floating panel to avoid overlapping timeline
+        const detailPanel = document.createElement('div'); detailPanel.id = 'detailPanel';
+        detailPanel.innerHTML = `<button id="detailClose" aria-label="close">×</button><button id="detailPin" title="Pin panel">📌</button><div id="detailContent"></div>`;
+        document.body.appendChild(detailPanel);
+        document.getElementById('detailClose').onclick = () => {
+          if (!detailPanel.classList.contains('pinned')) detailPanel.style.display = 'none';
+        };
+        const detailPin = document.getElementById('detailPin');
+        const PIN_KEY = 'prodmilestone_panel_pinned_v1';
+        if (localStorage.getItem(PIN_KEY) === '1') { detailPanel.classList.add('pinned'); detailPin.style.color = '#2b8cbe'; }
+        detailPin.onclick = () => {
+          if (detailPanel.classList.contains('pinned')) {
+            detailPanel.classList.remove('pinned');
+            detailPin.style.color = '#888';
+            localStorage.setItem(PIN_KEY, '0');
+          } else {
+            detailPanel.classList.add('pinned');
+            detailPin.style.color = '#2b8cbe';
+            localStorage.setItem(PIN_KEY, '1');
+          }
+        };
+
+        // hint dismiss logic
+        const topHint = document.getElementById('topHint');
+        const hintClose = document.getElementById('hintClose');
+        const HINT_KEY = 'prodmilestone_hint_dismissed_v1';
+        if (localStorage.getItem(HINT_KEY) === '1') topHint.style.display = 'none';
+        hintClose.onclick = () => { topHint.style.display = 'none'; localStorage.setItem(HINT_KEY, '1'); };
+
+        timeline.on('select', function (props) {
+          const details = document.getElementById('details');
+          if (!props.items || props.items.length === 0) {
+            details.innerHTML = '';
+            if (!detailPanel.classList.contains('pinned')) {
+              detailPanel.style.display = 'none';
+            }
+            return;
+          }
+          const id = props.items[0];
+          const obj = rawById.get(id);
+          if (!obj) {
+            details.innerHTML = '';
+            if (!detailPanel.classList.contains('pinned')) {
+              detailPanel.style.display = 'none';
+            }
+            return;
+          }
+          const rows = [];
+          for (const k of cols) {
+            let v = obj[k];
+            if (v === null || typeof v === 'undefined') v = 'null';
+            if (k.toLowerCase().includes('link') && v && typeof v === 'string') v = `<a href="${v}" target="_blank" style="color:#0366d6;text-decoration:none;">${v}</a>`;
+            rows.push(`<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-value">${v}</span></div>`);
+          }
+          const html = `<h3>${obj.AtlasProjectName || obj.AtlasProjectItemId} — ${obj.Milestone || ''}</h3>` + rows.join('');
+          document.getElementById('detailContent').innerHTML = html;
+          detailPanel.style.display = 'block';
+          // auto-hide the top hint on first selection and persist
+          if (topHint && topHint.style.display !== 'none') { topHint.style.display = 'none'; localStorage.setItem(HINT_KEY, '1'); }
+        });
+
+        // Add click handler on timeline background to deselect
+        timeline.on('click', function(props) {
+          if (!props.item) {
+            timeline.setSelection([]);
+          }
+        });
+
+        const search = document.getElementById('search');
+        search.addEventListener('input', applyFilters);
+
+        // build legend chips
+        const legendEl = document.getElementById('legend');
+        const milestoneSet = Array.from(new Set(originalItems.map(it => (it.raw && it.raw.Milestone) ? it.raw.Milestone : 'default'))).filter(m => m && m !== 'default').slice(0,12);
+        milestoneSet.forEach(m => {
+          const color = milestonePalette[m] || milestonePalette['default'];
+          const chip = document.createElement('button');
+          chip.className = 'btn'; 
+          chip.style.display='inline-flex'; 
+          chip.style.alignItems='center';
+          chip.style.transition = 'all 0.2s';
+          chip.dataset.mil = m;
+          chip.innerHTML = `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${color};margin-right:8px;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></span>${m}`;
+          chip.onclick = () => {
+            const key = chip.dataset.mil;
+            if (selectedMilestones.has(key)) {
+              selectedMilestones.delete(key);
+              chip.style.opacity = '1';
+              chip.style.background = 'var(--panel)';
+            } else {
+              selectedMilestones.add(key);
+              chip.style.opacity = '0.5';
+              chip.style.background = '#f6f8fa';
+            }
+            applyFilters();
+          };
+          legendEl.appendChild(chip);
+        });
+
+        // keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); document.getElementById('search').focus(); }
+          if (e.key === 'c' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setCompact(!compactMode); }
+          if (e.key === 'r' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); timeline.fit(); }
+        });
+
+        // --- Project group collapse/expand ---
+        // Find groups with >N milestones and add collapse/expand toggles
+        const COLLAPSE_KEY = 'prodmilestone_collapsed_groups_v1';
+        let collapsedGroups = [];
+        try {
+          collapsedGroups = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]');
+        } catch {}
+        const groupMilestoneCount = {};
+        originalItems.forEach(it => {
+          groupMilestoneCount[it.group] = (groupMilestoneCount[it.group]||0)+1;
+        });
+        const COLLAPSE_THRESHOLD = 8;
+        // Add collapse toggles to group labels
+        setTimeout(() => {
+          document.querySelectorAll('.vis-group').forEach(el => {
+            const gid = el.getAttribute('data-groupid');
+            if (!gid) return;
+            // Add AtlasProjectName header above each group
+            if (!el.querySelector('.atlas-header')) {
+              const groupObj = groups.find(g => String(g.id) === String(gid));
+              if (groupObj) {
+                const header = document.createElement('div');
+                header.className = 'atlas-header';
+                header.textContent = groupObj.content;
+                el.insertBefore(header, el.firstChild);
+              }
+            }
+            if (groupMilestoneCount[gid] < COLLAPSE_THRESHOLD) return;
+            if (el.querySelector('.collapseBtn')) return;
+            const btn = document.createElement('button');
+            btn.className = 'btn collapseBtn';
+            btn.style.fontSize = '11px'; btn.style.padding = '2px 6px'; btn.style.marginLeft = '6px';
+            btn.textContent = collapsedGroups.includes(gid) ? 'Expand' : 'Collapse';
+            btn.onclick = (ev) => {
+              ev.stopPropagation();
+              if (collapsedGroups.includes(gid)) {
+                collapsedGroups = collapsedGroups.filter(x => x !== gid);
+                btn.textContent = 'Collapse';
+              } else {
+                collapsedGroups.push(gid);
+                btn.textContent = 'Expand';
+              }
+              localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedGroups));
+              applyFilters();
+            };
+            el.appendChild(btn);
+          });
+        }, 600);
+
+        // Filter out collapsed groups in applyFilters
+        const oldApplyFilters = applyFilters;
+        applyFilters = function() {
+          oldApplyFilters();
+          // Remove items/groups for collapsed groups
+          if (collapsedGroups.length) {
+            const filtered = dataset.get().filter(it => !collapsedGroups.includes(String(it.group)));
+            dataset.clear(); dataset.add(filtered);
+            const filteredGroups = groupSet.get().filter(g => !collapsedGroups.includes(String(g.id)));
+            groupSet.clear(); groupSet.add(filteredGroups);
+            document.getElementById('info').textContent += `, ${collapsedGroups.length} group(s) collapsed`;
+          }
+        };
+
+        // position tooltip near mouse
+        document.addEventListener('mousemove', function (e) { const t = document.getElementById('vis-tooltip'); if (t.style.display==='block') { t.style.left = (e.clientX+12) + 'px'; t.style.top = (e.clientY+12) + 'px'; } });
+
+        timeline.fit();
+      } catch (e) {
+        document.getElementById('timeline').innerText = 'Failed to load data: ' + e.message;
+      }
+    }
+    loadData();
+  </script>
+</body>
+</html>
