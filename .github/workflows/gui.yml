@@ -27,6 +27,9 @@ on:
 jobs:
   gui-headless:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FFRCheck_Project
     env:
       INPUT_DIR: ${{ github.event.inputs.input_dir }}
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
@@ -80,6 +83,9 @@ jobs:
 
   gui-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: FFRCheck_Project
     env:
       INPUT_DIR: ${{ github.event.inputs.input_dir }}
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
