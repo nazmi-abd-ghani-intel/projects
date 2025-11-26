@@ -9,6 +9,7 @@ import subprocess
 import threading
 import sys
 import json
+import os
 from pathlib import Path
 import queue
 
@@ -65,14 +66,17 @@ class FFRCheckGUI:
         
         # Input Directory
         ttk.Label(req_frame, text="Input Directory:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=3)
-        self.input_dir_var = tk.StringVar(value=self.config.get('default_arguments', {}).get('input_dir', '') or '')
+        # Allow CI/workflow to pre-fill values via environment variables
+        input_dir_default = os.getenv('INPUT_DIR') or self.config.get('default_arguments', {}).get('input_dir', '') or ''
+        self.input_dir_var = tk.StringVar(value=input_dir_default)
         self.input_dir_entry = ttk.Entry(req_frame, textvariable=self.input_dir_var, width=50)
         self.input_dir_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5, pady=3)
         ttk.Button(req_frame, text="Browse...", command=self.browse_input_dir).grid(row=0, column=2, padx=5, pady=3)
         
         # Output Directory
         ttk.Label(req_frame, text="Output Directory:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=3)
-        self.output_dir_var = tk.StringVar(value=self.config.get('default_arguments', {}).get('output_dir', 'output'))
+        output_dir_default = os.getenv('OUTPUT_DIR') or self.config.get('default_arguments', {}).get('output_dir', 'output')
+        self.output_dir_var = tk.StringVar(value=output_dir_default)
         self.output_dir_entry = ttk.Entry(req_frame, textvariable=self.output_dir_var, width=50)
         self.output_dir_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=5, pady=3)
         ttk.Button(req_frame, text="Browse...", command=self.browse_output_dir).grid(row=1, column=2, padx=5, pady=3)
@@ -84,7 +88,8 @@ class FFRCheckGUI:
         
         # SSPEC
         ttk.Label(opt_frame, text="SSPEC (QDF):").grid(row=0, column=0, sticky=tk.W, padx=5, pady=3)
-        self.sspec_var = tk.StringVar(value=self.config.get('default_arguments', {}).get('sspec', '') or '')
+        sspec_default = os.getenv('SSPEC') or self.config.get('default_arguments', {}).get('sspec', '') or ''
+        self.sspec_var = tk.StringVar(value=sspec_default)
         self.sspec_entry = ttk.Entry(opt_frame, textvariable=self.sspec_var, width=50)
         self.sspec_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=5, pady=3)
         ttk.Label(opt_frame, text="e.g., L15H or L0V8,L0VS,L15E or *", 
@@ -92,7 +97,8 @@ class FFRCheckGUI:
         
         # UBE File
         ttk.Label(opt_frame, text="UBE File:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=3)
-        self.ube_var = tk.StringVar(value=self.config.get('default_arguments', {}).get('ube', '') or '')
+        ube_default = os.getenv('UBE') or self.config.get('default_arguments', {}).get('ube', '') or ''
+        self.ube_var = tk.StringVar(value=ube_default)
         self.ube_entry = ttk.Entry(opt_frame, textvariable=self.ube_var, width=50)
         self.ube_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), padx=5, pady=3)
         ttk.Button(opt_frame, text="Browse...", command=self.browse_ube).grid(row=1, column=2, padx=5, pady=3)
