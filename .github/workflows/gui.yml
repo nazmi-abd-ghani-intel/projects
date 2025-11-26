@@ -19,6 +19,26 @@ on:
         description: 'SSPEC (optional)'
         required: false
         default: ''
+      mtlolf:
+        description: 'MTL_OLF.xml file path (optional)'
+        required: false
+        default: ''
+      ituff:
+        description: 'ITF/ITUFF directory path (optional)'
+        required: false
+        default: ''
+      visualid_filter:
+        description: 'VisualID filter (optional)'
+        required: false
+        default: ''
+      log:
+        description: 'Enable console logging (true/false)'
+        required: false
+        default: 'false'
+      html_stats:
+        description: 'Generate HTML statistics report (true/false)'
+        required: false
+        default: 'true'
       ube:
         description: 'UBE file path (optional)'
         required: false
@@ -36,6 +56,11 @@ jobs:
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
       SSPEC: ${{ github.event.inputs.sspec }}
       UBE: ${{ github.event.inputs.ube }}
+      MTLOLF: ${{ github.event.inputs.mtlolf }}
+      ITUFF: ${{ github.event.inputs.ituff }}
+      VISUALID_FILTER: ${{ github.event.inputs.visualid_filter }}
+      LOG: ${{ github.event.inputs.log }}
+      HTML_STATS: ${{ github.event.inputs.html_stats }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -93,6 +118,11 @@ jobs:
       OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
       SSPEC: ${{ github.event.inputs.sspec }}
       UBE: ${{ github.event.inputs.ube }}
+      MTLOLF: ${{ github.event.inputs.mtlolf }}
+      ITUFF: ${{ github.event.inputs.ituff }}
+      VISUALID_FILTER: ${{ github.event.inputs.visualid_filter }}
+      LOG: ${{ github.event.inputs.log }}
+      HTML_STATS: ${{ github.event.inputs.html_stats }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
