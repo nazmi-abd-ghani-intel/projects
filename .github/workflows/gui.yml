@@ -1,4 +1,4 @@
-name: GUI Tests (Headless)
+name: FFR-Check
 
 on:
   push:
