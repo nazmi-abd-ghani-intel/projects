@@ -21,6 +21,7 @@ $rawSql = Get-Content $sqlFile -Raw
 # split on CRLF or LF using single-quoted regex, ignore triple-backtick fence lines, then rejoin using the system newline
 $sqlQuery = ($rawSql -split '\r?\n' | Where-Object { $_ -notmatch '^```' }) -join [System.Environment]::NewLine
 
+
 $secretFile = Join-Path $scriptDir "databricks_secret.txt"
 if (-not (Test-Path $secretFile)) {
     New-Item -ItemType File -Path $secretFile | Out-Null

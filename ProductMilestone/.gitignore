@@ -1,0 +1,2 @@
+# Ignore plaintext secret
+/databricks_secret.txt
