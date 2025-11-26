@@ -26,6 +26,11 @@ def main():
     print('ENV OUTPUT_DIR=', os.getenv('OUTPUT_DIR'))
     print('ENV SSPEC=', os.getenv('SSPEC'))
     print('ENV UBE=', os.getenv('UBE'))
+    print('ENV MTLOLF=', os.getenv('MTLOLF'))
+    print('ENV ITUFF=', os.getenv('ITUFF'))
+    print('ENV VISUALID_FILTER=', os.getenv('VISUALID_FILTER'))
+    print('ENV LOG=', os.getenv('LOG'))
+    print('ENV HTML_STATS=', os.getenv('HTML_STATS'))
 
     root = tk.Tk()
     try:
@@ -36,6 +41,11 @@ def main():
         output_dir = os.getenv('OUTPUT_DIR', '')
         sspec = os.getenv('SSPEC', '')
         ube = os.getenv('UBE', '')
+        mtlolf = os.getenv('MTLOLF', '')
+        ituff = os.getenv('ITUFF', '')
+        visualid = os.getenv('VISUALID_FILTER', '')
+        log = os.getenv('LOG', '')
+        html_stats = os.getenv('HTML_STATS', '')
 
         if input_dir:
             try:
@@ -58,6 +68,36 @@ def main():
         if ube:
             try:
                 app.ube_var.set(ube)
+            except Exception:
+                pass
+
+        if mtlolf:
+            try:
+                app.mtlolf_var.set(mtlolf)
+            except Exception:
+                pass
+
+        if ituff:
+            try:
+                app.ituff_var.set(ituff)
+            except Exception:
+                pass
+
+        if visualid:
+            try:
+                app.visualid_var.set(visualid)
+            except Exception:
+                pass
+
+        if log.lower() in ('true', '1', 'yes'):
+            try:
+                app.log_var.set(True)
+            except Exception:
+                pass
+
+        if html_stats.lower() in ('false', '0', 'no'):
+            try:
+                app.html_var.set(False)
             except Exception:
                 pass
 
