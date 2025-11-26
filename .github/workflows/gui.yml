@@ -189,14 +189,7 @@ on:
                       - name: Capture screenshot with Pillow (Windows)
                         shell: pwsh
                         run: |
-                          $script = @'
-                from PIL import ImageGrab
-                img = ImageGrab.grab()
-                img.save("screen_windows.png")
-                print("Saved screen_windows.png")
-                '@
-                          $script | Out-File -FilePath screenshot.py -Encoding utf8
-                          python screenshot.py
+                          python -c 'from PIL import ImageGrab; img = ImageGrab.grab(); img.save("screen_windows.png"); print("Saved screen_windows.png")'
 
                       - name: Upload Windows artifact
                         uses: actions/upload-artifact@v4
