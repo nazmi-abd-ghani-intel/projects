@@ -352,65 +352,7 @@ class FFRCheckGUI:
 
 
 def main():
-    # Headless support: if INPUT_DIR or other env vars are provided,
-    # run processing without starting the Tk GUI.
-    def env_truthy(v):
-        return str(v).lower() in ('1', 'true', 'yes', 'on')
-
-    def build_command_from_env(env):
-        input_dir = env.get('INPUT_DIR')
-        if not input_dir:
-            return None
-
-        output_dir = env.get('OUTPUT_DIR') or 'output'
-
-        python_exe = sys.executable
-        cmd = [python_exe, '-m', 'src.main', input_dir, output_dir]
-
-        if env.get('SSPEC'):
-            cmd.extend(['-sspec', env.get('SSPEC')])
-        if env.get('UBE'):
-            cmd.extend(['-ube', env.get('UBE')])
-        if env.get('MTLOLF'):
-            cmd.extend(['-mtlolf', env.get('MTLOLF')])
-        if env.get('ITUFF'):
-            cmd.extend(['-ituff', env.get('ITUFF')])
-        if env.get('VISUALID'):
-            cmd.extend(['-visualid', env.get('VISUALID')])
-
-        if env_truthy(env.get('LOG')):
-            cmd.append('-log')
-        # HTML stats default is True in GUI; only add flag if explicitly truthy
-        if env.get('HTML_STATS') is not None:
-            if env_truthy(env.get('HTML_STATS')):
-                cmd.append('--html-stats')
-
-        return cmd
-
-    def run_headless_from_env():
-        env = os.environ
-        cmd = build_command_from_env(env)
-        if not cmd:
-            return False
-
-        print('=== Running headless FFR Check ===')
-        print('Command:', ' '.join(cmd))
-
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=os.environ)
-        for line in proc.stdout:
-            print(line, end='')
-        rc = proc.wait()
-        if rc == 0:
-            print('=== Completed successfully ===')
-        else:
-            print(f'=== Completed with code {rc} ===')
-        return True
-
-    # If environment contains an INPUT_DIR (or related), run headless and exit
-    if os.environ.get('INPUT_DIR'):
-        ran = run_headless_from_env()
-        if ran:
-            sys.exit(0)
+    # Headless mode removed: this application now always starts the GUI.
 
     root = tk.Tk()
 
