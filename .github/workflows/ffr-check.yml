@@ -1,0 +1,42 @@
+﻿name: FFR-Check
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      input_file:
+        description: 'Optional input file path relative to repo root'
+        required: false
+        default: ''
+      python_version:
+        description: 'Python version to use for the job'
+        required: false
+        default: '3.11'
+
+jobs:
+  run-gui:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ github.event.inputs.python_version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run gui_app.py
+        env:
+          INPUT_FILE: ${{ github.event.inputs.input_file }}
+        run: |
+          if [ -n "${INPUT_FILE}" ]; then
+            python gui_app.py "${INPUT_FILE}"
+          else
+            python gui_app.py
+          fi
