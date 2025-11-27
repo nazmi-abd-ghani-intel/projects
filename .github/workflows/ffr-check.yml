@@ -1,4 +1,4 @@
-﻿name: FFR-Check
+﻿name: FFR-check
 
 on:
   push:
