@@ -110,18 +110,13 @@ jobs:
         run: |
           # Try to detect a geometry string in gui_app.py (e.g. geometry("800x600"))
           DEFAULT_SCREEN_SIZE="1280x1024x24"
-          geom=$(python - <<'PY'
-import re
-s=open('FFRCheck_Project/gui_app.py','r',encoding='utf-8').read()
-m=re.search(r"geometry\(\s*['\"](\d+)x(\d+)", s)
-if m:
-    print(f"{m.group(1)}x{m.group(2)}x24")
-else:
-    print("")
-PY
-)
+          # Use grep -P to extract WIDTHxHEIGHT from either possible file locations
+          geom=$( (grep -Po "geometry\(\s*[\"'\"]\K\d+x\d+(?=[\"'\"])" gui_app.py 2>/dev/null || true) | head -n1 )
+          if [ -z "$geom" ]; then
+            geom=$( (grep -Po "geometry\(\s*[\"'\"]\K\d+x\d+(?=[\"'\"])" FFRCheck_Project/gui_app.py 2>/dev/null || true) | head -n1 )
+          fi
           if [ -n "$geom" ]; then
-            SCREEN_SIZE="$geom"
+            SCREEN_SIZE="${geom}x24"
           else
             SCREEN_SIZE="$DEFAULT_SCREEN_SIZE"
           fi
