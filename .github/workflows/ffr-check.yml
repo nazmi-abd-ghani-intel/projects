@@ -45,10 +45,14 @@ on:
         description: 'Generate HTML stats (ENV: HTML_STATS) true/false'
         required: false
         default: 'true'
+      runner:
+        description: 'Runner to use (e.g. ubuntu-latest, windows-latest, self-hosted label)'
+        required: false
+        default: 'ubuntu-latest'
 
 jobs:
   run-gui:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,6 +63,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install system dependencies (Xvfb)
+        if: ${{ !contains(github.event.inputs.runner, 'windows') }}
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
@@ -68,13 +73,53 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Validate input paths
+      - name: Validate input paths (Windows)
+        if: ${{ contains(github.event.inputs.runner, 'windows') }}
+        shell: powershell
         env:
           INPUT_DIR: ${{ github.event.inputs.input_dir }}
           INPUT_FILE: ${{ github.event.inputs.input_file }}
         run: |
-          echo "Validating inputs..."
+          Write-Output "Validating inputs on Windows runner..."
+          if ($env:INPUT_DIR -and $env:INPUT_DIR.Trim() -ne '') {
+            if (Test-Path $env:INPUT_DIR) {
+              Write-Output "Found input_dir at $env:INPUT_DIR"
+            } elseif (Test-Path "FFRCheck_Project\$env:INPUT_DIR") {
+              Write-Output "Found input_dir at FFRCheck_Project\$env:INPUT_DIR"
+            } else {
+              Write-Error "ERROR: Input directory not found: $env:INPUT_DIR"
+              exit 1
+            }
+          }
+
+          if ($env:INPUT_FILE -and $env:INPUT_FILE.Trim() -ne '') {
+            if (Test-Path $env:INPUT_FILE) {
+              Write-Output "Found input_file at $env:INPUT_FILE"
+            } elseif (Test-Path "FFRCheck_Project\$env:INPUT_FILE") {
+              Write-Output "Found input_file at FFRCheck_Project\$env:INPUT_FILE"
+            } else {
+              Write-Error "ERROR: Input file not found: $env:INPUT_FILE"
+              exit 1
+            }
+          }
+
+      - name: Validate input paths (Linux/macOS/hosted)
+        if: ${{ !contains(github.event.inputs.runner, 'windows') }}
+        env:
+          INPUT_DIR: ${{ github.event.inputs.input_dir }}
+          INPUT_FILE: ${{ github.event.inputs.input_file }}
+        run: |
+          echo "Validating inputs on hosted runner..."
           if [ -n "${INPUT_DIR}" ]; then
+            if [[ "${INPUT_DIR}" =~ ^[A-Za-z]:\\ ]] || [[ "${INPUT_DIR}" =~ ^[A-Za-z]:/ ]] || [[ "${INPUT_DIR}" =~ ^\\\\ ]]; then
+              echo "ERROR: INPUT_DIR appears to be a Windows local path: ${INPUT_DIR}"
+              echo "Hosted runners cannot access local drives on your machine."
+              echo "Please either:"
+              echo " - Run this workflow on a Windows runner or a self-hosted runner that has access to the path (set the 'runner' input)."
+              echo " - Put input files inside the repository or at an accessible URL and provide a repo-relative path or URL."
+              exit 1
+            fi
+
             if [ -d "${INPUT_DIR}" ]; then
               echo "Found input_dir at ${INPUT_DIR}"
             elif [ -d "FFRCheck_Project/${INPUT_DIR}" ]; then
@@ -85,6 +130,12 @@ jobs:
           fi
 
           if [ -n "${INPUT_FILE}" ]; then
+            if [[ "${INPUT_FILE}" =~ ^[A-Za-z]:\\ ]] || [[ "${INPUT_FILE}" =~ ^[A-Za-z]:/ ]] || [[ "${INPUT_FILE}" =~ ^\\\\ ]]; then
+              echo "ERROR: INPUT_FILE appears to be a Windows local path: ${INPUT_FILE}"
+              echo "Hosted runners cannot access local drives on your machine. Use a Windows or self-hosted runner or provide a repo-relative path.";
+              exit 1
+            fi
+
             if [ -f "${INPUT_FILE}" ]; then
               echo "Found input_file at ${INPUT_FILE}"
             elif [ -f "FFRCheck_Project/${INPUT_FILE}" ]; then
@@ -93,8 +144,10 @@ jobs:
               echo "ERROR: Input file not found: ${INPUT_FILE}"; exit 1
             fi
           fi
+      
 
-      - name: Run gui_app.py under Xvfb (auto-size)
+      - name: Run gui_app.py (Linux/macOS/hosted)
+        if: ${{ !contains(github.event.inputs.runner, 'windows') }}
         working-directory: FFRCheck_Project
         env:
           INPUT_FILE: ${{ github.event.inputs.input_file }}
@@ -126,3 +179,26 @@ jobs:
           else
             xvfb-run -a -s "-screen 0 ${SCREEN_SIZE}" python gui_app.py
           fi
+
+      - name: Run gui_app.py (Windows)
+        if: ${{ contains(github.event.inputs.runner, 'windows') }}
+        shell: powershell
+        working-directory: FFRCheck_Project
+        env:
+          INPUT_FILE: ${{ github.event.inputs.input_file }}
+          INPUT_DIR: ${{ github.event.inputs.input_dir }}
+          OUTPUT_DIR: ${{ github.event.inputs.output_dir }}
+          SSPEC: ${{ github.event.inputs.sspec }}
+          UBE: ${{ github.event.inputs.ube }}
+          MTLOLF: ${{ github.event.inputs.mtlolf }}
+          ITUFF: ${{ github.event.inputs.ituff }}
+          VISUALID: ${{ github.event.inputs.visualid }}
+          LOG: ${{ github.event.inputs.log }}
+          HTML_STATS: ${{ github.event.inputs.html_stats }}
+        run: |
+          Write-Output "Running gui_app.py on Windows runner..."
+          if ($env:INPUT_FILE -and $env:INPUT_FILE.Trim() -ne '') {
+            python gui_app.py $env:INPUT_FILE
+          } else {
+            python gui_app.py
+          }
