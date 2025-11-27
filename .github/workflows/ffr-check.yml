@@ -9,10 +9,6 @@ on:
         description: 'Optional input file path relative to repo root'
         required: false
         default: ''
-      python_version:
-        description: 'Python version to use for the job'
-        required: false
-        default: '3.11'
 
 jobs:
   run-gui:
@@ -24,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ github.event.inputs.python_version }}
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -32,6 +28,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run gui_app.py
+        working-directory: FFRCheck_Project
         env:
           INPUT_FILE: ${{ github.event.inputs.input_file }}
         run: |
