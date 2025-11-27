@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Projects index</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; max-width:900px; margin:32px auto; line-height:1.5; color:#111; }
+    header { margin-bottom:24px; }
+    h1 { margin:0 0 8px 0; font-size:1.6rem; }
+    p.lead { margin:0 0 16px 0; color:#444; }
+    ul { padding-left:20px; }
+    .notice { background:#f6f9ff; border:1px solid #dbe8ff; padding:10px 12px; margin:12px 0; border-radius:6px; color:#1b4f9c; }
+    .error { color:#8a1f1f; background:#fff5f5; border:1px solid #ffd1d1; padding:10px; border-radius:6px; }
+    button { margin-top:8px; padding:8px 12px; border-radius:6px; border:1px solid #bbb; background:#fff; cursor:pointer; }
+    small { color:#666; display:block; margin-top:8px; }
+    .spinner { display:inline-block; width:14px; height:14px; border-radius:50%; border:2px solid #ccc; border-top-color:#333; animation:spin 0.8s linear infinite; margin-left:8px; vertical-align:middle; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Projects — index</h1>
+    <p class="lead">This page lists HTML pages available in this repository so visitors can reach them from the site root.</p>
+  </header>
+
+  <section id="manual">
+    <h2>Known pages</h2>
+    <div class="notice">
+      If the automatic discovery fails (GitHub API rate limits or network issues), use these links below.
+    </div>
+    <ul id="static-list">
+      <li><a href="ProductMilestone/prodmilestone_timeline_embedded.html">ProductMilestone: prodmilestone_timeline_embedded.html</a></li>
+    </ul>
+  </section>
+
+  <section id="auto">
+    <h2>Auto-discover HTML files in this repository</h2>
+    <p>Click "Discover" to have this page query the GitHub API and show all .html files it finds (recursively) inside this repo's default branch.</p>
+    <button id="discoverBtn">Discover pages</button>
+    <span id="status"></span>
+    <div id="results" style="margin-top:14px;"></div>
+    <small>Discovery uses the public GitHub API and is subject to rate limits for unauthenticated requests.</small>
+  </section>
+
+  <script>
+    (function () {
+      const owner = "nazmi-abd-ghani-intel";
+      const repo = "projects";
+      const ref = "main"; // adjust if your Pages branch is different
+      const apiBase = "https://api.github.com/repos/" + owner + "/" + repo + "/contents";
+
+      const btn = document.getElementById("discoverBtn");
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+
+      function setStatus(text, isError) {
+        status.innerHTML = isError ? '<span class="error">' + text + '</span>' : text;
+      }
+
+      async function fetchDir(path = "") {
+        const url = apiBase + (path ? ("/" + encodeURIComponent(path)) : "") + "?ref=" + encodeURIComponent(ref);
+        const r = await fetch(url, { headers: { Accept: "application/vnd.github.v3+json" } });
+        if (!r.ok) {
+          const text = await r.text();
+          throw new Error("GitHub API error: " + r.status + " " + (r.statusText || "") + " — " + text);
+        }
+        return r.json();
+      }
+
+      async function discover() {
+        results.innerHTML = "";
+        setStatus('<span class="spinner"></span> Discovering…');
+        try {
+          const found = [];
+          async function walk(path) {
+            const items = await fetchDir(path);
+            for (const item of items) {
+              if (item.type === "dir") {
+                await walk(item.path);
+              } else if (item.type === "file" && /\.(html?|htm)$/i.test(item.name)) {
+                found.push(item.path);
+              }
+            }
+          }
+          await walk("");
+          setStatus("Found " + found.length + " HTML file(s).");
+          if (found.length === 0) {
+            results.innerHTML = "<div class='notice'>No HTML files were discovered. You can add an index.html at the repo root or place site files in the configured Pages source (e.g., docs/).</div>";
+            return;
+          }
+          const ul = document.createElement("ul");
+          for (const p of found.sort()) {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            // Use relative link so GitHub Pages serves it from the same site
+            a.href = p;
+            a.textContent = p;
+            li.appendChild(a);
+            ul.appendChild(li);
+          }
+          results.appendChild(ul);
+        } catch (err) {
+          console.error(err);
+          setStatus("");
+          results.innerHTML = "<div class='error'>Automatic discovery failed: " + escapeHtml(err.message) + "</div>";
+        }
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (m) {
+          return ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[m];
+        });
+      }
+
+      btn.addEventListener("click", function () {
+        discover();
+      });
+    })();
+  </script>
+</body>
+</html>
