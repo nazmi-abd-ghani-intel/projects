@@ -376,6 +376,8 @@
         <div id="legend" style="display:flex; gap:6px; align-items:center; padding-right:12px; border-right:2px solid var(--border); flex-wrap:wrap"></div>
         <button id="clearFilters" class="btn" style="background:#fee;border-color:#fcc">🗑️ Clear Filters</button>
         <button id="exportCsv" class="btn">📥 Export CSV</button>
+        <button id="viewChangelog" class="btn" style="background:#e3f2fd;border-color:#90caf9">📋 View Changes</button>
+        <button id="exportChangelog" class="btn" style="background:#e8f5e9;border-color:#81c784">📊 Export Changes</button>
         <div style="display:flex;gap:8px;align-items:center;padding-right:12px;border-right:2px solid var(--border)">
           <label style="display:flex;gap:8px;align-items:center;margin:0;">
             <span style="font-size:12px;font-weight:500;">Show Name</span>
@@ -409,7 +411,27 @@
 
   <div id="vis-tooltip" class="tooltip"></div>
 
+  <div id="changelogPanel" style="display:none;position:fixed;top:60px;right:24px;width:500px;max-height:70vh;background:white;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:2000;border-radius:8px;overflow:auto;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0;color:var(--text);font-size:16px">Change Logs</h3>
+      <button id="changelogClose" style="background:transparent;border:0;font-size:20px;cursor:pointer;color:var(--muted)">&times;</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
+      <button id="changelogViewCurrent" class="btn" style="font-size:12px;padding:4px 8px;background:#0366d6;color:white;border:0">Current Run</button>
+      <button id="changelogViewComparison" class="btn" style="font-size:12px;padding:4px 8px">vs Previous</button>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="changelogStats"></div>
+    <div id="changelogFilterGroup" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="changelogFilterAll" class="btn" style="font-size:12px;padding:4px 8px;background:#f0f0f0">All</button>
+      <button id="changelogFilterNew" class="btn" style="font-size:12px;padding:4px 8px">New Products</button>
+      <button id="changelogFilterRemoved" class="btn" style="font-size:12px;padding:4px 8px">Removed</button>
+      <button id="changelogFilterChanged" class="btn" style="font-size:12px;padding:4px 8px">Value Changes</button>
+    </div>
+    <div id="changelogContent" style="max-height:500px;overflow-y:auto"></div>
+  </div>
+
   <script src="https://unpkg.com/vis-timeline@7.4.9/standalone/umd/vis-timeline-graph2d.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
   <script>
     <!-- INLINE_JSON_MARKER -->
   </script>
@@ -980,6 +1002,434 @@
 
         // position tooltip near mouse
         document.addEventListener('mousemove', function (e) { const t = document.getElementById('vis-tooltip'); if (t.style.display==='block') { t.style.left = (e.clientX+12) + 'px'; t.style.top = (e.clientY+12) + 'px'; } });
+
+        // --- CHANGE LOGS ---
+        // Use current changelog if available, otherwise use the most recent from all_changelogs
+        let currentChangelog = json.changelog || 
+                               (json.all_changelogs && json.all_changelogs.length > 0 ? json.all_changelogs[json.all_changelogs.length - 1] : null) ||
+                               { new_products: [], removed_products: [], value_changes: [] };
+        let previousChangelog = json.previous_changelog || null;
+        let changelogFilter = 'all';
+        let changelogViewMode = 'current'; // 'current' or 'comparison'
+
+        function renderChangeLog(filter = 'all') {
+          const content = document.getElementById('changelogContent');
+          const stats = document.getElementById('changelogStats');
+          content.innerHTML = '';
+
+          if (changelogViewMode === 'comparison') {
+            renderComparisonView();
+            return;
+          }
+
+          let items = [];
+          if (filter === 'all' || filter === 'new') {
+            currentChangelog.new_products?.forEach(item => {
+              items.push({ type: 'new', data: item });
+            });
+          }
+          if (filter === 'all' || filter === 'removed') {
+            currentChangelog.removed_products?.forEach(item => {
+              items.push({ type: 'removed', data: item });
+            });
+          }
+          if (filter === 'all' || filter === 'changed') {
+            currentChangelog.value_changes?.forEach(item => {
+              items.push({ type: 'changed', data: item });
+            });
+          }
+
+          stats.textContent = `New: ${currentChangelog.new_products?.length || 0} | Removed: ${currentChangelog.removed_products?.length || 0} | Changed: ${currentChangelog.value_changes?.length || 0}`;
+
+          if (items.length === 0) {
+            content.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">No changes detected</div>';
+            return;
+          }
+
+          // Create a table for better visualization
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%;border-collapse:collapse;font-size:12px;background:white';
+          
+          // Table header
+          const thead = document.createElement('thead');
+          thead.innerHTML = `
+            <tr style="background:#f6f8fa;border-bottom:2px solid #e1e4e8">
+              <th style="padding:8px;text-align:left;font-weight:600;width:100px">Indicator</th>
+              <th style="padding:8px;text-align:left;font-weight:600">AtlasProjectName</th>
+              <th style="padding:8px;text-align:left;font-weight:600">What's the changes</th>
+            </tr>
+          `;
+          table.appendChild(thead);
+          
+          const tbody = document.createElement('tbody');
+          
+          items.forEach((item, idx) => {
+            const row = document.createElement('tr');
+            row.style.cssText = 'border-bottom:1px solid #e1e4e8';
+            if (idx % 2 === 0) row.style.background = '#fafbfc';
+            
+            let indicator = '';
+            let projectName = '';
+            let changes = '';
+            let bgColor = '';
+            
+            if (item.type === 'new') {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#d4edda;color:#155724;border-radius:3px;font-weight:600;font-size:11px">NEW</span>`;
+              projectName = `<strong style="color:#2e7d32">${item.data.project}</strong>`;
+              const ww = item.data.ww ? `<br><strong>WW:</strong> ${item.data.ww}` : '';
+              changes = `<div style="color:#555"><strong>Milestone:</strong> ${item.data.milestone}<br><strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              bgColor = '#f1f9f1';
+            } else if (item.type === 'removed') {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#f8d7da;color:#721c24;border-radius:3px;font-weight:600;font-size:11px">REMOVED</span>`;
+              projectName = `<strong style="color:#c62828">${item.data.project}</strong>`;
+              const ww = item.data.ww ? `<br><strong>WW:</strong> ${item.data.ww}` : '';
+              changes = `<div style="color:#555"><strong>Milestone:</strong> ${item.data.milestone}<br><strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              bgColor = '#fef5f5';
+            } else {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#fff3cd;color:#856404;border-radius:3px;font-weight:600;font-size:11px">VALUE_CHANGE</span>`;
+              projectName = `<strong style="color:#e65100">${item.data.project}</strong>`;
+              
+              // Build detailed change list
+              const ww = item.data.ww ? ` • <strong>WW:</strong> ${item.data.ww}` : '';
+              let changeList = `<div style="color:#555;margin-bottom:4px"><strong>Milestone:</strong> ${item.data.milestone} • <strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              changeList += `<div style="background:#fffbf0;padding:8px;border-left:3px solid #ffa726;margin-top:4px">`;
+              changeList += `<table style="width:100%;font-size:11px">`;
+              changeList += `<tr style="background:#fff;font-weight:600;border-bottom:1px solid #e0e0e0"><td style="padding:4px">Field</td><td style="padding:4px">Old Value</td><td style="padding:4px">New Value</td></tr>`;
+              
+              item.data.changes?.forEach(ch => {
+                const oldVal = ch.old_value || '<em style="color:#999">null</em>';
+                const newVal = ch.new_value || '<em style="color:#999">null</em>';
+                changeList += `<tr style="border-bottom:1px solid #f0f0f0">`;
+                changeList += `<td style="padding:4px;font-weight:600;color:#e65100">${ch.column}</td>`;
+                changeList += `<td style="padding:4px;color:#999;text-decoration:line-through">${oldVal}</td>`;
+                changeList += `<td style="padding:4px;color:#2e7d32;font-weight:600">${newVal}</td>`;
+                changeList += `</tr>`;
+              });
+              changeList += `</table></div>`;
+              
+              changes = changeList;
+              bgColor = '#fffbf5';
+            }
+            
+            row.style.background = bgColor;
+            row.innerHTML = `
+              <td style="padding:10px;vertical-align:top">${indicator}</td>
+              <td style="padding:10px;vertical-align:top">${projectName}</td>
+              <td style="padding:10px;vertical-align:top">${changes}</td>
+            `;
+            
+            tbody.appendChild(row);
+          });
+          
+          table.appendChild(tbody);
+          content.appendChild(table);
+        }
+
+        function renderComparisonView() {
+          const content = document.getElementById('changelogContent');
+          const stats = document.getElementById('changelogStats');
+          
+          if (!json.changelog_comparison) {
+            stats.textContent = 'No previous run to compare against';
+            content.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">This is the first run (Revision 1) - no comparison data available</div>';
+            return;
+          }
+
+          const comp = json.changelog_comparison;
+          const compHtml = [];
+
+          // Revision header with status indicator
+          const statusColor = comp.interpretation.status === 'Improving' ? '#2e7d32' : comp.interpretation.status === 'Worsening' ? '#c62828' : '#f57c00';
+          const statusIcon = comp.interpretation.status === 'Improving' ? '✓' : comp.interpretation.status === 'Worsening' ? '⚠' : '■';
+          
+          compHtml.push(`<div style="padding:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:6px;margin-bottom:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="display:flex;justify-content:space-between;align-items:center">`);
+          compHtml.push(`<div><strong style="font-size:16px">📋 Revision ${comp.current_run.revision}</strong><br>`);
+          compHtml.push(`<small>Compared with Revision ${comp.previous_run.revision} | Git: ${comp.current_run.git_commit}</small></div>`);
+          compHtml.push(`<div style="text-align:right;background:rgba(255,255,255,0.2);padding:8px 12px;border-radius:4px">`);
+          compHtml.push(`<span style="font-size:18px">${statusIcon}</span><br>`);
+          compHtml.push(`<small style="font-weight:600">${comp.interpretation.status.toUpperCase()}</small>`);
+          compHtml.push(`</div></div></div>`);
+
+          // Summary metrics with better visualization
+          compHtml.push(`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`);
+          
+          // New products card
+          const newDelta = comp.summary.newly_added_since_last;
+          const newColor = newDelta > 0 ? '#c62828' : newDelta < 0 ? '#2e7d32' : '#757575';
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid ${newColor};border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:${newColor}">${comp.summary.new_products_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">New Products (${newDelta > 0 ? '+' : ''}${newDelta} since last)</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.new_products_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Resolved products card
+          const resolved = comp.summary.newly_resolved_since_last;
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid #2e7d32;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:#2e7d32">✓ ${resolved}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Resolved Since Last Run</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Still Pending: ${comp.summary.still_pending}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Value changes card
+          const changesDelta = comp.summary.value_changes_delta;
+          const changesColor = changesDelta > 0 ? '#f57c00' : changesDelta < 0 ? '#2e7d32' : '#757575';
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid ${changesColor};border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:${changesColor}">${comp.summary.value_changes_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Value Changes (${changesDelta > 0 ? '+' : ''}${changesDelta})</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.value_changes_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Removed products card
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid #d32f2f;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:#d32f2f">${comp.summary.removed_products_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Removed Products</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.removed_products_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          compHtml.push(`</div>`);
+
+          // Interpretation message
+          compHtml.push(`<div style="padding:12px;background:#f5f5f5;border-radius:4px;margin-bottom:16px;font-size:13px;border-left:4px solid ${statusColor}">`);
+          compHtml.push(`<strong>Status:</strong> ${comp.interpretation.message}`);
+          compHtml.push(`</div>`);
+
+          // Check if there are any real changes
+          const hasNoChanges = comp.summary.newly_added_since_last === 0 && 
+                              comp.summary.newly_resolved_since_last === 0 &&
+                              comp.summary.removed_products_current === 0 &&
+                              comp.summary.value_changes_current === 0;
+
+          if (hasNoChanges) {
+            compHtml.push(`<div style="padding:20px;background:#e8f5e9;border-radius:4px;text-align:center;font-size:12px">`);
+            compHtml.push(`<strong style="color:#2e7d32">✓ No changes detected</strong><br>`);
+            compHtml.push(`<small>Data is identical to Revision ${comp.previous_run.revision}</small>`);
+            compHtml.push(`</div>`);
+          } else {
+            // Show detailed breakdown of changes
+            if (comp.summary.newly_added_since_last > 0) {
+              compHtml.push(`<div style="padding:12px;background:#ffebee;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#c62828">🆕 ${comp.summary.newly_added_since_last} New Issues Since Rev ${comp.previous_run.revision}</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products appeared in current data but were not in previous git commit</small>`);
+              compHtml.push(`</div>`);
+            }
+
+            if (comp.summary.still_pending > 0) {
+              compHtml.push(`<div style="padding:12px;background:#fff3e0;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#e65100">⏳ ${comp.summary.still_pending} Issues Still Pending</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products were new in Revision ${comp.previous_run.revision} and remain in current data</small>`);
+              compHtml.push(`</div>`);
+            }
+
+            if (comp.summary.newly_resolved_since_last > 0) {
+              compHtml.push(`<div style="padding:12px;background:#e8f5e9;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#2e7d32">✅ ${comp.summary.newly_resolved_since_last} Issues Resolved!</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products were new in Rev ${comp.previous_run.revision} but are no longer in current data (back to normal)</small>`);
+              compHtml.push(`</div>`);
+            }
+          }
+
+          stats.textContent = '';
+          content.innerHTML = compHtml.join('');
+        }
+
+        document.getElementById('changelogClose').onclick = () => {
+          document.getElementById('changelogPanel').style.display = 'none';
+        };
+
+        document.getElementById('viewChangelog').onclick = () => {
+          const panel = document.getElementById('changelogPanel');
+          panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+          if (panel.style.display !== 'none') {
+            renderChangeLog(changelogFilter);
+          }
+        };
+
+        // Toggle between current and comparison views
+        document.getElementById('changelogViewCurrent').onclick = () => {
+          changelogViewMode = 'current';
+          document.getElementById('changelogViewCurrent').style.background = '#0366d6';
+          document.getElementById('changelogViewCurrent').style.color = 'white';
+          document.getElementById('changelogViewCurrent').style.border = '0';
+          document.getElementById('changelogViewComparison').style.background = 'transparent';
+          document.getElementById('changelogViewComparison').style.color = 'var(--text)';
+          document.getElementById('changelogFilterGroup').style.display = 'flex';
+          renderChangeLog(changelogFilter);
+        };
+
+        document.getElementById('changelogViewComparison').onclick = () => {
+          changelogViewMode = 'comparison';
+          document.getElementById('changelogViewComparison').style.background = '#0366d6';
+          document.getElementById('changelogViewComparison').style.color = 'white';
+          document.getElementById('changelogViewComparison').style.border = '0';
+          document.getElementById('changelogViewCurrent').style.background = 'transparent';
+          document.getElementById('changelogViewCurrent').style.color = 'var(--text)';
+          document.getElementById('changelogFilterGroup').style.display = 'none';
+          renderChangeLog();
+        };
+
+        // Initial render of changelog on page load
+        renderChangeLog();
+
+        ['all', 'new', 'removed', 'changed'].forEach(filter => {
+          const btnId = `changelogFilter${filter.charAt(0).toUpperCase() + filter.slice(1).replace('ed', 'ed').replace('all', 'All')}`;
+          const btn = document.getElementById(btnId);
+          if (btn) {
+            btn.onclick = () => {
+              changelogFilter = filter;
+              document.querySelectorAll('[id^="changelogFilter"]').forEach(b => {
+                b.style.background = b.id.includes(filter.charAt(0).toUpperCase()) || (filter === 'all' && b.id === 'changelogFilterAll') ? '#0366d6' : 'transparent';
+                b.style.color = b.id.includes(filter.charAt(0).toUpperCase()) || (filter === 'all' && b.id === 'changelogFilterAll') ? 'white' : 'var(--text)';
+              });
+              renderChangeLog(filter);
+            };
+          }
+        });
+
+        document.getElementById('exportChangelog').onclick = () => {
+          try {
+            // Prompt user to choose between all revisions or current only
+            const choice = confirm('Export Options:\n\n✓ Click OK to export ALL REVISIONS (full history)\n✗ Click Cancel to export CURRENT REVISION only');
+            
+            if (choice) {
+              // Export all revisions using embedded all_changelogs data
+              const allRows = [['Revision', 'Indicator', 'AtlasProjectName', 'Milestone', 'Date', 'WW', 'Column', 'Old Value', 'New Value']];
+              
+              // Use all_changelogs if available, otherwise just current
+              const allChangelogs = json.all_changelogs || [json.changelog];
+              
+              // Process all changelogs
+              allChangelogs.forEach(changelog => {
+                if (!changelog) return;
+                
+                // Format: Rev 1 uses baseline date, Rev 2+ uses current date
+                let baselineDate = changelog.baseline_date || changelog.git_commit_date;
+                
+                // Fallback: Use 2025-11-25 as known baseline for git commit 4f67307
+                if (!baselineDate && changelog.git_commit === '4f67307') {
+                  baselineDate = '2025-11-25';
+                } else if (!baselineDate) {
+                  baselineDate = 'Unknown';
+                }
+                
+                const currentDate = new Date(changelog.timestamp).toISOString().split('T')[0];
+                const revInfo = changelog.revision === 1 ? `Rev 1 (${baselineDate})` : `Rev ${changelog.revision} (${currentDate})`;
+                
+                changelog.new_products?.forEach(item => {
+                  allRows.push([revInfo, 'NEW', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+                });
+                
+                changelog.removed_products?.forEach(item => {
+                  allRows.push([revInfo, 'REMOVED', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+                });
+                
+                changelog.value_changes?.forEach(item => {
+                  if (item.changes && item.changes.length > 0) {
+                    item.changes.forEach(ch => {
+                      allRows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', ch.column, ch.old_value || '', ch.new_value || '']);
+                    });
+                  }
+                });
+              });
+              
+              // Export as CSV
+              const csvContent = allRows.map(row => 
+                row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+              ).join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `changelog_all_revisions_${new Date().toISOString().split('T')[0]}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              return; // Don't proceed to single revision export
+            }
+            
+            // Export current revision only
+            const changelog = currentChangelog;
+            const rows = [['Revision', 'Indicator', 'AtlasProjectName', 'Milestone', 'Date', 'WW', 'Column', 'Old Value', 'New Value']];
+            
+            // Format: Rev 1 uses baseline date, Rev 2+ uses current date
+            let baselineDate = changelog.baseline_date || changelog.git_commit_date;
+            
+            // Fallback: Use 2025-11-25 as known baseline for git commit 4f67307
+            if (!baselineDate && changelog.git_commit === '4f67307') {
+              baselineDate = '2025-11-25';
+            } else if (!baselineDate) {
+              baselineDate = 'Unknown';
+            }
+            
+            const currentDate = new Date(changelog.timestamp).toISOString().split('T')[0];
+            const revInfo = changelog.revision === 1 ? `Rev 1 (${baselineDate})` : `Rev ${changelog.revision} (${currentDate})`;
+            
+            changelog.new_products?.forEach(item => {
+              rows.push([revInfo, 'NEW', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+            });
+            
+            changelog.removed_products?.forEach(item => {
+              rows.push([revInfo, 'REMOVED', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+            });
+            
+            changelog.value_changes?.forEach(item => {
+              // For value changes, create a row for each field change
+              if (item.changes && item.changes.length > 0) {
+                item.changes.forEach(ch => {
+                  rows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', ch.column, ch.old_value || '', ch.new_value || '']);
+                });
+              } else {
+                // Legacy format fallback
+                rows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', item.column || '', item.old_value || '', item.new_value || '']);
+              }
+            });
+            
+            // Check if XLSX library is loaded
+            if (typeof XLSX !== 'undefined') {
+              const ws = XLSX.utils.aoa_to_sheet(rows);
+              
+              // Auto-width columns
+              const colWidths = [
+                { wch: 50 },  // Revision
+                { wch: 15 },  // Indicator
+                { wch: 30 },  // AtlasProjectName
+                { wch: 20 },  // Milestone
+                { wch: 12 },  // Date
+                { wch: 10 },  // WW
+                { wch: 20 },  // Column
+                { wch: 25 },  // Old Value
+                { wch: 25 }   // New Value
+              ];
+              ws['!cols'] = colWidths;
+              
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Changes');
+              XLSX.writeFile(wb, `changelog_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } else {
+              // Fallback to CSV if XLSX library not loaded
+              console.warn('XLSX library not loaded, exporting as CSV instead');
+              const csvContent = rows.map(row => 
+                row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+              ).join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `changelog_${new Date().toISOString().split('T')[0]}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          } catch (error) {
+            console.error('Export failed:', error);
+            alert('Export failed: ' + error.message);
+          }
+        };
 
         timeline.fit();
       } catch (e) {

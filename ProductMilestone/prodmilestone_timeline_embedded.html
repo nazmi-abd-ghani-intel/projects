@@ -376,6 +376,8 @@
         <div id="legend" style="display:flex; gap:6px; align-items:center; padding-right:12px; border-right:2px solid var(--border); flex-wrap:wrap"></div>
         <button id="clearFilters" class="btn" style="background:#fee;border-color:#fcc">🗑️ Clear Filters</button>
         <button id="exportCsv" class="btn">📥 Export CSV</button>
+        <button id="viewChangelog" class="btn" style="background:#e3f2fd;border-color:#90caf9">📋 View Changes</button>
+        <button id="exportChangelog" class="btn" style="background:#e8f5e9;border-color:#81c784">📊 Export Changes</button>
         <div style="display:flex;gap:8px;align-items:center;padding-right:12px;border-right:2px solid var(--border)">
           <label style="display:flex;gap:8px;align-items:center;margin:0;">
             <span style="font-size:12px;font-weight:500;">Show Name</span>
@@ -409,10 +411,30 @@
 
   <div id="vis-tooltip" class="tooltip"></div>
 
+  <div id="changelogPanel" style="display:none;position:fixed;top:60px;right:24px;width:500px;max-height:70vh;background:white;border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:2000;border-radius:8px;overflow:auto;padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="margin:0;color:var(--text);font-size:16px">Change Logs</h3>
+      <button id="changelogClose" style="background:transparent;border:0;font-size:20px;cursor:pointer;color:var(--muted)">&times;</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:12px">
+      <button id="changelogViewCurrent" class="btn" style="font-size:12px;padding:4px 8px;background:#0366d6;color:white;border:0">Current Run</button>
+      <button id="changelogViewComparison" class="btn" style="font-size:12px;padding:4px 8px">vs Previous</button>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="changelogStats"></div>
+    <div id="changelogFilterGroup" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button id="changelogFilterAll" class="btn" style="font-size:12px;padding:4px 8px;background:#f0f0f0">All</button>
+      <button id="changelogFilterNew" class="btn" style="font-size:12px;padding:4px 8px">New Products</button>
+      <button id="changelogFilterRemoved" class="btn" style="font-size:12px;padding:4px 8px">Removed</button>
+      <button id="changelogFilterChanged" class="btn" style="font-size:12px;padding:4px 8px">Value Changes</button>
+    </div>
+    <div id="changelogContent" style="max-height:500px;overflow-y:auto"></div>
+  </div>
+
   <script src="https://unpkg.com/vis-timeline@7.4.9/standalone/umd/vis-timeline-graph2d.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
   <script>
     const INLINE_JSON = {
-    "statement_id":  "01f0ca9b-1f2f-1979-bb5b-89adaa3979bd",
+    "statement_id":  "01f0d44e-44b4-1280-bc75-c49d08404a26",
     "status":  {
                    "state":  "SUCCEEDED"
                },
@@ -494,16 +516,16 @@
                                     {
                                         "chunk_index":  0,
                                         "row_offset":  0,
-                                        "row_count":  237
+                                        "row_count":  249
                                     }
                                 ],
-                     "total_row_count":  237,
+                     "total_row_count":  249,
                      "truncated":  false
                  },
     "result":  {
                    "chunk_index":  0,
                    "row_offset":  0,
-                   "row_count":  237,
+                   "row_count":  249,
                    "data_array":  [
                                       [
                                           "10048215",
@@ -610,19 +632,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10052102"
                                       ],
                                       [
-                                          "10048215",
-                                          "PIXE3-P 192EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-03-07T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Design-Complete",
-                                          "202510",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10048215"
-                                      ],
-                                      [
                                           "10058305",
                                           "PIXE3-H 64EU Die",
                                           "Die",
@@ -634,6 +643,19 @@
                                           "202510",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10058305"
+                                      ],
+                                      [
+                                          "10048215",
+                                          "PIXE3-P 192EU Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-03-07T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Design-Complete",
+                                          "202510",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10048215"
                                       ],
                                       [
                                           "10044302",
@@ -701,6 +723,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10053614"
                                       ],
                                       [
+                                          "10044315",
+                                          "Nova Lake PCH-S Product",
+                                          "Si Product",
+                                          "Class Power On",
+                                          "2025-05-29T00:00:00.000Z",
+                                          "20105",
+                                          "A0",
+                                          "Execution",
+                                          "202522",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10044315"
+                                      ],
+                                      [
                                           "10052102",
                                           "Nova Lake Hub 4LPE Die",
                                           "Die",
@@ -725,32 +760,6 @@
                                           "202522",
                                           "Estimate ~TI+14WW",
                                           "https://atlas.intel.com/ProductDashboard/10055602"
-                                      ],
-                                      [
-                                          "10044315",
-                                          "Nova Lake PCH-S Product",
-                                          "Si Product",
-                                          "Class Power On",
-                                          "2025-05-29T00:00:00.000Z",
-                                          "20105",
-                                          "A0",
-                                          "Execution",
-                                          "202522",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10044315"
-                                      ],
-                                      [
-                                          "10058305",
-                                          "PIXE3-H 64EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-06-13T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Execution",
-                                          "202524",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10058305"
                                       ],
                                       [
                                           "10048216",
@@ -779,17 +788,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10058305"
                                       ],
                                       [
-                                          "10044302",
-                                          "Nova Lake PCH-S Die",
+                                          "10058305",
+                                          "PIXE3-H 64EU Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2025-06-19T00:00:00.000Z",
+                                          "2025-06-13T00:00:00.000Z",
                                           "20200",
                                           "A0",
                                           "Execution",
-                                          "202525",
+                                          "202524",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10044302"
+                                          "https://atlas.intel.com/ProductDashboard/10058305"
                                       ],
                                       [
                                           "10058305",
@@ -803,6 +812,19 @@
                                           "202525",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10058305"
+                                      ],
+                                      [
+                                          "10044302",
+                                          "Nova Lake PCH-S Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-06-19T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Execution",
+                                          "202525",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10044302"
                                       ],
                                       [
                                           "10053312",
@@ -896,19 +918,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053346"
                                       ],
                                       [
-                                          "10048216",
-                                          "PIXE3-U 64EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-09-19T00:00:00.000Z",
-                                          "20200",
-                                          "A1",
-                                          "Design-Complete",
-                                          "202538",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10048216"
-                                      ],
-                                      [
                                           "10044315",
                                           "Nova Lake PCH-S Product",
                                           "Si Product",
@@ -933,6 +942,19 @@
                                           "202538",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056163"
+                                      ],
+                                      [
+                                          "10048216",
+                                          "PIXE3-U 64EU Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-09-19T00:00:00.000Z",
+                                          "20200",
+                                          "A1",
+                                          "Design-Complete",
+                                          "202538",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10048216"
                                       ],
                                       [
                                           "10058305",
@@ -961,19 +983,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053312"
                                       ],
                                       [
-                                          "10056148",
-                                          "Nova Lake CPU 8P+16E Ext Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-10-09T00:00:00.000Z",
-                                          "20200",
-                                          "P0",
-                                          "Execution",
-                                          "202541",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10056148"
-                                      ],
-                                      [
                                           "10044315",
                                           "Nova Lake PCH-S Product",
                                           "Si Product",
@@ -1000,6 +1009,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10056157"
                                       ],
                                       [
+                                          "10056148",
+                                          "Nova Lake CPU 8P+16E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-10-09T00:00:00.000Z",
+                                          "20200",
+                                          "P0",
+                                          "Execution",
+                                          "202541",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10056148"
+                                      ],
+                                      [
                                           "10056163",
                                           "Nova Lake HX Int Product",
                                           "Si Product",
@@ -1011,19 +1033,6 @@
                                           "202542",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056163"
-                                      ],
-                                      [
-                                          "10044302",
-                                          "Nova Lake PCH-S Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-10-23T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Execution",
-                                          "202543",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10044302"
                                       ],
                                       [
                                           "10044315",
@@ -1039,6 +1048,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10044315"
                                       ],
                                       [
+                                          "10044302",
+                                          "Nova Lake PCH-S Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-10-23T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202543",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10044302"
+                                      ],
+                                      [
                                           "10056187",
                                           "Nova Lake S 28C Int Product",
                                           "Si Product",
@@ -1050,19 +1072,6 @@
                                           "202544",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056187"
-                                      ],
-                                      [
-                                          "10064813",
-                                          "Nova Lake CPU 4P+8E Ext Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2025-11-06T00:00:00.000Z",
-                                          "20200",
-                                          "T0",
-                                          "Design-Complete",
-                                          "202545",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10064813"
                                       ],
                                       [
                                           "10044315",
@@ -1091,6 +1100,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10072546"
                                       ],
                                       [
+                                          "10064813",
+                                          "Nova Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2025-11-06T00:00:00.000Z",
+                                          "20200",
+                                          "T0",
+                                          "Design-Complete",
+                                          "202545",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10064813"
+                                      ],
+                                      [
                                           "10055602",
                                           "PIXE3-S 32EU Die",
                                           "Die",
@@ -1117,19 +1139,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053348"
                                       ],
                                       [
-                                          "10053614",
-                                          "Nova Lake PCD-S Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2025-11-28T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Execution",
-                                          "202548",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10053614"
-                                      ],
-                                      [
                                           "10071542",
                                           "Nova Lake P (Z0 Debug) Product",
                                           "Si Product",
@@ -1154,6 +1163,19 @@
                                           "202549",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056148"
+                                      ],
+                                      [
+                                          "10053614",
+                                          "Nova Lake PCD-S Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2025-12-04T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202549",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10053614"
                                       ],
                                       [
                                           "10056007",
@@ -1338,19 +1360,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10044320"
                                       ],
                                       [
-                                          "10055602",
-                                          "PIXE3-S 32EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-02-26T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Design-Complete",
-                                          "202609",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10055602"
-                                      ],
-                                      [
                                           "10056007",
                                           "Nova Lake CPU 8P+16E BLLC Ext Die",
                                           "Die",
@@ -1377,17 +1386,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10051722"
                                       ],
                                       [
-                                          "10053614",
-                                          "Nova Lake PCD-S Die",
+                                          "10055602",
+                                          "PIXE3-S 32EU Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2026-03-06T00:00:00.000Z",
+                                          "2026-02-26T00:00:00.000Z",
                                           "20200",
                                           "B0",
-                                          "Execution",
-                                          "202610",
+                                          "Design-Complete",
+                                          "202609",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10053614"
+                                          "https://atlas.intel.com/ProductDashboard/10055602"
                                       ],
                                       [
                                           "10060269",
@@ -1401,19 +1410,6 @@
                                           "202610",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10060269"
-                                      ],
-                                      [
-                                          "10056148",
-                                          "Nova Lake CPU 8P+16E Ext Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-03-12T00:00:00.000Z",
-                                          "20200",
-                                          "R0",
-                                          "Execution",
-                                          "202611",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10056148"
                                       ],
                                       [
                                           "10044315",
@@ -1442,17 +1438,30 @@
                                           "https://atlas.intel.com/ProductDashboard/10072531"
                                       ],
                                       [
-                                          "10056007",
-                                          "Nova Lake CPU 8P+16E BLLC Ext Die",
+                                          "10053614",
+                                          "Nova Lake PCD-S Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2026-03-19T00:00:00.000Z",
+                                          "2026-03-12T00:00:00.000Z",
                                           "20200",
-                                          "L0",
+                                          "B0",
                                           "Execution",
-                                          "202612",
+                                          "202611",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10056007"
+                                          "https://atlas.intel.com/ProductDashboard/10053614"
+                                      ],
+                                      [
+                                          "10056148",
+                                          "Nova Lake CPU 8P+16E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-03-12T00:00:00.000Z",
+                                          "20200",
+                                          "R0",
+                                          "Execution",
+                                          "202611",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10056148"
                                       ],
                                       [
                                           "10053348",
@@ -1468,17 +1477,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10053348"
                                       ],
                                       [
-                                          "10052102",
-                                          "Nova Lake Hub 4LPE Die",
+                                          "10056007",
+                                          "Nova Lake CPU 8P+16E BLLC Ext Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2026-03-26T00:00:00.000Z",
+                                          "2026-03-19T00:00:00.000Z",
                                           "20200",
-                                          "B0",
+                                          "L0",
                                           "Execution",
-                                          "202613",
+                                          "202612",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10052102"
+                                          "https://atlas.intel.com/ProductDashboard/10056007"
                                       ],
                                       [
                                           "10063838",
@@ -1492,6 +1501,19 @@
                                           "202613",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10063838"
+                                      ],
+                                      [
+                                          "10052102",
+                                          "Nova Lake Hub 4LPE Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-03-26T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202613",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10052102"
                                       ],
                                       [
                                           "10044321",
@@ -1533,45 +1555,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10058305"
                                       ],
                                       [
-                                          "10044302",
-                                          "Nova Lake PCH-S Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-04-30T00:00:00.000Z",
-                                          "20200",
-                                          "C0",
-                                          "Execution",
-                                          "202618",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10044302"
-                                      ],
-                                      [
-                                          "10053346",
-                                          "Nova Lake PCD-H Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-04-30T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Execution",
-                                          "202618",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10053346"
-                                      ],
-                                      [
-                                          "10060862",
-                                          "Nova Lake MH-AX 4LPE Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-04-30T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Execution",
-                                          "202618",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10060862"
-                                      ],
-                                      [
                                           "10053312",
                                           "PIXE3plus-P 192EU Die",
                                           "Die",
@@ -1611,6 +1594,45 @@
                                           "https://atlas.intel.com/ProductDashboard/10051746"
                                       ],
                                       [
+                                          "10044302",
+                                          "Nova Lake PCH-S Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-04-30T00:00:00.000Z",
+                                          "20200",
+                                          "C0",
+                                          "Execution",
+                                          "202618",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10044302"
+                                      ],
+                                      [
+                                          "10053346",
+                                          "Nova Lake PCD-H Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-04-30T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202618",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10053346"
+                                      ],
+                                      [
+                                          "10060862",
+                                          "Nova Lake MH-AX 4LPE Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-04-30T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Execution",
+                                          "202618",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10060862"
+                                      ],
+                                      [
                                           "10056148",
                                           "Nova Lake CPU 8P+16E Ext Die",
                                           "Die",
@@ -1624,19 +1646,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10056148"
                                       ],
                                       [
-                                          "10064813",
-                                          "Nova Lake CPU 4P+8E Ext Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-05-15T00:00:00.000Z",
-                                          "20200",
-                                          "U0",
-                                          "Design-Complete",
-                                          "202620",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10064813"
-                                      ],
-                                      [
                                           "10056462",
                                           "Nova Lake S 28C BLLC Product",
                                           "Si Product",
@@ -1648,6 +1657,19 @@
                                           "202620",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056462"
+                                      ],
+                                      [
+                                          "10064813",
+                                          "Nova Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-05-15T00:00:00.000Z",
+                                          "20200",
+                                          "U0",
+                                          "Design-Complete",
+                                          "202620",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10064813"
                                       ],
                                       [
                                           "10044320",
@@ -1715,19 +1737,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10056007"
                                       ],
                                       [
-                                          "10060269",
-                                          "PIXE3plus-AX 512EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-06-12T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Execution",
-                                          "202624",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10060269"
-                                      ],
-                                      [
                                           "10044318",
                                           "Nova Lake U Product",
                                           "Si Product",
@@ -1739,6 +1748,19 @@
                                           "202624",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10044318"
+                                      ],
+                                      [
+                                          "10060269",
+                                          "PIXE3plus-AX 512EU Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-06-12T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Execution",
+                                          "202624",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10060269"
                                       ],
                                       [
                                           "10053348",
@@ -1884,19 +1906,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10044315"
                                       ],
                                       [
-                                          "10053312",
-                                          "PIXE3plus-P 192EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-08-06T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Execution",
-                                          "202632",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10053312"
-                                      ],
-                                      [
                                           "10062746",
                                           "Nova Lake S 8C Product",
                                           "Si Product",
@@ -1921,6 +1930,19 @@
                                           "202632",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10053348"
+                                      ],
+                                      [
+                                          "10053312",
+                                          "PIXE3plus-P 192EU Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-08-06T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202632",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10053312"
                                       ],
                                       [
                                           "10051722",
@@ -1962,19 +1984,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10060860"
                                       ],
                                       [
-                                          "10046174",
-                                          "Razor Lake CPU 8P+16E Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-08-28T00:00:00.000Z",
-                                          "20200",
-                                          "P0",
-                                          "Execution",
-                                          "202635",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10046174"
-                                      ],
-                                      [
                                           "10071900",
                                           "Nova Lake S 52C BLLC Product",
                                           "Si Product",
@@ -1988,17 +1997,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10071900"
                                       ],
                                       [
-                                          "10073256",
-                                          "PIXE3plus-P 192EU Ext Die",
+                                          "10046174",
+                                          "Razor Lake CPU 8P+16E Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2026-09-04T00:00:00.000Z",
+                                          "2026-08-28T00:00:00.000Z",
                                           "20200",
-                                          "B0",
+                                          "P0",
                                           "Execution",
-                                          "202636",
+                                          "202635",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10073256"
+                                          "https://atlas.intel.com/ProductDashboard/10046174"
                                       ],
                                       [
                                           "10056462",
@@ -2012,6 +2021,19 @@
                                           "202636",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10056462"
+                                      ],
+                                      [
+                                          "10073256",
+                                          "PIXE3plus-P 192EU Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-09-04T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202636",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10073256"
                                       ],
                                       [
                                           "10044315",
@@ -2090,19 +2112,6 @@
                                           "202639",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10051722"
-                                      ],
-                                      [
-                                          "10046219",
-                                          "Nova Lake P Product",
-                                          "Si Product",
-                                          "PO Start",
-                                          "2026-09-24T00:00:00.000Z",
-                                          "20500",
-                                          "B0",
-                                          "Execution",
-                                          "202639",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10046219"
                                       ],
                                       [
                                           "10053348",
@@ -2417,32 +2426,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10060860"
                                       ],
                                       [
-                                          "10063573",
-                                          "Titan Lake PCD-H Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2026-12-11T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Concept",
-                                          "202650",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10063573"
-                                      ],
-                                      [
-                                          "10046219",
-                                          "Nova Lake P Product",
-                                          "Si Product",
-                                          "QS",
-                                          "2026-12-17T00:00:00.000Z",
-                                          "21300",
-                                          "B0",
-                                          "Execution",
-                                          "202651",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10046219"
-                                      ],
-                                      [
                                           "10044320",
                                           "Nova Lake S 16C Product",
                                           "Si Product",
@@ -2456,19 +2439,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10044320"
                                       ],
                                       [
-                                          "10072694",
-                                          "Razor Lake CPU 2P+0E Int Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2026-12-25T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Feasibility",
-                                          "202652",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10072694"
-                                      ],
-                                      [
                                           "10048294",
                                           "PIXE3pv4 16Xe Die",
                                           "Die",
@@ -2480,6 +2450,19 @@
                                           "202652",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10048294"
+                                      ],
+                                      [
+                                          "10072694",
+                                          "Razor Lake CPU 2P+0E Int Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2026-12-25T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Feasibility",
+                                          "202652",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10072694"
                                       ],
                                       [
                                           "10051722",
@@ -2547,6 +2530,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10070459"
                                       ],
                                       [
+                                          "10063573",
+                                          "Titan Lake PCD-H Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-01-15T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Concept",
+                                          "202703",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10063573"
+                                      ],
+                                      [
                                           "10051722",
                                           "Nova Lake HX Product",
                                           "Si Product",
@@ -2573,32 +2569,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10071900"
                                       ],
                                       [
-                                          "10060269",
-                                          "PIXE3plus-AX 512EU Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2027-02-05T00:00:00.000Z",
-                                          "20200",
-                                          "A1",
-                                          "Execution",
-                                          "202706",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10060269"
-                                      ],
-                                      [
-                                          "10046219",
-                                          "Nova Lake P Product",
-                                          "Si Product",
-                                          "PRQ",
-                                          "2027-02-04T00:00:00.000Z",
-                                          "21400",
-                                          "B0",
-                                          "Execution",
-                                          "202706",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10046219"
-                                      ],
-                                      [
                                           "10046174",
                                           "Razor Lake CPU 8P+16E Die",
                                           "Die",
@@ -2612,17 +2582,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10046174"
                                       ],
                                       [
-                                          "10064678",
-                                          "PIXE3plus-AX 256EU Die",
+                                          "10060269",
+                                          "PIXE3plus-AX 512EU Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2027-02-12T00:00:00.000Z",
+                                          "2027-02-05T00:00:00.000Z",
                                           "20200",
-                                          "A0",
+                                          "A1",
                                           "Execution",
-                                          "202707",
+                                          "202706",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10064678"
+                                          "https://atlas.intel.com/ProductDashboard/10060269"
                                       ],
                                       [
                                           "10071900",
@@ -2638,19 +2608,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10071900"
                                       ],
                                       [
-                                          "10046173",
-                                          "Razor Lake CPU 4P+8E Ext Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2027-02-12T00:00:00.000Z",
-                                          "20200",
-                                          "T0",
-                                          "Feasibility",
-                                          "202707",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10046173"
-                                      ],
-                                      [
                                           "10072719",
                                           "Razor Lake UL Product",
                                           "Si Product",
@@ -2664,17 +2621,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10072719"
                                       ],
                                       [
-                                          "10060269",
-                                          "PIXE3plus-AX 512EU Die",
+                                          "10064678",
+                                          "PIXE3plus-AX 256EU Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2027-02-19T00:00:00.000Z",
+                                          "2027-02-12T00:00:00.000Z",
                                           "20200",
-                                          "B0",
+                                          "A0",
                                           "Execution",
-                                          "202708",
+                                          "202707",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10060269"
+                                          "https://atlas.intel.com/ProductDashboard/10064678"
                                       ],
                                       [
                                           "10051722",
@@ -2716,6 +2673,32 @@
                                           "https://atlas.intel.com/ProductDashboard/10060860"
                                       ],
                                       [
+                                          "10060269",
+                                          "PIXE3plus-AX 512EU Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-02-19T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Execution",
+                                          "202708",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10060269"
+                                      ],
+                                      [
+                                          "10073917",
+                                          "Titan Lake HUB-BX Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-02-26T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Roadmap",
+                                          "202709",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073917"
+                                      ],
+                                      [
                                           "10070459",
                                           "Nova Lake P (B0) Product",
                                           "Si Product",
@@ -2729,19 +2712,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10070459"
                                       ],
                                       [
-                                          "10060862",
-                                          "Nova Lake MH-AX 4LPE Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2027-03-05T00:00:00.000Z",
-                                          "20200",
-                                          "A1",
-                                          "Execution",
-                                          "202710",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10060862"
-                                      ],
-                                      [
                                           "10063907",
                                           "Nova Lake UL Product",
                                           "Si Product",
@@ -2753,6 +2723,19 @@
                                           "202710",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10063907"
+                                      ],
+                                      [
+                                          "10055846",
+                                          "Titan Lake HM Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2027-03-05T00:00:00.000Z",
+                                          "20500",
+                                          "A0",
+                                          "Roadmap",
+                                          "202710",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10055846"
                                       ],
                                       [
                                           "10073137",
@@ -2781,17 +2764,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10060860"
                                       ],
                                       [
-                                          "10071621",
-                                          "PIXE3pv4 8Xe Die",
+                                          "10060862",
+                                          "Nova Lake MH-AX 4LPE Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2027-03-12T00:00:00.000Z",
+                                          "2027-03-05T00:00:00.000Z",
                                           "20200",
-                                          "A0",
-                                          "Concept",
-                                          "202711",
+                                          "A1",
+                                          "Execution",
+                                          "202710",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10071621"
+                                          "https://atlas.intel.com/ProductDashboard/10060862"
                                       ],
                                       [
                                           "10071900",
@@ -2807,17 +2790,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10071900"
                                       ],
                                       [
-                                          "10063573",
-                                          "Titan Lake PCD-H Die",
+                                          "10071621",
+                                          "PIXE3pv4 8Xe Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2027-03-19T00:00:00.000Z",
+                                          "2027-03-12T00:00:00.000Z",
                                           "20200",
                                           "A0",
                                           "Concept",
-                                          "202712",
+                                          "202711",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10063573"
+                                          "https://atlas.intel.com/ProductDashboard/10071621"
                                       ],
                                       [
                                           "10072531",
@@ -2833,6 +2816,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10072531"
                                       ],
                                       [
+                                          "10064974",
+                                          "Titan Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-03-26T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Roadmap",
+                                          "202713",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10064974"
+                                      ],
+                                      [
                                           "10046183",
                                           "Razor Lake S 28C Product",
                                           "Si Product",
@@ -2844,19 +2840,6 @@
                                           "202713",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10046183"
-                                      ],
-                                      [
-                                          "10048294",
-                                          "PIXE3pv4 16Xe Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2027-04-02T00:00:00.000Z",
-                                          "20200",
-                                          "A0",
-                                          "Concept",
-                                          "202714",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10048294"
                                       ],
                                       [
                                           "10071900",
@@ -2883,6 +2866,19 @@
                                           "202714",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10046183"
+                                      ],
+                                      [
+                                          "10048294",
+                                          "PIXE3pv4 16Xe Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-04-02T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Concept",
+                                          "202714",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10048294"
                                       ],
                                       [
                                           "10051729",
@@ -2950,6 +2946,32 @@
                                           "https://atlas.intel.com/ProductDashboard/10063907"
                                       ],
                                       [
+                                          "10046173",
+                                          "Razor Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-04-23T00:00:00.000Z",
+                                          "20200",
+                                          "T0",
+                                          "Feasibility",
+                                          "202717",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10046173"
+                                      ],
+                                      [
+                                          "10063573",
+                                          "Titan Lake PCD-H Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-04-23T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Concept",
+                                          "202717",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10063573"
+                                      ],
+                                      [
                                           "10060860",
                                           "Nova Lake AX Product",
                                           "Si Product",
@@ -2989,19 +3011,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10046174"
                                       ],
                                       [
-                                          "10046173",
-                                          "Razor Lake CPU 4P+8E Ext Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2027-05-21T00:00:00.000Z",
-                                          "20200",
-                                          "T0",
-                                          "Feasibility",
-                                          "202721",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10046173"
-                                      ],
-                                      [
                                           "10058910",
                                           "Razor Lake CPU 8P+16E BLLC Die",
                                           "Die",
@@ -3013,19 +3022,6 @@
                                           "202722",
                                           "Estimate ~TI+14WW",
                                           "https://atlas.intel.com/ProductDashboard/10058910"
-                                      ],
-                                      [
-                                          "10055846",
-                                          "Titan Lake HM Product",
-                                          "Si Product",
-                                          "PO Start",
-                                          "2027-06-04T00:00:00.000Z",
-                                          "20500",
-                                          "A0",
-                                          "Roadmap",
-                                          "202723",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10055846"
                                       ],
                                       [
                                           "10072549",
@@ -3067,6 +3063,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10072548"
                                       ],
                                       [
+                                          "10073917",
+                                          "Titan Lake HUB-BX Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-06-04T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Roadmap",
+                                          "202723",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10073917"
+                                      ],
+                                      [
                                           "10060860",
                                           "Nova Lake AX Product",
                                           "Si Product",
@@ -3106,6 +3115,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10061167"
                                       ],
                                       [
+                                          "10064974",
+                                          "Titan Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-07-02T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Roadmap",
+                                          "202727",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10064974"
+                                      ],
+                                      [
                                           "10046183",
                                           "Razor Lake S 28C Product",
                                           "Si Product",
@@ -3117,6 +3139,32 @@
                                           "202729",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10046183"
+                                      ],
+                                      [
+                                          "10073916",
+                                          "Titan Lake BX Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2027-07-16T00:00:00.000Z",
+                                          "20500",
+                                          "A0",
+                                          "Roadmap",
+                                          "202729",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073916"
+                                      ],
+                                      [
+                                          "10073916",
+                                          "Titan Lake BX Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2027-07-23T00:00:00.000Z",
+                                          "20500",
+                                          "A1",
+                                          "Roadmap",
+                                          "202730",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073916"
                                       ],
                                       [
                                           "10060860",
@@ -3158,6 +3206,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10073137"
                                       ],
                                       [
+                                          "10046173",
+                                          "Razor Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-07-30T00:00:00.000Z",
+                                          "20200",
+                                          "T0",
+                                          "Feasibility",
+                                          "202731",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10046173"
+                                      ],
+                                      [
                                           "10060860",
                                           "Nova Lake AX Product",
                                           "Si Product",
@@ -3184,19 +3245,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10053366"
                                       ],
                                       [
-                                          "10072694",
-                                          "Razor Lake CPU 2P+0E Int Die",
-                                          "Die",
-                                          "Sort PO*",
-                                          "2027-09-10T00:00:00.000Z",
-                                          "20200",
-                                          "B0",
-                                          "Feasibility",
-                                          "202737",
-                                          "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10072694"
-                                      ],
-                                      [
                                           "10072807",
                                           "Razor Lake S 52C BLLC Product",
                                           "Si Product",
@@ -3210,6 +3258,32 @@
                                           "https://atlas.intel.com/ProductDashboard/10072807"
                                       ],
                                       [
+                                          "10072694",
+                                          "Razor Lake CPU 2P+0E Int Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2027-09-10T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Feasibility",
+                                          "202737",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10072694"
+                                      ],
+                                      [
+                                          "10073634",
+                                          "Titan Lake HUB-P Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-09-17T00:00:00.000Z",
+                                          "20200",
+                                          "A0",
+                                          "Roadmap",
+                                          "202738",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073634"
+                                      ],
+                                      [
                                           "10060860",
                                           "Nova Lake AX Product",
                                           "Si Product",
@@ -3221,6 +3295,19 @@
                                           "202739",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10060860"
+                                      ],
+                                      [
+                                          "10063573",
+                                          "Titan Lake PCD-H Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-10-01T00:00:00.000Z",
+                                          "20200",
+                                          "A1",
+                                          "Concept",
+                                          "202740",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10063573"
                                       ],
                                       [
                                           "10061167",
@@ -3262,19 +3349,6 @@
                                           "https://atlas.intel.com/ProductDashboard/10046183"
                                       ],
                                       [
-                                          "10063573",
-                                          "Titan Lake PCD-H Die",
-                                          "Die",
-                                          "Tape In",
-                                          "2027-10-29T00:00:00.000Z",
-                                          "20200",
-                                          "A1",
-                                          "Concept",
-                                          "202744",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10063573"
-                                      ],
-                                      [
                                           "10056046",
                                           "PIXE3pv4 4Xe Die",
                                           "Die",
@@ -3299,6 +3373,19 @@
                                           "202745",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10051729"
+                                      ],
+                                      [
+                                          "10073915",
+                                          "Titan Lake B Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2027-11-26T00:00:00.000Z",
+                                          "20500",
+                                          "A0",
+                                          "Roadmap",
+                                          "202748",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073915"
                                       ],
                                       [
                                           "10061167",
@@ -3353,6 +3440,19 @@
                                           "https://atlas.intel.com/ProductDashboard/10072807"
                                       ],
                                       [
+                                          "10064974",
+                                          "Titan Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Tape In",
+                                          "2027-12-24T00:00:00.000Z",
+                                          "20200",
+                                          "B0",
+                                          "Roadmap",
+                                          "202752",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10064974"
+                                      ],
+                                      [
                                           "10051729",
                                           "Razor Lake HX Product",
                                           "Si Product",
@@ -3366,17 +3466,30 @@
                                           "https://atlas.intel.com/ProductDashboard/10051729"
                                       ],
                                       [
-                                          "10055820",
-                                          "Hammer Lake CPU 8P+16E Ext Die",
+                                          "10073634",
+                                          "Titan Lake HUB-P Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2028-01-21T00:00:00.000Z",
+                                          "2027-12-24T00:00:00.000Z",
                                           "20200",
-                                          "P0",
-                                          "Concept",
-                                          "202804",
+                                          "A0",
+                                          "Roadmap",
+                                          "202752",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10055820"
+                                          "https://atlas.intel.com/ProductDashboard/10073634"
+                                      ],
+                                      [
+                                          "10063573",
+                                          "Titan Lake PCD-H Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2028-01-07T00:00:00.000Z",
+                                          "20200",
+                                          "A1",
+                                          "Concept",
+                                          "202802",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10063573"
                                       ],
                                       [
                                           "10053366",
@@ -3392,17 +3505,43 @@
                                           "https://atlas.intel.com/ProductDashboard/10053366"
                                       ],
                                       [
-                                          "10063573",
-                                          "Titan Lake PCD-H Die",
+                                          "10055820",
+                                          "Hammer Lake CPU 8P+16E Ext Die",
                                           "Die",
                                           "Sort PO*",
-                                          "2028-02-04T00:00:00.000Z",
+                                          "2028-01-21T00:00:00.000Z",
                                           "20200",
-                                          "A1",
+                                          "P0",
                                           "Concept",
-                                          "202806",
+                                          "202804",
                                           "Estimate ~TI+14WW",
-                                          "https://atlas.intel.com/ProductDashboard/10063573"
+                                          "https://atlas.intel.com/ProductDashboard/10055820"
+                                      ],
+                                      [
+                                          "10072807",
+                                          "Razor Lake S 52C BLLC Product",
+                                          "Si Product",
+                                          "PRQ",
+                                          "2028-02-04T00:00:00.000Z",
+                                          "21400",
+                                          "A0",
+                                          "Execution",
+                                          "202806",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10072807"
+                                      ],
+                                      [
+                                          "10055847",
+                                          "Titan Lake HPX Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2028-02-05T00:00:00.000Z",
+                                          "20500",
+                                          "A0",
+                                          "Roadmap",
+                                          "202806",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10055847"
                                       ],
                                       [
                                           "10056046",
@@ -3418,17 +3557,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10056046"
                                       ],
                                       [
-                                          "10072807",
-                                          "Razor Lake S 52C BLLC Product",
+                                          "10055818",
+                                          "Titan Lake HL Product",
                                           "Si Product",
-                                          "PRQ",
-                                          "2028-02-04T00:00:00.000Z",
-                                          "21400",
+                                          "PO Start",
+                                          "2028-02-19T00:00:00.000Z",
+                                          "20500",
                                           "A0",
-                                          "Execution",
-                                          "202806",
+                                          "Roadmap",
+                                          "202808",
                                           null,
-                                          "https://atlas.intel.com/ProductDashboard/10072807"
+                                          "https://atlas.intel.com/ProductDashboard/10055818"
                                       ],
                                       [
                                           "10072719",
@@ -3457,30 +3596,30 @@
                                           "https://atlas.intel.com/ProductDashboard/10055851"
                                       ],
                                       [
-                                          "10055846",
-                                          "Titan Lake HM Product",
-                                          "Si Product",
-                                          "PO Start",
-                                          "2028-04-15T00:00:00.000Z",
-                                          "20500",
+                                          "10064974",
+                                          "Titan Lake CPU 4P+8E Ext Die",
+                                          "Die",
+                                          "Sort PO*",
+                                          "2028-03-31T00:00:00.000Z",
+                                          "20200",
                                           "B0",
                                           "Roadmap",
-                                          "202816",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10055846"
+                                          "202814",
+                                          "Estimate ~TI+14WW",
+                                          "https://atlas.intel.com/ProductDashboard/10064974"
                                       ],
                                       [
-                                          "10055847",
-                                          "Titan Lake HPX Product",
+                                          "10073916",
+                                          "Titan Lake BX Product",
                                           "Si Product",
-                                          "PO Start",
-                                          "2028-04-29T00:00:00.000Z",
-                                          "20500",
-                                          "A0",
+                                          "PRQ",
+                                          "2028-04-08T00:00:00.000Z",
+                                          "21400",
+                                          "A1",
                                           "Roadmap",
-                                          "202818",
+                                          "202815",
                                           null,
-                                          "https://atlas.intel.com/ProductDashboard/10055847"
+                                          "https://atlas.intel.com/ProductDashboard/10073916"
                                       ],
                                       [
                                           "10055856",
@@ -3496,6 +3635,45 @@
                                           "https://atlas.intel.com/ProductDashboard/10055856"
                                       ],
                                       [
+                                          "10055847",
+                                          "Titan Lake HPX Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2028-06-10T00:00:00.000Z",
+                                          "20500",
+                                          "B0",
+                                          "Roadmap",
+                                          "202824",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10055847"
+                                      ],
+                                      [
+                                          "10073915",
+                                          "Titan Lake B Product",
+                                          "Si Product",
+                                          "PRQ",
+                                          "2028-06-24T00:00:00.000Z",
+                                          "21400",
+                                          "A0",
+                                          "Roadmap",
+                                          "202826",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10073915"
+                                      ],
+                                      [
+                                          "10055846",
+                                          "Titan Lake HM Product",
+                                          "Si Product",
+                                          "PO Start",
+                                          "2028-07-08T00:00:00.000Z",
+                                          "20500",
+                                          "B0",
+                                          "Roadmap",
+                                          "202828",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10055846"
+                                      ],
+                                      [
                                           "10055820",
                                           "Hammer Lake CPU 8P+16E Ext Die",
                                           "Die",
@@ -3507,19 +3685,6 @@
                                           "202830",
                                           null,
                                           "https://atlas.intel.com/ProductDashboard/10055820"
-                                      ],
-                                      [
-                                          "10055846",
-                                          "Titan Lake HM Product",
-                                          "Si Product",
-                                          "PRQ",
-                                          "2028-09-02T00:00:00.000Z",
-                                          "21400",
-                                          "B0",
-                                          "Roadmap",
-                                          "202836",
-                                          null,
-                                          "https://atlas.intel.com/ProductDashboard/10055846"
                                       ],
                                       [
                                           "10056060",
@@ -3535,17 +3700,17 @@
                                           "https://atlas.intel.com/ProductDashboard/10056060"
                                       ],
                                       [
-                                          "10055818",
-                                          "Titan Lake HL Product",
+                                          "10055847",
+                                          "Titan Lake HPX Product",
                                           "Si Product",
                                           "PRQ",
-                                          "2028-09-30T00:00:00.000Z",
+                                          "2028-10-21T00:00:00.000Z",
                                           "21400",
-                                          "A0",
+                                          "B0",
                                           "Roadmap",
-                                          "202840",
+                                          "202843",
                                           null,
-                                          "https://atlas.intel.com/ProductDashboard/10055818"
+                                          "https://atlas.intel.com/ProductDashboard/10055847"
                                       ],
                                       [
                                           "10055820",
@@ -3561,17 +3726,30 @@
                                           "https://atlas.intel.com/ProductDashboard/10055820"
                                       ],
                                       [
-                                          "10055847",
-                                          "Titan Lake HPX Product",
+                                          "10055818",
+                                          "Titan Lake HL Product",
                                           "Si Product",
-                                          "PO Start",
-                                          "2028-12-16T00:00:00.000Z",
-                                          "20500",
+                                          "PRQ",
+                                          "2028-11-04T00:00:00.000Z",
+                                          "21400",
+                                          "A0",
+                                          "Roadmap",
+                                          "202845",
+                                          null,
+                                          "https://atlas.intel.com/ProductDashboard/10055818"
+                                      ],
+                                      [
+                                          "10055846",
+                                          "Titan Lake HM Product",
+                                          "Si Product",
+                                          "PRQ",
+                                          "2028-11-18T00:00:00.000Z",
+                                          "21400",
                                           "B0",
                                           "Roadmap",
-                                          "202851",
+                                          "202847",
                                           null,
-                                          "https://atlas.intel.com/ProductDashboard/10055847"
+                                          "https://atlas.intel.com/ProductDashboard/10055846"
                                       ],
                                       [
                                           "10055851",
@@ -3589,8 +3767,592 @@
                                   ]
                },
     "metadata":  {
-                     "last_updated":  "2025-11-25 23:40:08 (PST)"
-                 }
+                     "last_updated":  "2025-12-08 07:55:11 (PST)"
+                 },
+    "changelog":  {
+                      "git_commit_date":  "2025-11-27",
+                      "removed_products":  [
+                                               {
+                                                   "date":  "2028-09-02T00:00:00.000Z",
+                                                   "project":  "Titan Lake HM Product",
+                                                   "ww":  "202836",
+                                                   "milestone":  "PRQ"
+                                               },
+                                               {
+                                                   "date":  "2028-04-15T00:00:00.000Z",
+                                                   "project":  "Titan Lake HM Product",
+                                                   "ww":  "202816",
+                                                   "milestone":  "PO Start"
+                                               },
+                                               {
+                                                   "date":  "2027-02-04T00:00:00.000Z",
+                                                   "project":  "Nova Lake P Product",
+                                                   "ww":  "202706",
+                                                   "milestone":  "PRQ"
+                                               },
+                                               {
+                                                   "date":  "2027-05-21T00:00:00.000Z",
+                                                   "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                   "ww":  "202721",
+                                                   "milestone":  "Sort PO*"
+                                               },
+                                               {
+                                                   "date":  "2028-04-29T00:00:00.000Z",
+                                                   "project":  "Titan Lake HPX Product",
+                                                   "ww":  "202818",
+                                                   "milestone":  "PO Start"
+                                               },
+                                               {
+                                                   "date":  "2026-12-11T00:00:00.000Z",
+                                                   "project":  "Titan Lake PCD-H Die",
+                                                   "ww":  "202650",
+                                                   "milestone":  "Tape In"
+                                               },
+                                               {
+                                                   "date":  "2027-10-29T00:00:00.000Z",
+                                                   "project":  "Titan Lake PCD-H Die",
+                                                   "ww":  "202744",
+                                                   "milestone":  "Tape In"
+                                               },
+                                               {
+                                                   "date":  "2028-09-30T00:00:00.000Z",
+                                                   "project":  "Titan Lake HL Product",
+                                                   "ww":  "202840",
+                                                   "milestone":  "PRQ"
+                                               },
+                                               {
+                                                   "date":  "2027-03-19T00:00:00.000Z",
+                                                   "project":  "Titan Lake PCD-H Die",
+                                                   "ww":  "202712",
+                                                   "milestone":  "Sort PO*"
+                                               },
+                                               {
+                                                   "date":  "2025-11-28T00:00:00.000Z",
+                                                   "project":  "Nova Lake PCD-S Die",
+                                                   "ww":  "202548",
+                                                   "milestone":  "Tape In"
+                                               },
+                                               {
+                                                   "date":  "2027-06-04T00:00:00.000Z",
+                                                   "project":  "Titan Lake HM Product",
+                                                   "ww":  "202723",
+                                                   "milestone":  "PO Start"
+                                               },
+                                               {
+                                                   "date":  "2026-09-24T00:00:00.000Z",
+                                                   "project":  "Nova Lake P Product",
+                                                   "ww":  "202639",
+                                                   "milestone":  "PO Start"
+                                               },
+                                               {
+                                                   "date":  "2027-02-12T00:00:00.000Z",
+                                                   "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                   "ww":  "202707",
+                                                   "milestone":  "Tape In"
+                                               },
+                                               {
+                                                   "date":  "2028-12-16T00:00:00.000Z",
+                                                   "project":  "Titan Lake HPX Product",
+                                                   "ww":  "202851",
+                                                   "milestone":  "PO Start"
+                                               },
+                                               {
+                                                   "date":  "2026-03-06T00:00:00.000Z",
+                                                   "project":  "Nova Lake PCD-S Die",
+                                                   "ww":  "202610",
+                                                   "milestone":  "Sort PO*"
+                                               },
+                                               {
+                                                   "date":  "2026-12-17T00:00:00.000Z",
+                                                   "project":  "Nova Lake P Product",
+                                                   "ww":  "202651",
+                                                   "milestone":  "QS"
+                                               },
+                                               {
+                                                   "date":  "2028-02-04T00:00:00.000Z",
+                                                   "project":  "Titan Lake PCD-H Die",
+                                                   "ww":  "202806",
+                                                   "milestone":  "Sort PO*"
+                                               }
+                                           ],
+                      "value_changes":  [
+
+                                        ],
+                      "baseline_date":  "2025-11-25",
+                      "new_products":  [
+                                           {
+                                               "date":  "2027-02-26T00:00:00.000Z",
+                                               "project":  "Titan Lake HUB-BX Die",
+                                               "ww":  "202709",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2027-04-23T00:00:00.000Z",
+                                               "project":  "Titan Lake PCD-H Die",
+                                               "ww":  "202717",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2027-07-30T00:00:00.000Z",
+                                               "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202731",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2027-04-23T00:00:00.000Z",
+                                               "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202717",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2028-02-19T00:00:00.000Z",
+                                               "project":  "Titan Lake HL Product",
+                                               "ww":  "202808",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2028-11-18T00:00:00.000Z",
+                                               "project":  "Titan Lake HM Product",
+                                               "ww":  "202847",
+                                               "milestone":  "PRQ"
+                                           },
+                                           {
+                                               "date":  "2027-09-17T00:00:00.000Z",
+                                               "project":  "Titan Lake HUB-P Die",
+                                               "ww":  "202738",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2027-11-26T00:00:00.000Z",
+                                               "project":  "Titan Lake B Product",
+                                               "ww":  "202748",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2027-06-04T00:00:00.000Z",
+                                               "project":  "Titan Lake HUB-BX Die",
+                                               "ww":  "202723",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2027-12-24T00:00:00.000Z",
+                                               "project":  "Titan Lake HUB-P Die",
+                                               "ww":  "202752",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2028-01-07T00:00:00.000Z",
+                                               "project":  "Titan Lake PCD-H Die",
+                                               "ww":  "202802",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2028-04-08T00:00:00.000Z",
+                                               "project":  "Titan Lake BX Product",
+                                               "ww":  "202815",
+                                               "milestone":  "PRQ"
+                                           },
+                                           {
+                                               "date":  "2027-07-02T00:00:00.000Z",
+                                               "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202727",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2026-03-12T00:00:00.000Z",
+                                               "project":  "Nova Lake PCD-S Die",
+                                               "ww":  "202611",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2027-03-26T00:00:00.000Z",
+                                               "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202713",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2028-11-04T00:00:00.000Z",
+                                               "project":  "Titan Lake HL Product",
+                                               "ww":  "202845",
+                                               "milestone":  "PRQ"
+                                           },
+                                           {
+                                               "date":  "2025-12-04T00:00:00.000Z",
+                                               "project":  "Nova Lake PCD-S Die",
+                                               "ww":  "202549",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2027-01-15T00:00:00.000Z",
+                                               "project":  "Titan Lake PCD-H Die",
+                                               "ww":  "202703",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2028-06-10T00:00:00.000Z",
+                                               "project":  "Titan Lake HPX Product",
+                                               "ww":  "202824",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2027-07-23T00:00:00.000Z",
+                                               "project":  "Titan Lake BX Product",
+                                               "ww":  "202730",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2028-07-08T00:00:00.000Z",
+                                               "project":  "Titan Lake HM Product",
+                                               "ww":  "202828",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2028-03-31T00:00:00.000Z",
+                                               "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202814",
+                                               "milestone":  "Sort PO*"
+                                           },
+                                           {
+                                               "date":  "2028-10-21T00:00:00.000Z",
+                                               "project":  "Titan Lake HPX Product",
+                                               "ww":  "202843",
+                                               "milestone":  "PRQ"
+                                           },
+                                           {
+                                               "date":  "2027-10-01T00:00:00.000Z",
+                                               "project":  "Titan Lake PCD-H Die",
+                                               "ww":  "202740",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2027-03-05T00:00:00.000Z",
+                                               "project":  "Titan Lake HM Product",
+                                               "ww":  "202710",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2028-02-05T00:00:00.000Z",
+                                               "project":  "Titan Lake HPX Product",
+                                               "ww":  "202806",
+                                               "milestone":  "PO Start"
+                                           },
+                                           {
+                                               "date":  "2027-12-24T00:00:00.000Z",
+                                               "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                               "ww":  "202752",
+                                               "milestone":  "Tape In"
+                                           },
+                                           {
+                                               "date":  "2028-06-24T00:00:00.000Z",
+                                               "project":  "Titan Lake B Product",
+                                               "ww":  "202826",
+                                               "milestone":  "PRQ"
+                                           },
+                                           {
+                                               "date":  "2027-07-16T00:00:00.000Z",
+                                               "project":  "Titan Lake BX Product",
+                                               "ww":  "202729",
+                                               "milestone":  "PO Start"
+                                           }
+                                       ],
+                      "timestamp":  "2025-12-08 07:55:11 (PST)",
+                      "compared_against":  "git",
+                      "revision":  1,
+                      "git_commit":  "4f67307"
+                  },
+    "all_changelogs":  [
+                           {
+                               "git_commit_date":  "2025-11-27",
+                               "removed_products":  [
+                                                        {
+                                                            "date":  "2028-09-02T00:00:00.000Z",
+                                                            "project":  "Titan Lake HM Product",
+                                                            "ww":  "202836",
+                                                            "milestone":  "PRQ"
+                                                        },
+                                                        {
+                                                            "date":  "2028-04-15T00:00:00.000Z",
+                                                            "project":  "Titan Lake HM Product",
+                                                            "ww":  "202816",
+                                                            "milestone":  "PO Start"
+                                                        },
+                                                        {
+                                                            "date":  "2027-02-04T00:00:00.000Z",
+                                                            "project":  "Nova Lake P Product",
+                                                            "ww":  "202706",
+                                                            "milestone":  "PRQ"
+                                                        },
+                                                        {
+                                                            "date":  "2027-05-21T00:00:00.000Z",
+                                                            "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                            "ww":  "202721",
+                                                            "milestone":  "Sort PO*"
+                                                        },
+                                                        {
+                                                            "date":  "2028-04-29T00:00:00.000Z",
+                                                            "project":  "Titan Lake HPX Product",
+                                                            "ww":  "202818",
+                                                            "milestone":  "PO Start"
+                                                        },
+                                                        {
+                                                            "date":  "2026-12-11T00:00:00.000Z",
+                                                            "project":  "Titan Lake PCD-H Die",
+                                                            "ww":  "202650",
+                                                            "milestone":  "Tape In"
+                                                        },
+                                                        {
+                                                            "date":  "2027-10-29T00:00:00.000Z",
+                                                            "project":  "Titan Lake PCD-H Die",
+                                                            "ww":  "202744",
+                                                            "milestone":  "Tape In"
+                                                        },
+                                                        {
+                                                            "date":  "2028-09-30T00:00:00.000Z",
+                                                            "project":  "Titan Lake HL Product",
+                                                            "ww":  "202840",
+                                                            "milestone":  "PRQ"
+                                                        },
+                                                        {
+                                                            "date":  "2027-03-19T00:00:00.000Z",
+                                                            "project":  "Titan Lake PCD-H Die",
+                                                            "ww":  "202712",
+                                                            "milestone":  "Sort PO*"
+                                                        },
+                                                        {
+                                                            "date":  "2025-11-28T00:00:00.000Z",
+                                                            "project":  "Nova Lake PCD-S Die",
+                                                            "ww":  "202548",
+                                                            "milestone":  "Tape In"
+                                                        },
+                                                        {
+                                                            "date":  "2027-06-04T00:00:00.000Z",
+                                                            "project":  "Titan Lake HM Product",
+                                                            "ww":  "202723",
+                                                            "milestone":  "PO Start"
+                                                        },
+                                                        {
+                                                            "date":  "2026-09-24T00:00:00.000Z",
+                                                            "project":  "Nova Lake P Product",
+                                                            "ww":  "202639",
+                                                            "milestone":  "PO Start"
+                                                        },
+                                                        {
+                                                            "date":  "2027-02-12T00:00:00.000Z",
+                                                            "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                            "ww":  "202707",
+                                                            "milestone":  "Tape In"
+                                                        },
+                                                        {
+                                                            "date":  "2028-12-16T00:00:00.000Z",
+                                                            "project":  "Titan Lake HPX Product",
+                                                            "ww":  "202851",
+                                                            "milestone":  "PO Start"
+                                                        },
+                                                        {
+                                                            "date":  "2026-03-06T00:00:00.000Z",
+                                                            "project":  "Nova Lake PCD-S Die",
+                                                            "ww":  "202610",
+                                                            "milestone":  "Sort PO*"
+                                                        },
+                                                        {
+                                                            "date":  "2026-12-17T00:00:00.000Z",
+                                                            "project":  "Nova Lake P Product",
+                                                            "ww":  "202651",
+                                                            "milestone":  "QS"
+                                                        },
+                                                        {
+                                                            "date":  "2028-02-04T00:00:00.000Z",
+                                                            "project":  "Titan Lake PCD-H Die",
+                                                            "ww":  "202806",
+                                                            "milestone":  "Sort PO*"
+                                                        }
+                                                    ],
+                               "value_changes":  [
+
+                                                 ],
+                               "baseline_date":  "2025-11-25",
+                               "new_products":  [
+                                                    {
+                                                        "date":  "2027-02-26T00:00:00.000Z",
+                                                        "project":  "Titan Lake HUB-BX Die",
+                                                        "ww":  "202709",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2027-04-23T00:00:00.000Z",
+                                                        "project":  "Titan Lake PCD-H Die",
+                                                        "ww":  "202717",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2027-07-30T00:00:00.000Z",
+                                                        "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202731",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2027-04-23T00:00:00.000Z",
+                                                        "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202717",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2028-02-19T00:00:00.000Z",
+                                                        "project":  "Titan Lake HL Product",
+                                                        "ww":  "202808",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2028-11-18T00:00:00.000Z",
+                                                        "project":  "Titan Lake HM Product",
+                                                        "ww":  "202847",
+                                                        "milestone":  "PRQ"
+                                                    },
+                                                    {
+                                                        "date":  "2027-09-17T00:00:00.000Z",
+                                                        "project":  "Titan Lake HUB-P Die",
+                                                        "ww":  "202738",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2027-11-26T00:00:00.000Z",
+                                                        "project":  "Titan Lake B Product",
+                                                        "ww":  "202748",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2027-06-04T00:00:00.000Z",
+                                                        "project":  "Titan Lake HUB-BX Die",
+                                                        "ww":  "202723",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2027-12-24T00:00:00.000Z",
+                                                        "project":  "Titan Lake HUB-P Die",
+                                                        "ww":  "202752",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2028-01-07T00:00:00.000Z",
+                                                        "project":  "Titan Lake PCD-H Die",
+                                                        "ww":  "202802",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2028-04-08T00:00:00.000Z",
+                                                        "project":  "Titan Lake BX Product",
+                                                        "ww":  "202815",
+                                                        "milestone":  "PRQ"
+                                                    },
+                                                    {
+                                                        "date":  "2027-07-02T00:00:00.000Z",
+                                                        "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202727",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2026-03-12T00:00:00.000Z",
+                                                        "project":  "Nova Lake PCD-S Die",
+                                                        "ww":  "202611",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2027-03-26T00:00:00.000Z",
+                                                        "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202713",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2028-11-04T00:00:00.000Z",
+                                                        "project":  "Titan Lake HL Product",
+                                                        "ww":  "202845",
+                                                        "milestone":  "PRQ"
+                                                    },
+                                                    {
+                                                        "date":  "2025-12-04T00:00:00.000Z",
+                                                        "project":  "Nova Lake PCD-S Die",
+                                                        "ww":  "202549",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2027-01-15T00:00:00.000Z",
+                                                        "project":  "Titan Lake PCD-H Die",
+                                                        "ww":  "202703",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2028-06-10T00:00:00.000Z",
+                                                        "project":  "Titan Lake HPX Product",
+                                                        "ww":  "202824",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2027-07-23T00:00:00.000Z",
+                                                        "project":  "Titan Lake BX Product",
+                                                        "ww":  "202730",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2028-07-08T00:00:00.000Z",
+                                                        "project":  "Titan Lake HM Product",
+                                                        "ww":  "202828",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2028-03-31T00:00:00.000Z",
+                                                        "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202814",
+                                                        "milestone":  "Sort PO*"
+                                                    },
+                                                    {
+                                                        "date":  "2028-10-21T00:00:00.000Z",
+                                                        "project":  "Titan Lake HPX Product",
+                                                        "ww":  "202843",
+                                                        "milestone":  "PRQ"
+                                                    },
+                                                    {
+                                                        "date":  "2027-10-01T00:00:00.000Z",
+                                                        "project":  "Titan Lake PCD-H Die",
+                                                        "ww":  "202740",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2027-03-05T00:00:00.000Z",
+                                                        "project":  "Titan Lake HM Product",
+                                                        "ww":  "202710",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2028-02-05T00:00:00.000Z",
+                                                        "project":  "Titan Lake HPX Product",
+                                                        "ww":  "202806",
+                                                        "milestone":  "PO Start"
+                                                    },
+                                                    {
+                                                        "date":  "2027-12-24T00:00:00.000Z",
+                                                        "project":  "Titan Lake CPU 4P+8E Ext Die",
+                                                        "ww":  "202752",
+                                                        "milestone":  "Tape In"
+                                                    },
+                                                    {
+                                                        "date":  "2028-06-24T00:00:00.000Z",
+                                                        "project":  "Titan Lake B Product",
+                                                        "ww":  "202826",
+                                                        "milestone":  "PRQ"
+                                                    },
+                                                    {
+                                                        "date":  "2027-07-16T00:00:00.000Z",
+                                                        "project":  "Titan Lake BX Product",
+                                                        "ww":  "202729",
+                                                        "milestone":  "PO Start"
+                                                    }
+                                                ],
+                               "timestamp":  "2025-12-08 07:55:11 (PST)",
+                               "compared_against":  "git",
+                               "revision":  1,
+                               "git_commit":  "4f67307"
+                           }
+                       ]
 }
 ;
   </script>
@@ -4161,6 +4923,434 @@
 
         // position tooltip near mouse
         document.addEventListener('mousemove', function (e) { const t = document.getElementById('vis-tooltip'); if (t.style.display==='block') { t.style.left = (e.clientX+12) + 'px'; t.style.top = (e.clientY+12) + 'px'; } });
+
+        // --- CHANGE LOGS ---
+        // Use current changelog if available, otherwise use the most recent from all_changelogs
+        let currentChangelog = json.changelog || 
+                               (json.all_changelogs && json.all_changelogs.length > 0 ? json.all_changelogs[json.all_changelogs.length - 1] : null) ||
+                               { new_products: [], removed_products: [], value_changes: [] };
+        let previousChangelog = json.previous_changelog || null;
+        let changelogFilter = 'all';
+        let changelogViewMode = 'current'; // 'current' or 'comparison'
+
+        function renderChangeLog(filter = 'all') {
+          const content = document.getElementById('changelogContent');
+          const stats = document.getElementById('changelogStats');
+          content.innerHTML = '';
+
+          if (changelogViewMode === 'comparison') {
+            renderComparisonView();
+            return;
+          }
+
+          let items = [];
+          if (filter === 'all' || filter === 'new') {
+            currentChangelog.new_products?.forEach(item => {
+              items.push({ type: 'new', data: item });
+            });
+          }
+          if (filter === 'all' || filter === 'removed') {
+            currentChangelog.removed_products?.forEach(item => {
+              items.push({ type: 'removed', data: item });
+            });
+          }
+          if (filter === 'all' || filter === 'changed') {
+            currentChangelog.value_changes?.forEach(item => {
+              items.push({ type: 'changed', data: item });
+            });
+          }
+
+          stats.textContent = `New: ${currentChangelog.new_products?.length || 0} | Removed: ${currentChangelog.removed_products?.length || 0} | Changed: ${currentChangelog.value_changes?.length || 0}`;
+
+          if (items.length === 0) {
+            content.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">No changes detected</div>';
+            return;
+          }
+
+          // Create a table for better visualization
+          const table = document.createElement('table');
+          table.style.cssText = 'width:100%;border-collapse:collapse;font-size:12px;background:white';
+          
+          // Table header
+          const thead = document.createElement('thead');
+          thead.innerHTML = `
+            <tr style="background:#f6f8fa;border-bottom:2px solid #e1e4e8">
+              <th style="padding:8px;text-align:left;font-weight:600;width:100px">Indicator</th>
+              <th style="padding:8px;text-align:left;font-weight:600">AtlasProjectName</th>
+              <th style="padding:8px;text-align:left;font-weight:600">What's the changes</th>
+            </tr>
+          `;
+          table.appendChild(thead);
+          
+          const tbody = document.createElement('tbody');
+          
+          items.forEach((item, idx) => {
+            const row = document.createElement('tr');
+            row.style.cssText = 'border-bottom:1px solid #e1e4e8';
+            if (idx % 2 === 0) row.style.background = '#fafbfc';
+            
+            let indicator = '';
+            let projectName = '';
+            let changes = '';
+            let bgColor = '';
+            
+            if (item.type === 'new') {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#d4edda;color:#155724;border-radius:3px;font-weight:600;font-size:11px">NEW</span>`;
+              projectName = `<strong style="color:#2e7d32">${item.data.project}</strong>`;
+              const ww = item.data.ww ? `<br><strong>WW:</strong> ${item.data.ww}` : '';
+              changes = `<div style="color:#555"><strong>Milestone:</strong> ${item.data.milestone}<br><strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              bgColor = '#f1f9f1';
+            } else if (item.type === 'removed') {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#f8d7da;color:#721c24;border-radius:3px;font-weight:600;font-size:11px">REMOVED</span>`;
+              projectName = `<strong style="color:#c62828">${item.data.project}</strong>`;
+              const ww = item.data.ww ? `<br><strong>WW:</strong> ${item.data.ww}` : '';
+              changes = `<div style="color:#555"><strong>Milestone:</strong> ${item.data.milestone}<br><strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              bgColor = '#fef5f5';
+            } else {
+              indicator = `<span style="display:inline-block;padding:4px 8px;background:#fff3cd;color:#856404;border-radius:3px;font-weight:600;font-size:11px">VALUE_CHANGE</span>`;
+              projectName = `<strong style="color:#e65100">${item.data.project}</strong>`;
+              
+              // Build detailed change list
+              const ww = item.data.ww ? ` • <strong>WW:</strong> ${item.data.ww}` : '';
+              let changeList = `<div style="color:#555;margin-bottom:4px"><strong>Milestone:</strong> ${item.data.milestone} • <strong>Date:</strong> ${item.data.date}${ww}</div>`;
+              changeList += `<div style="background:#fffbf0;padding:8px;border-left:3px solid #ffa726;margin-top:4px">`;
+              changeList += `<table style="width:100%;font-size:11px">`;
+              changeList += `<tr style="background:#fff;font-weight:600;border-bottom:1px solid #e0e0e0"><td style="padding:4px">Field</td><td style="padding:4px">Old Value</td><td style="padding:4px">New Value</td></tr>`;
+              
+              item.data.changes?.forEach(ch => {
+                const oldVal = ch.old_value || '<em style="color:#999">null</em>';
+                const newVal = ch.new_value || '<em style="color:#999">null</em>';
+                changeList += `<tr style="border-bottom:1px solid #f0f0f0">`;
+                changeList += `<td style="padding:4px;font-weight:600;color:#e65100">${ch.column}</td>`;
+                changeList += `<td style="padding:4px;color:#999;text-decoration:line-through">${oldVal}</td>`;
+                changeList += `<td style="padding:4px;color:#2e7d32;font-weight:600">${newVal}</td>`;
+                changeList += `</tr>`;
+              });
+              changeList += `</table></div>`;
+              
+              changes = changeList;
+              bgColor = '#fffbf5';
+            }
+            
+            row.style.background = bgColor;
+            row.innerHTML = `
+              <td style="padding:10px;vertical-align:top">${indicator}</td>
+              <td style="padding:10px;vertical-align:top">${projectName}</td>
+              <td style="padding:10px;vertical-align:top">${changes}</td>
+            `;
+            
+            tbody.appendChild(row);
+          });
+          
+          table.appendChild(tbody);
+          content.appendChild(table);
+        }
+
+        function renderComparisonView() {
+          const content = document.getElementById('changelogContent');
+          const stats = document.getElementById('changelogStats');
+          
+          if (!json.changelog_comparison) {
+            stats.textContent = 'No previous run to compare against';
+            content.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">This is the first run (Revision 1) - no comparison data available</div>';
+            return;
+          }
+
+          const comp = json.changelog_comparison;
+          const compHtml = [];
+
+          // Revision header with status indicator
+          const statusColor = comp.interpretation.status === 'Improving' ? '#2e7d32' : comp.interpretation.status === 'Worsening' ? '#c62828' : '#f57c00';
+          const statusIcon = comp.interpretation.status === 'Improving' ? '✓' : comp.interpretation.status === 'Worsening' ? '⚠' : '■';
+          
+          compHtml.push(`<div style="padding:16px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:6px;margin-bottom:16px;box-shadow:0 2px 4px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="display:flex;justify-content:space-between;align-items:center">`);
+          compHtml.push(`<div><strong style="font-size:16px">📋 Revision ${comp.current_run.revision}</strong><br>`);
+          compHtml.push(`<small>Compared with Revision ${comp.previous_run.revision} | Git: ${comp.current_run.git_commit}</small></div>`);
+          compHtml.push(`<div style="text-align:right;background:rgba(255,255,255,0.2);padding:8px 12px;border-radius:4px">`);
+          compHtml.push(`<span style="font-size:18px">${statusIcon}</span><br>`);
+          compHtml.push(`<small style="font-weight:600">${comp.interpretation.status.toUpperCase()}</small>`);
+          compHtml.push(`</div></div></div>`);
+
+          // Summary metrics with better visualization
+          compHtml.push(`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`);
+          
+          // New products card
+          const newDelta = comp.summary.newly_added_since_last;
+          const newColor = newDelta > 0 ? '#c62828' : newDelta < 0 ? '#2e7d32' : '#757575';
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid ${newColor};border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:${newColor}">${comp.summary.new_products_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">New Products (${newDelta > 0 ? '+' : ''}${newDelta} since last)</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.new_products_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Resolved products card
+          const resolved = comp.summary.newly_resolved_since_last;
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid #2e7d32;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:#2e7d32">✓ ${resolved}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Resolved Since Last Run</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Still Pending: ${comp.summary.still_pending}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Value changes card
+          const changesDelta = comp.summary.value_changes_delta;
+          const changesColor = changesDelta > 0 ? '#f57c00' : changesDelta < 0 ? '#2e7d32' : '#757575';
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid ${changesColor};border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:${changesColor}">${comp.summary.value_changes_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Value Changes (${changesDelta > 0 ? '+' : ''}${changesDelta})</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.value_changes_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          // Removed products card
+          compHtml.push(`<div style="padding:12px;background:#fff;border-left:4px solid #d32f2f;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">`);
+          compHtml.push(`<div style="font-size:24px;font-weight:700;color:#d32f2f">${comp.summary.removed_products_current}</div>`);
+          compHtml.push(`<div style="font-size:11px;color:#666">Removed Products</div>`);
+          compHtml.push(`<div style="font-size:10px;color:#999;margin-top:4px">Previous: ${comp.summary.removed_products_previous}</div>`);
+          compHtml.push(`</div>`);
+          
+          compHtml.push(`</div>`);
+
+          // Interpretation message
+          compHtml.push(`<div style="padding:12px;background:#f5f5f5;border-radius:4px;margin-bottom:16px;font-size:13px;border-left:4px solid ${statusColor}">`);
+          compHtml.push(`<strong>Status:</strong> ${comp.interpretation.message}`);
+          compHtml.push(`</div>`);
+
+          // Check if there are any real changes
+          const hasNoChanges = comp.summary.newly_added_since_last === 0 && 
+                              comp.summary.newly_resolved_since_last === 0 &&
+                              comp.summary.removed_products_current === 0 &&
+                              comp.summary.value_changes_current === 0;
+
+          if (hasNoChanges) {
+            compHtml.push(`<div style="padding:20px;background:#e8f5e9;border-radius:4px;text-align:center;font-size:12px">`);
+            compHtml.push(`<strong style="color:#2e7d32">✓ No changes detected</strong><br>`);
+            compHtml.push(`<small>Data is identical to Revision ${comp.previous_run.revision}</small>`);
+            compHtml.push(`</div>`);
+          } else {
+            // Show detailed breakdown of changes
+            if (comp.summary.newly_added_since_last > 0) {
+              compHtml.push(`<div style="padding:12px;background:#ffebee;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#c62828">🆕 ${comp.summary.newly_added_since_last} New Issues Since Rev ${comp.previous_run.revision}</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products appeared in current data but were not in previous git commit</small>`);
+              compHtml.push(`</div>`);
+            }
+
+            if (comp.summary.still_pending > 0) {
+              compHtml.push(`<div style="padding:12px;background:#fff3e0;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#e65100">⏳ ${comp.summary.still_pending} Issues Still Pending</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products were new in Revision ${comp.previous_run.revision} and remain in current data</small>`);
+              compHtml.push(`</div>`);
+            }
+
+            if (comp.summary.newly_resolved_since_last > 0) {
+              compHtml.push(`<div style="padding:12px;background:#e8f5e9;border-radius:4px;margin-bottom:12px;font-size:12px">`);
+              compHtml.push(`<strong style="color:#2e7d32">✅ ${comp.summary.newly_resolved_since_last} Issues Resolved!</strong><br>`);
+              compHtml.push(`<small style="color:#666">These products were new in Rev ${comp.previous_run.revision} but are no longer in current data (back to normal)</small>`);
+              compHtml.push(`</div>`);
+            }
+          }
+
+          stats.textContent = '';
+          content.innerHTML = compHtml.join('');
+        }
+
+        document.getElementById('changelogClose').onclick = () => {
+          document.getElementById('changelogPanel').style.display = 'none';
+        };
+
+        document.getElementById('viewChangelog').onclick = () => {
+          const panel = document.getElementById('changelogPanel');
+          panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+          if (panel.style.display !== 'none') {
+            renderChangeLog(changelogFilter);
+          }
+        };
+
+        // Toggle between current and comparison views
+        document.getElementById('changelogViewCurrent').onclick = () => {
+          changelogViewMode = 'current';
+          document.getElementById('changelogViewCurrent').style.background = '#0366d6';
+          document.getElementById('changelogViewCurrent').style.color = 'white';
+          document.getElementById('changelogViewCurrent').style.border = '0';
+          document.getElementById('changelogViewComparison').style.background = 'transparent';
+          document.getElementById('changelogViewComparison').style.color = 'var(--text)';
+          document.getElementById('changelogFilterGroup').style.display = 'flex';
+          renderChangeLog(changelogFilter);
+        };
+
+        document.getElementById('changelogViewComparison').onclick = () => {
+          changelogViewMode = 'comparison';
+          document.getElementById('changelogViewComparison').style.background = '#0366d6';
+          document.getElementById('changelogViewComparison').style.color = 'white';
+          document.getElementById('changelogViewComparison').style.border = '0';
+          document.getElementById('changelogViewCurrent').style.background = 'transparent';
+          document.getElementById('changelogViewCurrent').style.color = 'var(--text)';
+          document.getElementById('changelogFilterGroup').style.display = 'none';
+          renderChangeLog();
+        };
+
+        // Initial render of changelog on page load
+        renderChangeLog();
+
+        ['all', 'new', 'removed', 'changed'].forEach(filter => {
+          const btnId = `changelogFilter${filter.charAt(0).toUpperCase() + filter.slice(1).replace('ed', 'ed').replace('all', 'All')}`;
+          const btn = document.getElementById(btnId);
+          if (btn) {
+            btn.onclick = () => {
+              changelogFilter = filter;
+              document.querySelectorAll('[id^="changelogFilter"]').forEach(b => {
+                b.style.background = b.id.includes(filter.charAt(0).toUpperCase()) || (filter === 'all' && b.id === 'changelogFilterAll') ? '#0366d6' : 'transparent';
+                b.style.color = b.id.includes(filter.charAt(0).toUpperCase()) || (filter === 'all' && b.id === 'changelogFilterAll') ? 'white' : 'var(--text)';
+              });
+              renderChangeLog(filter);
+            };
+          }
+        });
+
+        document.getElementById('exportChangelog').onclick = () => {
+          try {
+            // Prompt user to choose between all revisions or current only
+            const choice = confirm('Export Options:\n\n✓ Click OK to export ALL REVISIONS (full history)\n✗ Click Cancel to export CURRENT REVISION only');
+            
+            if (choice) {
+              // Export all revisions using embedded all_changelogs data
+              const allRows = [['Revision', 'Indicator', 'AtlasProjectName', 'Milestone', 'Date', 'WW', 'Column', 'Old Value', 'New Value']];
+              
+              // Use all_changelogs if available, otherwise just current
+              const allChangelogs = json.all_changelogs || [json.changelog];
+              
+              // Process all changelogs
+              allChangelogs.forEach(changelog => {
+                if (!changelog) return;
+                
+                // Format: Rev 1 uses baseline date, Rev 2+ uses current date
+                let baselineDate = changelog.baseline_date || changelog.git_commit_date;
+                
+                // Fallback: Use 2025-11-25 as known baseline for git commit 4f67307
+                if (!baselineDate && changelog.git_commit === '4f67307') {
+                  baselineDate = '2025-11-25';
+                } else if (!baselineDate) {
+                  baselineDate = 'Unknown';
+                }
+                
+                const currentDate = new Date(changelog.timestamp).toISOString().split('T')[0];
+                const revInfo = changelog.revision === 1 ? `Rev 1 (${baselineDate})` : `Rev ${changelog.revision} (${currentDate})`;
+                
+                changelog.new_products?.forEach(item => {
+                  allRows.push([revInfo, 'NEW', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+                });
+                
+                changelog.removed_products?.forEach(item => {
+                  allRows.push([revInfo, 'REMOVED', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+                });
+                
+                changelog.value_changes?.forEach(item => {
+                  if (item.changes && item.changes.length > 0) {
+                    item.changes.forEach(ch => {
+                      allRows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', ch.column, ch.old_value || '', ch.new_value || '']);
+                    });
+                  }
+                });
+              });
+              
+              // Export as CSV
+              const csvContent = allRows.map(row => 
+                row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+              ).join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `changelog_all_revisions_${new Date().toISOString().split('T')[0]}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              
+              return; // Don't proceed to single revision export
+            }
+            
+            // Export current revision only
+            const changelog = currentChangelog;
+            const rows = [['Revision', 'Indicator', 'AtlasProjectName', 'Milestone', 'Date', 'WW', 'Column', 'Old Value', 'New Value']];
+            
+            // Format: Rev 1 uses baseline date, Rev 2+ uses current date
+            let baselineDate = changelog.baseline_date || changelog.git_commit_date;
+            
+            // Fallback: Use 2025-11-25 as known baseline for git commit 4f67307
+            if (!baselineDate && changelog.git_commit === '4f67307') {
+              baselineDate = '2025-11-25';
+            } else if (!baselineDate) {
+              baselineDate = 'Unknown';
+            }
+            
+            const currentDate = new Date(changelog.timestamp).toISOString().split('T')[0];
+            const revInfo = changelog.revision === 1 ? `Rev 1 (${baselineDate})` : `Rev ${changelog.revision} (${currentDate})`;
+            
+            changelog.new_products?.forEach(item => {
+              rows.push([revInfo, 'NEW', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+            });
+            
+            changelog.removed_products?.forEach(item => {
+              rows.push([revInfo, 'REMOVED', item.project, item.milestone, item.date, item.ww || '', 'N/A', 'N/A', 'N/A']);
+            });
+            
+            changelog.value_changes?.forEach(item => {
+              // For value changes, create a row for each field change
+              if (item.changes && item.changes.length > 0) {
+                item.changes.forEach(ch => {
+                  rows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', ch.column, ch.old_value || '', ch.new_value || '']);
+                });
+              } else {
+                // Legacy format fallback
+                rows.push([revInfo, 'VALUE_CHANGE', item.project, item.milestone || '', item.date || '', item.ww || '', item.column || '', item.old_value || '', item.new_value || '']);
+              }
+            });
+            
+            // Check if XLSX library is loaded
+            if (typeof XLSX !== 'undefined') {
+              const ws = XLSX.utils.aoa_to_sheet(rows);
+              
+              // Auto-width columns
+              const colWidths = [
+                { wch: 50 },  // Revision
+                { wch: 15 },  // Indicator
+                { wch: 30 },  // AtlasProjectName
+                { wch: 20 },  // Milestone
+                { wch: 12 },  // Date
+                { wch: 10 },  // WW
+                { wch: 20 },  // Column
+                { wch: 25 },  // Old Value
+                { wch: 25 }   // New Value
+              ];
+              ws['!cols'] = colWidths;
+              
+              const wb = XLSX.utils.book_new();
+              XLSX.utils.book_append_sheet(wb, ws, 'Changes');
+              XLSX.writeFile(wb, `changelog_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } else {
+              // Fallback to CSV if XLSX library not loaded
+              console.warn('XLSX library not loaded, exporting as CSV instead');
+              const csvContent = rows.map(row => 
+                row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+              ).join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `changelog_${new Date().toISOString().split('T')[0]}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          } catch (error) {
+            console.error('Export failed:', error);
+            alert('Export failed: ' + error.message);
+          }
+        };
 
         timeline.fit();
       } catch (e) {

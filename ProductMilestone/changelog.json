@@ -1,0 +1,291 @@
+﻿{
+    "git_commit_date":  "2025-11-27",
+    "removed_products":  [
+                             {
+                                 "date":  "2028-09-02T00:00:00.000Z",
+                                 "project":  "Titan Lake HM Product",
+                                 "ww":  "202836",
+                                 "milestone":  "PRQ"
+                             },
+                             {
+                                 "date":  "2028-04-15T00:00:00.000Z",
+                                 "project":  "Titan Lake HM Product",
+                                 "ww":  "202816",
+                                 "milestone":  "PO Start"
+                             },
+                             {
+                                 "date":  "2027-02-04T00:00:00.000Z",
+                                 "project":  "Nova Lake P Product",
+                                 "ww":  "202706",
+                                 "milestone":  "PRQ"
+                             },
+                             {
+                                 "date":  "2027-05-21T00:00:00.000Z",
+                                 "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                 "ww":  "202721",
+                                 "milestone":  "Sort PO*"
+                             },
+                             {
+                                 "date":  "2028-04-29T00:00:00.000Z",
+                                 "project":  "Titan Lake HPX Product",
+                                 "ww":  "202818",
+                                 "milestone":  "PO Start"
+                             },
+                             {
+                                 "date":  "2026-12-11T00:00:00.000Z",
+                                 "project":  "Titan Lake PCD-H Die",
+                                 "ww":  "202650",
+                                 "milestone":  "Tape In"
+                             },
+                             {
+                                 "date":  "2027-10-29T00:00:00.000Z",
+                                 "project":  "Titan Lake PCD-H Die",
+                                 "ww":  "202744",
+                                 "milestone":  "Tape In"
+                             },
+                             {
+                                 "date":  "2028-09-30T00:00:00.000Z",
+                                 "project":  "Titan Lake HL Product",
+                                 "ww":  "202840",
+                                 "milestone":  "PRQ"
+                             },
+                             {
+                                 "date":  "2027-03-19T00:00:00.000Z",
+                                 "project":  "Titan Lake PCD-H Die",
+                                 "ww":  "202712",
+                                 "milestone":  "Sort PO*"
+                             },
+                             {
+                                 "date":  "2025-11-28T00:00:00.000Z",
+                                 "project":  "Nova Lake PCD-S Die",
+                                 "ww":  "202548",
+                                 "milestone":  "Tape In"
+                             },
+                             {
+                                 "date":  "2027-06-04T00:00:00.000Z",
+                                 "project":  "Titan Lake HM Product",
+                                 "ww":  "202723",
+                                 "milestone":  "PO Start"
+                             },
+                             {
+                                 "date":  "2026-09-24T00:00:00.000Z",
+                                 "project":  "Nova Lake P Product",
+                                 "ww":  "202639",
+                                 "milestone":  "PO Start"
+                             },
+                             {
+                                 "date":  "2027-02-12T00:00:00.000Z",
+                                 "project":  "Razor Lake CPU 4P+8E Ext Die",
+                                 "ww":  "202707",
+                                 "milestone":  "Tape In"
+                             },
+                             {
+                                 "date":  "2028-12-16T00:00:00.000Z",
+                                 "project":  "Titan Lake HPX Product",
+                                 "ww":  "202851",
+                                 "milestone":  "PO Start"
+                             },
+                             {
+                                 "date":  "2026-03-06T00:00:00.000Z",
+                                 "project":  "Nova Lake PCD-S Die",
+                                 "ww":  "202610",
+                                 "milestone":  "Sort PO*"
+                             },
+                             {
+                                 "date":  "2026-12-17T00:00:00.000Z",
+                                 "project":  "Nova Lake P Product",
+                                 "ww":  "202651",
+                                 "milestone":  "QS"
+                             },
+                             {
+                                 "date":  "2028-02-04T00:00:00.000Z",
+                                 "project":  "Titan Lake PCD-H Die",
+                                 "ww":  "202806",
+                                 "milestone":  "Sort PO*"
+                             }
+                         ],
+    "value_changes":  [
+
+                      ],
+    "baseline_date":  "2025-11-25",
+    "new_products":  [
+                         {
+                             "date":  "2027-02-26T00:00:00.000Z",
+                             "project":  "Titan Lake HUB-BX Die",
+                             "ww":  "202709",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2027-04-23T00:00:00.000Z",
+                             "project":  "Titan Lake PCD-H Die",
+                             "ww":  "202717",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2027-07-30T00:00:00.000Z",
+                             "project":  "Razor Lake CPU 4P+8E Ext Die",
+                             "ww":  "202731",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2027-04-23T00:00:00.000Z",
+                             "project":  "Razor Lake CPU 4P+8E Ext Die",
+                             "ww":  "202717",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2028-02-19T00:00:00.000Z",
+                             "project":  "Titan Lake HL Product",
+                             "ww":  "202808",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2028-11-18T00:00:00.000Z",
+                             "project":  "Titan Lake HM Product",
+                             "ww":  "202847",
+                             "milestone":  "PRQ"
+                         },
+                         {
+                             "date":  "2027-09-17T00:00:00.000Z",
+                             "project":  "Titan Lake HUB-P Die",
+                             "ww":  "202738",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2027-11-26T00:00:00.000Z",
+                             "project":  "Titan Lake B Product",
+                             "ww":  "202748",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2027-06-04T00:00:00.000Z",
+                             "project":  "Titan Lake HUB-BX Die",
+                             "ww":  "202723",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2027-12-24T00:00:00.000Z",
+                             "project":  "Titan Lake HUB-P Die",
+                             "ww":  "202752",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2028-01-07T00:00:00.000Z",
+                             "project":  "Titan Lake PCD-H Die",
+                             "ww":  "202802",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2028-04-08T00:00:00.000Z",
+                             "project":  "Titan Lake BX Product",
+                             "ww":  "202815",
+                             "milestone":  "PRQ"
+                         },
+                         {
+                             "date":  "2027-07-02T00:00:00.000Z",
+                             "project":  "Titan Lake CPU 4P+8E Ext Die",
+                             "ww":  "202727",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2026-03-12T00:00:00.000Z",
+                             "project":  "Nova Lake PCD-S Die",
+                             "ww":  "202611",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2027-03-26T00:00:00.000Z",
+                             "project":  "Titan Lake CPU 4P+8E Ext Die",
+                             "ww":  "202713",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2028-11-04T00:00:00.000Z",
+                             "project":  "Titan Lake HL Product",
+                             "ww":  "202845",
+                             "milestone":  "PRQ"
+                         },
+                         {
+                             "date":  "2025-12-04T00:00:00.000Z",
+                             "project":  "Nova Lake PCD-S Die",
+                             "ww":  "202549",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2027-01-15T00:00:00.000Z",
+                             "project":  "Titan Lake PCD-H Die",
+                             "ww":  "202703",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2028-06-10T00:00:00.000Z",
+                             "project":  "Titan Lake HPX Product",
+                             "ww":  "202824",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2027-07-23T00:00:00.000Z",
+                             "project":  "Titan Lake BX Product",
+                             "ww":  "202730",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2028-07-08T00:00:00.000Z",
+                             "project":  "Titan Lake HM Product",
+                             "ww":  "202828",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2028-03-31T00:00:00.000Z",
+                             "project":  "Titan Lake CPU 4P+8E Ext Die",
+                             "ww":  "202814",
+                             "milestone":  "Sort PO*"
+                         },
+                         {
+                             "date":  "2028-10-21T00:00:00.000Z",
+                             "project":  "Titan Lake HPX Product",
+                             "ww":  "202843",
+                             "milestone":  "PRQ"
+                         },
+                         {
+                             "date":  "2027-10-01T00:00:00.000Z",
+                             "project":  "Titan Lake PCD-H Die",
+                             "ww":  "202740",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2027-03-05T00:00:00.000Z",
+                             "project":  "Titan Lake HM Product",
+                             "ww":  "202710",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2028-02-05T00:00:00.000Z",
+                             "project":  "Titan Lake HPX Product",
+                             "ww":  "202806",
+                             "milestone":  "PO Start"
+                         },
+                         {
+                             "date":  "2027-12-24T00:00:00.000Z",
+                             "project":  "Titan Lake CPU 4P+8E Ext Die",
+                             "ww":  "202752",
+                             "milestone":  "Tape In"
+                         },
+                         {
+                             "date":  "2028-06-24T00:00:00.000Z",
+                             "project":  "Titan Lake B Product",
+                             "ww":  "202826",
+                             "milestone":  "PRQ"
+                         },
+                         {
+                             "date":  "2027-07-16T00:00:00.000Z",
+                             "project":  "Titan Lake BX Product",
+                             "ww":  "202729",
+                             "milestone":  "PO Start"
+                         }
+                     ],
+    "timestamp":  "2025-12-08 07:55:11 (PST)",
+    "compared_against":  "git",
+    "revision":  1,
+    "git_commit":  "4f67307"
+}
