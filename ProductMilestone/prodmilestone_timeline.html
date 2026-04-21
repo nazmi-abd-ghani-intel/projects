@@ -469,11 +469,15 @@
         const groupsMap = new Map();
         const items = [];
         const rawById = new Map();
+        const seenIds = new Map();
         for (const row of dataArray) {
           const obj = {};
           for (let i = 0; i < cols.length; i++) obj[cols[i]] = row[i];
 
-          const id = `${obj.AtlasProjectItemId || 'X'}-${(obj.Milestone||'')}-${obj.MilestoneDate || ''}`;
+          const baseId = `${obj.AtlasProjectItemId || 'X'}-${(obj.Milestone||'')}-${obj.MilestoneDate || ''}`;
+          const idCount = seenIds.get(baseId) || 0;
+          seenIds.set(baseId, idCount + 1);
+          const id = idCount === 0 ? baseId : `${baseId}-${idCount}`;
           const groupKey = obj.AtlasProjectName || (`Item-${obj.AtlasProjectItemId || 'unknown'}`);
           if (!groupsMap.has(groupKey)) groupsMap.set(groupKey, { id: groupsMap.size + 1, content: groupKey });
 
