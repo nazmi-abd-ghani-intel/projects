@@ -28,6 +28,7 @@ CONTAINS_RE = re.compile(r"\blineItem\.([A-Z_][A-Za-z0-9_]*)\.Value\.Contains\s*
 NUMERIC_RE = re.compile(
     r"Convert\.ToDouble\s*\(\s*lineItem\.([A-Z_][A-Za-z0-9_]*)\.Value\s*\)\s*([><]=?|==|!=)\s*(-?\d+(?:\.\d+)?)"
 )
+NUMERIC_CONSUME_RE = re.compile(r"Convert\.ToDouble\s*\(\s*lineItem\.([A-Z_][A-Za-z0-9_]*)\.Value\s*\)")
 SWITCH_RE = re.compile(r"\bswitch\s*\(\s*lineItem\.([A-Z_][A-Za-z0-9_]*)\.Value\s*\)")
 CASE_LITERAL_RE = re.compile(r"\bcase\s+\"([^\"]+)\"\s*:")
 CASE_BOOL_RE = re.compile(r"\bcase\s+(true|false)\s*:")
@@ -43,6 +44,7 @@ class AttributeInfo:
     used_in_files: Set[str] = field(default_factory=set)
     notes: Set[str] = field(default_factory=set)
     valid_in_lira: str = "UNKNOWN"
+    total_usages: int = 0
 
 
 @dataclass
@@ -164,8 +166,12 @@ def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> T
                 info = attributes.setdefault(attr, AttributeInfo(name=attr))
                 info.used_in_files.add(str(file_path.relative_to(repo)))
                 info.used_in_modules.add(module_name(repo, file_path))
+                info.total_usages += 1
                 if ref_kind == "Value":
                     stats.value_refs += 1
+                    if NUMERIC_CONSUME_RE.search(code) or "Converter." in code:
+                        info.condition_patterns.add("NUMERIC_DERIVED")
+                        info.notes.add("NUMERIC_DERIVED: value used in numeric conversion/derivation")
                 else:
                     stats.isdefined_refs += 1
                     info.condition_patterns.add("IS_DEFINED")
@@ -236,15 +242,25 @@ def to_rows(attributes: Dict[str, AttributeInfo]) -> List[Dict[str, str]]:
     rows: List[Dict[str, str]] = []
     for attr in sorted(attributes):
         info = attributes[attr]
+        expected_values_sorted = sorted(info.expected_values)
+        notes_parts: List[str] = []
+        if info.condition_patterns:
+            notes_parts.append("Patterns: " + "; ".join(sorted(info.condition_patterns)))
+        if info.notes:
+            notes_parts.extend(sorted(info.notes))
+
         rows.append(
             {
                 "Attribute Name": info.name,
                 "Valid in LIRA": info.valid_in_lira,
-                "Expected Values": "; ".join(sorted(info.expected_values)),
-                "Condition Patterns": "; ".join(sorted(info.condition_patterns)),
-                "Used In Modules/Dies": "; ".join(sorted(info.used_in_modules)),
+                "Expected Values": "; ".join(expected_values_sorted),
+                "Value Count": str(len(expected_values_sorted)),
+                "Used In Dies": "; ".join(sorted(info.used_in_modules)),
+                "Die Count": str(len(info.used_in_modules)),
                 "Used In Files": "; ".join(sorted(info.used_in_files)),
-                "Notes": "; ".join(sorted(info.notes)),
+                "File Count": str(len(info.used_in_files)),
+                "Total Usages": str(info.total_usages),
+                "Notes": "; ".join(notes_parts),
             }
         )
     return rows

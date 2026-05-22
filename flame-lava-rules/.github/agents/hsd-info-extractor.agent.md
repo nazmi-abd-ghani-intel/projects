@@ -16,6 +16,7 @@ Your job is to find and normalize HSD references from code, connect each HSD to 
 - DO NOT drop variable-based HSD references; resolve variable-to-callsite links when possible.
 - ONLY report findings backed by file and line evidence.
 - ALWAYS include recursive submodule scanning when submodules are present.
+- If an FFR/fuse folder path is provided, ALWAYS locate `fusedef.txt`, parse header commit URLs, and resolve package/product repo as analysis root when local `.git` is missing or unrelated.
 - If the user asks for a specific HSD, ALWAYS return the complete associated fuse/feature list (deduplicated plus full occurrences).
 - If user asks for artifact files, ALWAYS generate them under user working directory (for example `./out/hsd/`).
 - For `value_hex`, ALWAYS prefer FuseGen decoded values from each repo/submodule `ReadOnly` folder when available.
@@ -60,7 +61,9 @@ Generate canonical link for each ID:
 ## Approach
 1. Resolve source target:
    - Local repo path, remote URL, GitHub tree URL, or FFR path.
-   - Resolve revision from explicit branch/tag/commit, tree URL, or default branch.
+   - For FFR input, locate `fusedef.txt` and parse header commit URLs to derive candidate repos (package/product first, then die repos).
+   - If local `.git` is missing or unrelated, select header-derived package/product repo as analysis root and validate access with `git ls-remote`.
+   - Resolve revision from explicit branch/tag/commit, tree URL, or default branch (for FFR prefer package commit from `fusedef.txt` when revision is not provided).
 2. Build scan scope:
    - Default: `**/Fuse.Set/**/*.cs` across root repo and reachable submodules.
    - Optional broader scope: all C# files when user requests.

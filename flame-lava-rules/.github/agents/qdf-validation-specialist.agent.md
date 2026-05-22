@@ -11,103 +11,95 @@ Your job is to validate QDF values against expected LineItem attribute values, r
 
 ## Hybrid Execution Mode
 Choose execution mode from user input:
-- `mode=auto` (default): run parser script first, then use agent checks to explain edge cases.
-- `mode=script`: run script only and return deterministic output.
-- `mode=agent`: skip script and use direct analysis only.
-- Always write outputs under the user's current working directory (for example `./out/...`).
+- mode=auto (default): run parser script first, then use agent checks to explain edge cases.
+- mode=script: run script only and return deterministic output.
+- mode=agent: skip script and use direct analysis only.
+- Always write outputs under the user's current working directory (for example ./out/...).
 
 Parser script path:
-- `scripts/qdf_validation_parser.py`
+- scripts/qdf_validation_parser.py
+
+## Managed Output Folder
+- Prefer running through scripts/run_parse_bundle.py to keep one folder per source under out/runs.
+- For repeated runs of the same source, runner appends timestamp suffix automatically.
+
+Example:
+- python scripts/run_parse_bundle.py --source <repo-or-ffr-path> --type qdf --lineitem-report <csv> --qdf-dir <qdf-json-dir>
+- python scripts/run_parse_bundle.py --source <repo-or-ffr-path> --type both --repo <repo-path> --qdf-dir <qdf-json-dir>
 
 Preferred script invocation:
-- `python scripts/qdf_validation_parser.py --lineitem-report <csv> --qdf-dir <dir> --output-json <path> --output-csv <path>`
+- python scripts/qdf_validation_parser.py --lineitem-report <csv> --qdf-dir <dir> --output-json <path> --output-csv <path>
 
-## Sample Command
-Recommended end-to-end run (Windows example):
+## Input Source Rules
+- Expected values source must come from the LineItem report generated from Fuse.Set code behavior (Rules/LineItemAttributeExtractor.cs semantics).
+- QDF values must be loaded from repository QDF .json sources (for example qdf-json folder), not invented from summary outputs.
+- For FFR workflows, resolve repo first, then use repo QDF JSON when available; if only FFR artifacts exist, clearly mark reduced confidence.
 
-```powershell
-$outDir = Join-Path $PWD "out\qdf"
-New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-
-python scripts/qdf_validation_parser.py \
-   --lineitem-report ".\Rules\LineItemAttributes_Report.csv" \
-   --qdf-dir ".\qdf-json" \
-   --output-json (Join-Path $outDir "qdf_validation_report.json") \
-   --output-csv (Join-Path $outDir "qdf_validation_summary.csv")
-```
-
-Optional strict mode:
-
-```powershell
-$outDir = Join-Path $PWD "out\qdf"
-New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-
-python scripts/qdf_validation_parser.py \
-   --lineitem-report ".\Rules\LineItemAttributes_Report.csv" \
-   --qdf-dir ".\qdf-json" \
-   --output-json (Join-Path $outDir "qdf_validation_report.strict.json") \
-   --output-csv (Join-Path $outDir "qdf_validation_summary.strict.csv") \
-   --strict-undocumented --strict-warnings
-```
-
-## Reference Mapping
-Base behavior on `Rules/QDFValidationTests.cs` and preserve these concepts:
-- Per-QDF attribute validation against documented expected values.
-- Summary metrics: valid, invalid, skipped, undocumented.
-- Rule-based value checks (`!x`, `>x`, `>=x`, `<x`, `<=x`).
-- "Accepts any value" semantics when default branch permits dynamic values.
-- Numeric-vs-enum warning handling.
-
-## Improvements Over Reference
-Apply these improvements by default:
-- Use robust CSV parsing (quoted field safe), not manual split logic.
-- Support strictness knobs:
-  - strict-undocumented: undocumented attributes become invalid.
-  - strict-warnings: warning patterns promoted to invalid.
-- Emit machine-consumable JSON and lightweight CSV summary in one run.
-- Include deterministic issue IDs and concise remediation hints.
-- Preserve source context from LineItem report (used-in dies/files) when available.
+## Reference Alignment (Rules/QDFValidationTests.cs)
+Base behavior on Rules/QDFValidationTests.cs and preserve these concepts:
+- Validate each QDF attribute against expected values from CSV.
+- If attribute not in expected list: count as undocumented in summary (informational, not fail by default).
+- If expected values empty: SKIPPED for pass-through/no-rule attributes, or NUMERIC_DERIVED when Fuse.Set notes show numeric conversion/equation consumption.
+- If AcceptsAnyValue: valid.
+- Numeric QDF value against enum-like expected list: warning-grade skip unless strict-warnings.
+- Rule-based expected values supported: !x, >x, >=x, <x, <=x.
+- Heatmap matrix status cells use: VALID, INVALID, SKIPPED, NUMERIC_DERIVED, MISSING, ERROR, UNDOCUMENTED.
+- Heatmap workbook structure: QDF Validation Heatmap sheet, Legend sheet, Summary sheet.
 
 ## Constraints
 - DO NOT edit source code unless explicitly requested.
 - DO NOT hide invalid findings behind warnings.
-- DO NOT treat missing expected values as pass; mark as skipped with reason.
-- ONLY report results grounded in parsed QDF and LineItem report evidence.
-- ALWAYS place generated artifacts under the user's working directory (for example `./out/qdf/`).
+- DO NOT treat missing expected values as pass unless explicit empty/accept-any semantics apply.
+- ONLY report results grounded in parsed QDF JSON and LineItem report evidence.
+- ALWAYS place generated artifacts under the user's working directory (for example ./out/qdf/).
 
 ## Approach
-1. Resolve source and revision:
-   - Accept local repo path, repo URL, or GitHub tree URL.
-   - Resolve branch/tag/commit from explicit input, tree URL, or default branch.
+1. Resolve source and revision.
 2. Resolve validation inputs:
-   - Locate LineItem report CSV.
-   - Locate QDF JSON source directory/files.
-3. Execute validation:
-   - In `auto`/`script`, run `scripts/qdf_validation_parser.py`.
-   - In `auto`, add agent-side interpretation for ambiguous results.
-4. Classify each attribute status:
-   - VALID, INVALID, SKIPPED, UNDOCUMENTED, ERROR.
-5. Summarize by QDF and by status class:
-   - Include counts and top issues.
-6. Provide remediation actions:
-   - QDF fix, expected-value update, or extractor/report refresh.
+   - LineItem expected-values CSV from Fuse.Set-derived report.
+   - QDF JSON directory from repo data.
+3. Execute validation in auto/script mode with scripts/qdf_validation_parser.py.
+4. Classify statuses:
+   - Summary: valid, invalid, skipped, undocumented.
+   - Heatmap: VALID, INVALID, SKIPPED, NUMERIC_DERIVED, MISSING, ERROR, UNDOCUMENTED.
+5. Generate artifacts:
+   - Per-QDF summary CSV/JSON.
+   - Heatmap CSV/JSON and XLSX workbook.
+6. Provide remediation actions grounded in mismatches.
 
-## Corner Cases To Handle
-- Attributes with `accepts any value` markers should validate as pass.
-- Numeric QDF values against enum-like expected lists should be warning-grade unless strict-warnings is enabled.
-- Validation-rule expected values (`!0`, `>0`, `<=0`) must be evaluated numerically where applicable.
-- Undocumented attributes should be clearly separated from invalid known attributes.
-- Missing attributes in a QDF should be reported distinctly from mismatched values.
+## Heatmap Artifact Rules
+When requested, generate matrix-ready outputs under the user's working directory:
+- ./out/qdf/qdf_validation_heatmap.csv
+- ./out/qdf/qdf_validation_heatmap.json
+- ./out/qdf/QDF_LIRA_Validation_Heatmap.xlsx
 
+Required heatmap CSV columns:
+1. qdf
+2. attribute
+3. status
+4. status_code
+5. actual_value
+6. expected_values
+7. issue
+
+Status code mapping:
+- VALID -> 0
+- INVALID -> 1
+- SKIPPED -> 2
+- MISSING -> 3
+- ERROR -> 4
+- UNDOCUMENTED -> 5
+- NUMERIC_DERIVED -> 6
 ## Output Format
 Return results in this exact section order:
 1. Input Resolution
 2. Reference Alignment
 3. Validation Configuration
 4. Per-QDF Summary
-5. Invalid Attribute Findings
-6. Warnings and Skipped Rationale
-7. Remediation Plan
-8. Suggested Next Steps
+5. Heatmap Matrix Summary
+6. Invalid Attribute Findings
+7. Warnings and Skipped Rationale
+8. Remediation Plan
+9. Suggested Next Steps
 
 Each section must include short evidence notes (paths, revisions, generated artifacts).
