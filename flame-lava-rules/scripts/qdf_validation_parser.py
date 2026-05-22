@@ -13,7 +13,7 @@ import csv
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -89,6 +89,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lineitem-report", help="Path to LineItemAttributes report CSV")
     parser.add_argument("--qdf-dir", help="Directory containing QDF JSON files")
     parser.add_argument("--qdf-glob", default="*.json", help="Glob for QDF files (default: *.json)")
+    parser.add_argument("--qdf-allowlist-file", help="Optional text file containing QDF names (one per line) to include")
     parser.add_argument("--compat-mode", choices=["ffr"], help="Enable compatibility defaults for FFR-style input/output paths")
     parser.add_argument("--output-json", help="Output JSON report path")
     parser.add_argument("--output-csv", help="Output CSV summary path")
@@ -239,10 +240,29 @@ def value_matches(actual: str, expectation: AttributeExpectation) -> bool:
     return False
 
 
-def iter_qdf_files(qdf_dir: Path, qdf_glob: str) -> Iterable[Path]:
+def load_qdf_allowlist(path: Optional[Path]) -> Optional[Set[str]]:
+    if path is None:
+        return None
+    if not path.exists():
+        raise FileNotFoundError(f"QDF allowlist file not found: {path}")
+
+    names: Set[str] = set()
+    for raw in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        stem = Path(line).stem if line.lower().endswith(".json") else line
+        names.add(stem.lower())
+    return names
+
+
+def iter_qdf_files(qdf_dir: Path, qdf_glob: str, allowlist: Optional[Set[str]] = None) -> Iterable[Path]:
     for file_path in sorted(qdf_dir.glob(qdf_glob)):
-        if file_path.is_file():
-            yield file_path
+        if not file_path.is_file():
+            continue
+        if allowlist is not None and file_path.stem.lower() not in allowlist:
+            continue
+        yield file_path
 def flatten_attribute_items(items: object, collection_name: str = "") -> Tuple[Dict[str, str], Dict[str, str]]:
     attrs: Dict[str, str] = {}
     collections: Dict[str, str] = {}
@@ -811,10 +831,12 @@ def main() -> int:
         raise SystemExit(f"QDF directory not found: {qdf_dir}")
 
     expectations = load_expectations(lineitem_report)
+    qdf_allowlist_path = Path(args.qdf_allowlist_file).resolve() if args.qdf_allowlist_file else None
+    qdf_allowlist = load_qdf_allowlist(qdf_allowlist_path)
     summaries: List[QdfSummary] = []
     heatmap_rows: List[HeatmapRow] = []
 
-    for qdf_file in iter_qdf_files(qdf_dir, args.qdf_glob):
+    for qdf_file in iter_qdf_files(qdf_dir, args.qdf_glob, qdf_allowlist):
         qdf_name = qdf_file.stem
         attrs, liid, attr_collections = load_qdf_document(qdf_file)
         summary, rows = validate_qdf(
@@ -836,6 +858,8 @@ def main() -> int:
         "lineitem_report": str(lineitem_report),
         "qdf_dir": str(qdf_dir),
         "qdf_count": total_qdfs,
+        "qdf_allowlist_file": str(qdf_allowlist_path) if qdf_allowlist_path else None,
+        "qdf_allowlist_count": len(qdf_allowlist) if qdf_allowlist is not None else None,
         "qdfs_with_invalid": with_invalid,
         "summary": [
             {
@@ -888,6 +912,8 @@ def main() -> int:
         json.dumps(
             {
                 "qdf_count": total_qdfs,
+                "qdf_allowlist_file": str(qdf_allowlist_path) if qdf_allowlist_path else None,
+                "qdf_allowlist_count": len(qdf_allowlist) if qdf_allowlist is not None else None,
                 "qdfs_with_invalid": with_invalid,
                 "heatmap_rows": len(heatmap_rows),
             },
@@ -899,6 +925,8 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
 
 
 

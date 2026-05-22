@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
@@ -8,239 +8,411 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
-
-def run_capture(cmd: List[str], cwd: Optional[Path] = None) -> Optional[str]:
- proc = subprocess.run(cmd, text=True, capture_output=True, cwd=str(cwd) if cwd else None)
- if proc.returncode != 0:
-  return None
- value = proc.stdout.strip()
- return value or None
-
-def git_root(path: Path) -> Optional[Path]:
- value = run_capture(['git', '-C', str(path), 'rev-parse', '--show-toplevel'])
- return Path(value).resolve() if value else None
-
-def git_origin_url(repo_root: Path) -> Optional[str]:
- return run_capture(['git', '-C', str(repo_root), 'config', '--get', 'remote.origin.url'])
-
-def git_head(repo_root: Path) -> Optional[str]:
- return run_capture(['git', '-C', str(repo_root), 'rev-parse', 'HEAD'])
-
-def collect_git_repo_sources(repo_path: Optional[Path]) -> List[Dict[str, Optional[str]]]:
- if repo_path is None:
-  return []
- repo_root = git_root(repo_path) or repo_path.resolve()
- repos: List[Dict[str, Optional[str]]] = []
- seen: set[str] = set()
-
- def scan_repo(path: Path, is_submodule: bool, parent_repo: Optional[Path], pinned_commit: Optional[str] = None) -> None:
-  resolved = path.resolve()
-  key = str(resolved)
-  if key in seen:
-   return
-  seen.add(key)
-  repos.append({
-   'path': key,
-   'origin_url': git_origin_url(resolved),
-   'head': git_head(resolved),
-   'is_submodule': is_submodule,
-   'parent_repo': str(parent_repo.resolve()) if parent_repo else None,
-   'pinned_commit': pinned_commit,
-  })
-
-  status = run_capture(['git', '-C', str(resolved), 'submodule', 'status'])
-  if not status:
-   return
-  for line in status.splitlines():
-   raw = line.strip()
-   if not raw:
-    continue
-   marker = raw[0]
-   body = raw[1:].strip() if marker in ' +-U' else raw
-   parts = body.split()
-   if len(parts) < 2:
-    continue
-   child_pinned_commit, rel_path = parts[0], parts[1]
-   child_path = (resolved / rel_path).resolve()
-   scan_repo(child_path, True, resolved, child_pinned_commit)
-
- scan_repo(repo_root, False, None)
- return repos
 
 def slugify(value: str) -> str:
- cleaned = re.sub(r'[^A-Za-z0-9._-]+', '_', value.strip())
- cleaned = re.sub(r'_+', '_', cleaned).strip('._-')
- return cleaned or 'source'
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "_", value.strip())
+    cleaned = re.sub(r"_+", "_", cleaned).strip("._-")
+    return cleaned or "source"
+
 
 def create_run_dir(output_root: Path, source_label: str) -> Path:
- output_root.mkdir(parents=True, exist_ok=True)
- base = slugify(source_label)
- target = output_root / base
- if target.exists():
-  stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-  target = output_root / f'{base}_{stamp}'
- target.mkdir(parents=True, exist_ok=False)
- return target
+    output_root.mkdir(parents=True, exist_ok=True)
+    base = slugify(source_label)
+    target = output_root / base
+    if target.exists():
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        target = output_root / f"{base}_{stamp}"
+    target.mkdir(parents=True, exist_ok=False)
+    return target
+
 
 def run_cmd(cmd: List[str]) -> None:
- proc = subprocess.run(cmd, text=True)
- if proc.returncode != 0:
-  raise SystemExit(proc.returncode)
+    proc = subprocess.run(cmd, text=True)
+    if proc.returncode != 0:
+        raise SystemExit(proc.returncode)
+
+
+def run_capture(cmd: List[str]) -> Optional[str]:
+    proc = subprocess.run(cmd, text=True, capture_output=True)
+    if proc.returncode != 0:
+        return None
+    value = proc.stdout.strip()
+    return value or None
+
+
+def run_capture_lines(cmd: List[str]) -> List[str]:
+    proc = subprocess.run(cmd, text=True, capture_output=True)
+    if proc.returncode != 0:
+        return []
+    return [line for line in proc.stdout.splitlines() if line.strip()]
+
 
 def resolved_path_if_exists(raw: Optional[str]) -> Optional[str]:
- if not raw:
-  return None
- path = Path(raw)
- return str(path.resolve()) if path.exists() else None
+    if not raw:
+        return None
+    path = Path(raw)
+    return str(path.resolve()) if path.exists() else None
+
+
+def normalize_default_branch(symbolic_ref: Optional[str]) -> Optional[str]:
+    if not symbolic_ref:
+        return None
+    marker = "refs/remotes/origin/"
+    if symbolic_ref.startswith(marker):
+        return symbolic_ref[len(marker):]
+    return symbolic_ref
+
+
+def parse_submodule_status_line(raw_line: str) -> Optional[Tuple[str, str]]:
+    raw = raw_line.strip()
+    if not raw:
+        return None
+    marker = raw[0]
+    body = raw[1:].strip() if marker in " +-U" else raw
+    parts = body.split()
+    if len(parts) < 2:
+        return None
+    pinned_commit, rel_path = parts[0], parts[1]
+    return pinned_commit, rel_path
+
+def extract_qdf_names_from_lineitemdata(lineitemdata_path: Path) -> List[str]:
+    pattern = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$")
+    names: set[str] = set()
+
+    for raw in lineitemdata_path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        token = line.split(":", 1)[0].strip()
+        if pattern.fullmatch(token):
+            names.add(token)
+
+    return sorted(names)
+
+
+def is_submodule_qdf_path(path: Path) -> bool:
+    return ".sm" in path.parts
+
+
+def find_main_repo_qdf_dir(source_dir: Path) -> Optional[Path]:
+    if not source_dir.exists() or not source_dir.is_dir():
+        return None
+
+    # Prefer the top-level Product repo QDF folder, not die-level submodule QDF folders.
+    for child in sorted(source_dir.iterdir()):
+        if not child.is_dir():
+            continue
+        if not child.name.endswith("_Product"):
+            continue
+        candidate = child / "QDFs"
+        if candidate.exists() and candidate.is_dir():
+            return candidate
+
+    fallback = source_dir / "QDFs"
+    if fallback.exists() and fallback.is_dir():
+        return fallback
+    return None
+
+
+def resolve_qdf_dir(source: str, requested_qdf_dir: Optional[str], compat_mode: Optional[str]) -> str:
+    source_dir = Path(source)
+    main_repo_qdf_dir = find_main_repo_qdf_dir(source_dir)
+
+    if requested_qdf_dir:
+        requested = Path(requested_qdf_dir)
+        if requested.exists() and is_submodule_qdf_path(requested) and main_repo_qdf_dir is not None:
+            return main_repo_qdf_dir.as_posix()
+        return requested_qdf_dir
+
+    if main_repo_qdf_dir is not None:
+        return main_repo_qdf_dir.as_posix()
+
+    if compat_mode == "ffr":
+        return "out/ffr/qdf-json"
+
+    raise SystemExit("--qdf-dir is required for qdf mode (or use --compat-mode ffr)")
+
+
+
+def find_lineitemdata_path(source_dir: Path) -> Optional[Path]:
+    if not source_dir.exists() or not source_dir.is_dir():
+        return None
+
+    direct = source_dir / "lineitemdata.txt"
+    if direct.exists() and direct.is_file():
+        return direct
+
+    # Prefer Product publish artifact over any submodule layout.
+    for child in sorted(source_dir.iterdir()):
+        if not child.is_dir() or not child.name.endswith("_Product"):
+            continue
+        publish = child / "PublishFiles" / "lineitemdata.txt"
+        if publish.exists() and publish.is_file():
+            return publish
+
+    return None
+
+
+def collect_repo_entries(initial_repo_paths: List[str]) -> List[Dict[str, Optional[str]]]:
+    entries: List[Dict[str, Optional[str]]] = []
+    seen: set[str] = set()
+
+    def scan(repo_path: Path, is_submodule: bool, parent_repo: Optional[Path], pinned_commit: Optional[str]) -> None:
+        resolved = repo_path.resolve()
+        key = str(resolved)
+        if key in seen:
+            return
+        seen.add(key)
+
+        entries.append(
+            {
+                "path": key,
+                "is_submodule": is_submodule,
+                "parent_repo": str(parent_repo.resolve()) if parent_repo else None,
+                "pinned_commit": pinned_commit,
+            }
+        )
+
+        for line in run_capture_lines(["git", "-C", key, "submodule", "status"]):
+            parsed = parse_submodule_status_line(line)
+            if not parsed:
+                continue
+            child_pinned_commit, rel_path = parsed
+            child_path = (resolved / rel_path).resolve()
+            if child_path.exists():
+                scan(child_path, True, resolved, child_pinned_commit)
+
+    for raw_path in initial_repo_paths:
+        path_obj = Path(raw_path)
+        resolved = path_obj.resolve() if path_obj.exists() else path_obj
+        if resolved.exists():
+            scan(resolved, False, None, None)
+
+    return entries
+
+
+def build_repo_sources(repo_paths: List[str]) -> List[Dict[str, object]]:
+    entries = collect_repo_entries(repo_paths)
+    sources: List[Dict[str, object]] = []
+
+    for entry in entries:
+        path = str(entry["path"])
+        origin_url = run_capture(["git", "-C", path, "config", "--get", "remote.origin.url"])
+        head = run_capture(["git", "-C", path, "rev-parse", "HEAD"])
+        branch = run_capture(["git", "-C", path, "rev-parse", "--abbrev-ref", "HEAD"])
+        default_branch = normalize_default_branch(
+            run_capture(["git", "-C", path, "symbolic-ref", "refs/remotes/origin/HEAD"])
+        )
+
+        sources.append(
+            {
+                "path": path,
+                "origin_url": origin_url,
+                "head": head,
+                "branch": branch,
+                "default_branch": default_branch,
+                "is_submodule": bool(entry["is_submodule"]),
+                "parent_repo": entry["parent_repo"],
+                "pinned_commit": entry["pinned_commit"],
+            }
+        )
+
+    return sources
+
 
 def write_run_metadata(
- run_dir: Path,
- args: argparse.Namespace,
- generated: Dict[str, str],
- repo_resolved: Optional[Path],
- qdf_dir_used: Optional[str],
- lineitem_report_used: Optional[str],
+    run_dir: Path,
+    args: argparse.Namespace,
+    generated: Dict[str, str],
+    repo_resolved: Optional[Path],
+    qdf_dir_used: Optional[str],
+    lineitem_report_used: Optional[str],
 ) -> Path:
- source_path = Path(args.source)
- source_resolved = str(source_path.resolve()) if source_path.exists() else None
- git_repo_sources = collect_git_repo_sources(repo_resolved)
- flame_repos = [repo['path'] for repo in git_repo_sources]
- payload = {
-  'created_utc': datetime.now(timezone.utc).isoformat(),
-  'run_dir': str(run_dir),
-  'workflow_type': args.type,
-  'compat_mode': args.compat_mode,
-  'ffr_source': {
-   'input': args.source,
-   'resolved': source_resolved,
-  },
-  'flame_git_repos_parsed': flame_repos,
-  'flame_git_repo_sources': git_repo_sources,
-  'inputs': {
-   'repo_input': args.repo,
-   'repo_resolved': str(repo_resolved) if repo_resolved else None,
-   'lineitem_report': lineitem_report_used,
-   'lineitem_report_resolved': resolved_path_if_exists(lineitem_report_used),
-   'qdf_dir': qdf_dir_used,
-   'qdf_dir_resolved': resolved_path_if_exists(qdf_dir_used),
-   'lira': args.lira,
-   'lira_resolved': resolved_path_if_exists(args.lira),
-  },
-  'files': generated,
- }
- metadata_path = run_dir / 'run_metadata.json'
- metadata_path.write_text(json.dumps(payload, indent=2), encoding='utf-8')
- return metadata_path
+    source_resolved = args.resolved_source
+    if not source_resolved:
+        source_path = Path(args.source)
+        source_resolved = str(source_path.resolve()) if source_path.exists() else None
+
+    repo_resolved_str = args.resolved_repo
+    if not repo_resolved_str and repo_resolved is not None:
+        repo_resolved_str = str(repo_resolved)
+
+    flame_repos = [resolved_path_if_exists(path) or path for path in (args.flame_repo_path or [])]
+    if not flame_repos and repo_resolved_str:
+        flame_repos = [repo_resolved_str]
+
+    repo_sources = build_repo_sources(flame_repos)
+    flame_repos_parsed = [str(item["path"]) for item in repo_sources]
+
+    payload = {
+        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "run_dir": str(run_dir),
+        "workflow_type": args.type,
+        "compat_mode": args.compat_mode,
+        "ffr_source": {
+            "input": args.source,
+            "resolved": source_resolved,
+        },
+        "flame_git_repos_parsed": flame_repos_parsed,
+        "flame_git_repo_sources": repo_sources,
+        "inputs": {
+            "repo_input": args.repo,
+            "repo_resolved": repo_resolved_str,
+            "lineitem_report": lineitem_report_used,
+            "lineitem_report_resolved": resolved_path_if_exists(lineitem_report_used),
+            "qdf_dir": qdf_dir_used,
+            "qdf_dir_resolved": resolved_path_if_exists(qdf_dir_used),
+            "lira": args.lira,
+            "lira_resolved": resolved_path_if_exists(args.lira),
+        },
+        "files": generated,
+    }
+    metadata_path = run_dir / "run_metadata.json"
+    metadata_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return metadata_path
+
 
 def parse_args() -> argparse.Namespace:
- parser = argparse.ArgumentParser(description='Run lineitem/qdf parsers with managed output folders')
- parser.add_argument('--source', required=True, help='Source identifier (FFR path or repo path/URL)')
- parser.add_argument('--type', choices=['lineitem', 'qdf', 'both'], default='both')
- parser.add_argument('--repo', help='Repo path for lineitem parser (defaults to --source)')
- parser.add_argument('--lineitem-report', help='LineItem CSV for qdf mode (required for qdf-only unless compat ffr default exists)')
- parser.add_argument('--qdf-dir', help='QDF JSON directory for qdf mode')
- parser.add_argument('--lira', help='Optional LineItem.lira path for YES/NO LIRA validation in lineitem output')
- parser.add_argument('--compat-mode', choices=['ffr'], help='Optional compat mode for defaults')
- parser.add_argument('--output-root', default='out/runs', help='Root folder where managed run dirs are created')
- parser.add_argument('--label', help='Optional custom folder label')
- return parser.parse_args()
+    parser = argparse.ArgumentParser(description="Run lineitem/qdf parsers with managed output folders")
+    parser.add_argument("--source", required=True, help="Source identifier (FFR path or repo path/URL)")
+    parser.add_argument("--type", choices=["lineitem", "qdf", "both"], default="both")
+    parser.add_argument("--repo", help="Repo path for lineitem parser (defaults to --source)")
+    parser.add_argument("--lineitem-report", help="LineItem CSV for qdf mode (required for qdf-only unless compat ffr default exists)")
+    parser.add_argument("--qdf-dir", help="QDF JSON directory for qdf mode")
+    parser.add_argument("--lira", help="Optional LineItem.lira path for YES/NO LIRA validation in lineitem output")
+    parser.add_argument("--compat-mode", choices=["ffr"], help="Optional compat mode for defaults")
+    parser.add_argument("--output-root", default="out/runs", help="Root folder where managed run dirs are created")
+    parser.add_argument("--label", help="Optional custom folder label")
+    parser.add_argument("--resolved-source", help="Resolved absolute source path supplied by orchestrator/agent")
+    parser.add_argument("--resolved-repo", help="Resolved absolute repo path supplied by orchestrator/agent")
+    parser.add_argument(
+        "--flame-repo-path",
+        action="append",
+        default=[],
+        help="Repeatable repo path list (root first, then submodules) supplied by orchestrator/agent",
+    )
+    return parser.parse_args()
+
 
 def main() -> int:
- args = parse_args()
- source_label = args.label or Path(args.source).name or args.source
- run_dir = create_run_dir(Path(args.output_root).resolve(), source_label)
- python_exe = sys.executable
- generated: Dict[str, str] = {}
- lineitem_csv = run_dir / 'LineItemAttributes_Report.csv'
- lineitem_json = run_dir / 'lineitem_attributes.json'
- repo_resolved: Optional[Path] = None
- qdf_dir_used: Optional[str] = None
- lineitem_report_used: Optional[str] = None
- if args.type in {'lineitem', 'both'}:
-  repo_resolved = Path(args.repo or args.source).resolve()
-  cmd = [
-   python_exe,
-   'scripts/lineitem_attribute_parser.py',
-   '--repo',
-   str(repo_resolved),
-   '--output-csv',
-   str(lineitem_csv),
-   '--output-json',
-   str(lineitem_json),
-  ]
-  if args.qdf_dir:
-   cmd.extend([
-    '--qdf-dir',
-    str(args.qdf_dir),
-   ])
-  if args.lira:
-   cmd.extend([
-    '--lira',
-    str(args.lira),
-   ])
-  run_cmd(cmd)
-  generated['lineitem_csv'] = str(lineitem_csv)
-  generated['lineitem_json'] = str(lineitem_json)
- if args.type in {'qdf', 'both'}:
-  lineitem_report = args.lineitem_report
-  if not lineitem_report and args.type == 'both':
-   lineitem_report = str(lineitem_csv)
-  if not lineitem_report and args.compat_mode == 'ffr':
-   lineitem_report = 'out/ffr/lineitem_attributes_from_ffr.csv'
-  if not lineitem_report:
-   raise SystemExit('--lineitem-report is required for qdf mode (or use --type both)')
-  qdf_dir = args.qdf_dir or ('out/ffr/qdf-json' if args.compat_mode == 'ffr' else None)
-  if not qdf_dir:
-   raise SystemExit('--qdf-dir is required for qdf mode (or use --compat-mode ffr)')
-  lineitem_report_used = str(lineitem_report)
-  qdf_dir_used = str(qdf_dir)
-  qdf_csv = run_dir / 'qdf_validation_from_ffr.csv'
-  qdf_json = run_dir / 'qdf_validation_from_ffr.json'
-  heatmap_csv = run_dir / 'qdf_validation_heatmap.csv'
-  heatmap_json = run_dir / 'qdf_validation_heatmap.json'
-  heatmap_xlsx = run_dir / 'QDF_LIRA_Validation_Heatmap.xlsx'
-  cmd = [
-   python_exe,
-   'scripts/qdf_validation_parser.py',
-   '--lineitem-report',
-   str(lineitem_report),
-   '--qdf-dir',
-   str(qdf_dir),
-   '--output-csv',
-   str(qdf_csv),
-   '--output-json',
-   str(qdf_json),
-   '--output-heatmap-csv',
-   str(heatmap_csv),
-   '--output-heatmap-json',
-   str(heatmap_json),
-   '--output-heatmap-xlsx',
-   str(heatmap_xlsx),
-  ]
-  run_cmd(cmd)
-  generated.update({
-   'qdf_csv': str(qdf_csv),
-   'qdf_json': str(qdf_json),
-   'heatmap_csv': str(heatmap_csv),
-   'heatmap_json': str(heatmap_json),
-   'heatmap_xlsx': str(heatmap_xlsx),
-  })
- metadata_path = write_run_metadata(
-  run_dir=run_dir,
-  args=args,
-  generated=generated,
-  repo_resolved=repo_resolved,
-  qdf_dir_used=qdf_dir_used,
-  lineitem_report_used=lineitem_report_used,
- )
- generated['run_metadata_json'] = str(metadata_path)
- print(json.dumps({'run_dir': str(run_dir), 'files': generated}, indent=2))
- return 0
+    args = parse_args()
+    source_label = args.label or Path(args.source).name or args.source
+    run_dir = create_run_dir(Path(args.output_root).resolve(), source_label)
 
-if __name__ == '__main__':
- raise SystemExit(main())
+    python_exe = sys.executable
+    generated: Dict[str, str] = {}
 
+    lineitem_csv = run_dir / "LineItemAttributes_Report.csv"
+    lineitem_json = run_dir / "lineitem_attributes.json"
+
+    repo_resolved: Optional[Path] = None
+    qdf_dir_used: Optional[str] = None
+    lineitem_report_used: Optional[str] = None
+
+    if args.type in {"lineitem", "both"}:
+        repo_resolved = Path(args.repo or args.source).resolve()
+        cmd = [
+            python_exe,
+            "scripts/lineitem_attribute_parser.py",
+            "--repo",
+            str(repo_resolved),
+            "--output-csv",
+            str(lineitem_csv),
+            "--output-json",
+            str(lineitem_json),
+        ]
+        if args.qdf_dir:
+            cmd.extend([
+                "--qdf-dir",
+                str(args.qdf_dir),
+            ])
+        if args.lira:
+            cmd.extend([
+                "--lira",
+                str(args.lira),
+            ])
+        run_cmd(cmd)
+        generated["lineitem_csv"] = str(lineitem_csv)
+        generated["lineitem_json"] = str(lineitem_json)
+
+    if args.type in {"qdf", "both"}:
+        lineitem_report = args.lineitem_report
+        if not lineitem_report and args.type == "both":
+            lineitem_report = str(lineitem_csv)
+        if not lineitem_report and args.compat_mode == "ffr":
+            lineitem_report = "out/ffr/lineitem_attributes_from_ffr.csv"
+        if not lineitem_report:
+            raise SystemExit("--lineitem-report is required for qdf mode (or use --type both)")
+
+        qdf_dir = resolve_qdf_dir(args.source, args.qdf_dir, args.compat_mode)
+
+        qdf_allowlist_path: Optional[Path] = None
+        source_candidate = Path(args.source)
+        lineitemdata_path = find_lineitemdata_path(source_candidate)
+        if lineitemdata_path and lineitemdata_path.exists():
+            qdf_names = extract_qdf_names_from_lineitemdata(lineitemdata_path)
+            if qdf_names:
+                qdf_allowlist_path = run_dir / "qdf_allowlist_from_lineitemdata.txt"
+                qdf_allowlist_path.write_text("\n".join(qdf_names) + "\n", encoding="utf-8")
+                generated["qdf_allowlist_file"] = str(qdf_allowlist_path)
+
+        lineitem_report_used = str(lineitem_report)
+        qdf_dir_used = str(qdf_dir)
+
+        qdf_csv = run_dir / "qdf_validation_from_ffr.csv"
+        qdf_json = run_dir / "qdf_validation_from_ffr.json"
+        heatmap_csv = run_dir / "qdf_validation_heatmap.csv"
+        heatmap_json = run_dir / "qdf_validation_heatmap.json"
+        heatmap_xlsx = run_dir / "QDF_LIRA_Validation_Heatmap.xlsx"
+
+        cmd = [
+            python_exe,
+            "scripts/qdf_validation_parser.py",
+            "--lineitem-report",
+            str(lineitem_report),
+            "--qdf-dir",
+            str(qdf_dir),
+            "--output-csv",
+            str(qdf_csv),
+            "--output-json",
+            str(qdf_json),
+            "--output-heatmap-csv",
+            str(heatmap_csv),
+            "--output-heatmap-json",
+            str(heatmap_json),
+            "--output-heatmap-xlsx",
+            str(heatmap_xlsx),
+        ]
+        if qdf_allowlist_path is not None:
+            cmd.extend(["--qdf-allowlist-file", str(qdf_allowlist_path)])
+        run_cmd(cmd)
+        generated.update(
+            {
+                "qdf_csv": str(qdf_csv),
+                "qdf_json": str(qdf_json),
+                "heatmap_csv": str(heatmap_csv),
+                "heatmap_json": str(heatmap_json),
+                "heatmap_xlsx": str(heatmap_xlsx),
+            }
+        )
+
+    metadata_path = write_run_metadata(
+        run_dir=run_dir,
+        args=args,
+        generated=generated,
+        repo_resolved=repo_resolved,
+        qdf_dir_used=qdf_dir_used,
+        lineitem_report_used=lineitem_report_used,
+    )
+    generated["run_metadata_json"] = str(metadata_path)
+
+    print(json.dumps({"run_dir": str(run_dir), "files": generated}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
