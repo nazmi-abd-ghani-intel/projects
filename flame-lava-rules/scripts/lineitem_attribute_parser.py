@@ -33,6 +33,8 @@ SWITCH_RE = re.compile(r"\bswitch\s*\(\s*lineItem\.([A-Z_][A-Za-z0-9_]*)\.Value\
 CASE_LITERAL_RE = re.compile(r"\bcase\s+\"([^\"]+)\"\s*:")
 CASE_BOOL_RE = re.compile(r"\bcase\s+(true|false)\s*:")
 DEFAULT_RE = re.compile(r"\bdefault\s*:")
+BREAK_RE = re.compile(r"\bbreak\s*;")
+DEFAULT_ERROR_RE = re.compile(r"\bthrow\b|\bRuleErrorHandler\.Throw\w*\b")
 
 
 @dataclass
@@ -42,6 +44,8 @@ class AttributeInfo:
     condition_patterns: Set[str] = field(default_factory=set)
     used_in_modules: Set[str] = field(default_factory=set)
     used_in_files: Set[str] = field(default_factory=set)
+    collection_names: Set[str] = field(default_factory=set)
+    display_names: Set[str] = field(default_factory=set)
     notes: Set[str] = field(default_factory=set)
     valid_in_lira: str = "UNKNOWN"
     total_usages: int = 0
@@ -63,6 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-json", help="Output JSON path")
     parser.add_argument("--output-csv", help="Output CSV path")
     parser.add_argument("--lira", help="Path to LineItem.lira for validation")
+    parser.add_argument("--qdf-dir", help="Optional QDF JSON directory used to enrich collection/display metadata")
     parser.add_argument("--include-non-fuseset", action="store_true", help="Scan all .cs files, not only Fuse.Set")
     return parser.parse_args()
 
@@ -107,6 +112,45 @@ def module_name(repo: Path, path: Path) -> str:
     return "root"
 
 
+
+def iter_qdf_files(qdf_dir: Path) -> Iterable[Path]:
+    for path in sorted(qdf_dir.glob("*.json")):
+        if path.is_file():
+            yield path
+
+
+def enrich_from_qdf(attributes: Dict[str, AttributeInfo], qdf_dir: Optional[Path]) -> None:
+    if qdf_dir is None or not qdf_dir.exists():
+        return
+
+    for qdf_file in iter_qdf_files(qdf_dir):
+        try:
+            data = json.loads(qdf_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        collections = data.get("collections") if isinstance(data, dict) else None
+        if not isinstance(collections, list):
+            continue
+
+        for collection in collections:
+            if not isinstance(collection, dict):
+                continue
+            collection_name = str(collection.get("collectionName") or "").strip()
+            items = collection.get("attributes")
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                attr_name = str(item.get("attributeName") or "").strip()
+                if not attr_name or attr_name not in attributes:
+                    continue
+                display_name = str(item.get("displayName") or "").strip()
+                info = attributes[attr_name]
+                if collection_name:
+                    info.collection_names.add(collection_name)
+                if display_name:
+                    info.display_names.add(display_name)
 def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> Tuple[Dict[str, AttributeInfo], ScanStats]:
     attributes: Dict[str, AttributeInfo] = {}
     stats = ScanStats()
@@ -118,12 +162,17 @@ def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> T
 
         current_switch_attr: Optional[str] = None
         switch_depth = 0
+        pending_default_attr: Optional[str] = None
+
+        def record_default_behavior(attr: str, token: str, pattern: str) -> None:
+            info = attributes.setdefault(attr, AttributeInfo(name=attr))
+            info.expected_values.add(token)
+            info.condition_patterns.add(pattern)
 
         for line_no, line in enumerate(lines, start=1):
             raw = line
             trimmed = raw.strip()
 
-            # Basic multiline comment handling
             if in_block_comment:
                 if "*/" in raw:
                     in_block_comment = False
@@ -141,14 +190,13 @@ def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> T
             if not code_trim:
                 continue
 
-            # Skip throw/exception diagnostics from pattern extraction.
             is_exception_line = (
                 "throw new Exception" in code
                 or "throw new ArgumentException" in code
                 or "throw new InvalidOperationException" in code
+                or "RuleErrorHandler.Throw" in code
             )
 
-            # Track switch context for case extraction
             sw = SWITCH_RE.search(code)
             if sw:
                 current_switch_attr = sw.group(1)
@@ -157,8 +205,22 @@ def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> T
             elif current_switch_attr is not None:
                 switch_depth += code.count("{") - code.count("}")
                 if switch_depth < 0:
+                    if pending_default_attr:
+                        record_default_behavior(pending_default_attr, "<any-other-value>", "SWITCH_DEFAULT")
+                        pending_default_attr = None
                     current_switch_attr = None
                     switch_depth = 0
+
+            if pending_default_attr:
+                if DEFAULT_ERROR_RE.search(code):
+                    record_default_behavior(pending_default_attr, "<any-other-value:ERROR>", "SWITCH_DEFAULT_ERROR")
+                    pending_default_attr = None
+                elif BREAK_RE.search(code):
+                    record_default_behavior(pending_default_attr, "<any-other-value:default>", "SWITCH_DEFAULT")
+                    pending_default_attr = None
+                elif CASE_LITERAL_RE.search(code) or CASE_BOOL_RE.search(code) or DEFAULT_RE.search(code):
+                    record_default_behavior(pending_default_attr, "<any-other-value>", "SWITCH_DEFAULT")
+                    pending_default_attr = None
 
             for m in ATTR_REF_RE.finditer(code):
                 attr = m.group(1)
@@ -228,15 +290,21 @@ def parse_repo(repo: Path, include_non_fuseset: bool, valid_lira: Set[str]) -> T
                     info.expected_values.add(bm.group(1).lower())
                     info.condition_patterns.add("SWITCH_CASE_BOOL")
                 if DEFAULT_RE.search(code):
-                    info.expected_values.add("<any-other-value>")
-                    info.condition_patterns.add("SWITCH_DEFAULT")
+                    if DEFAULT_ERROR_RE.search(code):
+                        record_default_behavior(current_switch_attr, "<any-other-value:ERROR>", "SWITCH_DEFAULT_ERROR")
+                    elif BREAK_RE.search(code):
+                        record_default_behavior(current_switch_attr, "<any-other-value:default>", "SWITCH_DEFAULT")
+                    else:
+                        pending_default_attr = current_switch_attr
+
+        if pending_default_attr:
+            record_default_behavior(pending_default_attr, "<any-other-value>", "SWITCH_DEFAULT")
 
     for attr, info in attributes.items():
         if valid_lira:
             info.valid_in_lira = "YES" if attr in valid_lira else "NO"
 
     return attributes, stats
-
 
 def to_rows(attributes: Dict[str, AttributeInfo]) -> List[Dict[str, str]]:
     rows: List[Dict[str, str]] = []
@@ -252,6 +320,8 @@ def to_rows(attributes: Dict[str, AttributeInfo]) -> List[Dict[str, str]]:
         rows.append(
             {
                 "Attribute Name": info.name,
+                "Display Name": "; ".join(sorted(info.display_names)),
+                "Collection Name": "; ".join(sorted(info.collection_names)),
                 "Valid in LIRA": info.valid_in_lira,
                 "Expected Values": "; ".join(expected_values_sorted),
                 "Value Count": str(len(expected_values_sorted)),
@@ -291,6 +361,8 @@ def main() -> int:
     valid_lira = load_lira_attributes(lira_path)
 
     attrs, stats = parse_repo(repo, args.include_non_fuseset, valid_lira)
+    qdf_dir = Path(args.qdf_dir).resolve() if args.qdf_dir else None
+    enrich_from_qdf(attrs, qdf_dir)
     rows = to_rows(attrs)
 
     payload = {
@@ -317,3 +389,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

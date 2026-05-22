@@ -10,6 +10,65 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+
+def run_capture(cmd: List[str], cwd: Optional[Path] = None) -> Optional[str]:
+ proc = subprocess.run(cmd, text=True, capture_output=True, cwd=str(cwd) if cwd else None)
+ if proc.returncode != 0:
+  return None
+ value = proc.stdout.strip()
+ return value or None
+
+def git_root(path: Path) -> Optional[Path]:
+ value = run_capture(['git', '-C', str(path), 'rev-parse', '--show-toplevel'])
+ return Path(value).resolve() if value else None
+
+def git_origin_url(repo_root: Path) -> Optional[str]:
+ return run_capture(['git', '-C', str(repo_root), 'config', '--get', 'remote.origin.url'])
+
+def git_head(repo_root: Path) -> Optional[str]:
+ return run_capture(['git', '-C', str(repo_root), 'rev-parse', 'HEAD'])
+
+def collect_git_repo_sources(repo_path: Optional[Path]) -> List[Dict[str, Optional[str]]]:
+ if repo_path is None:
+  return []
+ repo_root = git_root(repo_path) or repo_path.resolve()
+ repos: List[Dict[str, Optional[str]]] = []
+ seen: set[str] = set()
+
+ def scan_repo(path: Path, is_submodule: bool, parent_repo: Optional[Path], pinned_commit: Optional[str] = None) -> None:
+  resolved = path.resolve()
+  key = str(resolved)
+  if key in seen:
+   return
+  seen.add(key)
+  repos.append({
+   'path': key,
+   'origin_url': git_origin_url(resolved),
+   'head': git_head(resolved),
+   'is_submodule': is_submodule,
+   'parent_repo': str(parent_repo.resolve()) if parent_repo else None,
+   'pinned_commit': pinned_commit,
+  })
+
+  status = run_capture(['git', '-C', str(resolved), 'submodule', 'status'])
+  if not status:
+   return
+  for line in status.splitlines():
+   raw = line.strip()
+   if not raw:
+    continue
+   marker = raw[0]
+   body = raw[1:].strip() if marker in ' +-U' else raw
+   parts = body.split()
+   if len(parts) < 2:
+    continue
+   child_pinned_commit, rel_path = parts[0], parts[1]
+   child_path = (resolved / rel_path).resolve()
+   scan_repo(child_path, True, resolved, child_pinned_commit)
+
+ scan_repo(repo_root, False, None)
+ return repos
+
 def slugify(value: str) -> str:
  cleaned = re.sub(r'[^A-Za-z0-9._-]+', '_', value.strip())
  cleaned = re.sub(r'_+', '_', cleaned).strip('._-')
@@ -46,9 +105,8 @@ def write_run_metadata(
 ) -> Path:
  source_path = Path(args.source)
  source_resolved = str(source_path.resolve()) if source_path.exists() else None
- flame_repos: List[str] = []
- if repo_resolved is not None:
-  flame_repos.append(str(repo_resolved))
+ git_repo_sources = collect_git_repo_sources(repo_resolved)
+ flame_repos = [repo['path'] for repo in git_repo_sources]
  payload = {
   'created_utc': datetime.now(timezone.utc).isoformat(),
   'run_dir': str(run_dir),
@@ -59,6 +117,7 @@ def write_run_metadata(
    'resolved': source_resolved,
   },
   'flame_git_repos_parsed': flame_repos,
+  'flame_git_repo_sources': git_repo_sources,
   'inputs': {
    'repo_input': args.repo,
    'repo_resolved': str(repo_resolved) if repo_resolved else None,
@@ -66,6 +125,8 @@ def write_run_metadata(
    'lineitem_report_resolved': resolved_path_if_exists(lineitem_report_used),
    'qdf_dir': qdf_dir_used,
    'qdf_dir_resolved': resolved_path_if_exists(qdf_dir_used),
+   'lira': args.lira,
+   'lira_resolved': resolved_path_if_exists(args.lira),
   },
   'files': generated,
  }
@@ -80,6 +141,7 @@ def parse_args() -> argparse.Namespace:
  parser.add_argument('--repo', help='Repo path for lineitem parser (defaults to --source)')
  parser.add_argument('--lineitem-report', help='LineItem CSV for qdf mode (required for qdf-only unless compat ffr default exists)')
  parser.add_argument('--qdf-dir', help='QDF JSON directory for qdf mode')
+ parser.add_argument('--lira', help='Optional LineItem.lira path for YES/NO LIRA validation in lineitem output')
  parser.add_argument('--compat-mode', choices=['ffr'], help='Optional compat mode for defaults')
  parser.add_argument('--output-root', default='out/runs', help='Root folder where managed run dirs are created')
  parser.add_argument('--label', help='Optional custom folder label')
@@ -108,6 +170,16 @@ def main() -> int:
    '--output-json',
    str(lineitem_json),
   ]
+  if args.qdf_dir:
+   cmd.extend([
+    '--qdf-dir',
+    str(args.qdf_dir),
+   ])
+  if args.lira:
+   cmd.extend([
+    '--lira',
+    str(args.lira),
+   ])
   run_cmd(cmd)
   generated['lineitem_csv'] = str(lineitem_csv)
   generated['lineitem_json'] = str(lineitem_json)
@@ -169,4 +241,6 @@ def main() -> int:
 
 if __name__ == '__main__':
  raise SystemExit(main())
+
+
 

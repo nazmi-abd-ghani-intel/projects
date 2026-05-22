@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 QDF validation parser for Flame workflows.
 
@@ -25,6 +25,7 @@ class AttributeExpectation:
     expected_values: Set[str] = field(default_factory=set)
     used_in_dies: Set[str] = field(default_factory=set)
     used_in_files: Set[str] = field(default_factory=set)
+    collection_name: str = ""
     accepts_any_value: bool = False
     numeric_derived: bool = False
 
@@ -45,6 +46,7 @@ class QdfSummary:
 class HeatmapRow:
     qdf: str
     attribute: str
+    collection_name: str
     status: str
     status_code: int
     actual_value: str
@@ -153,6 +155,7 @@ def load_expectations(csv_path: Path) -> Dict[str, AttributeExpectation]:
             used_in_dies = parse_multi_value_field((row.get("Used In Dies") or row.get("Used In Modules/Dies") or "").strip())
             used_in_files = parse_multi_value_field((row.get("Used In Files") or "").strip())
             notes = (row.get("Notes") or "").strip()
+            collection_name = (row.get("Collection Name") or "").strip()
 
             expectations[attr_name] = AttributeExpectation(
                 name=attr_name,
@@ -160,7 +163,8 @@ def load_expectations(csv_path: Path) -> Dict[str, AttributeExpectation]:
                 expected_values=expected_values,
                 used_in_dies=used_in_dies,
                 used_in_files=used_in_files,
-                accepts_any_value=("Accepts any other value" in notes) or ("<any-other-value>" in expected_values),
+                collection_name=collection_name,
+                accepts_any_value=("Accepts any other value" in notes) or any(value.startswith("<any-other-value") for value in expected_values),
                 numeric_derived=("NUMERIC_DERIVED" in notes) or ("Calculated:" in notes),
             )
     return expectations
@@ -239,10 +243,11 @@ def iter_qdf_files(qdf_dir: Path, qdf_glob: str) -> Iterable[Path]:
     for file_path in sorted(qdf_dir.glob(qdf_glob)):
         if file_path.is_file():
             yield file_path
-def flatten_attribute_items(items: object) -> Dict[str, str]:
+def flatten_attribute_items(items: object, collection_name: str = "") -> Tuple[Dict[str, str], Dict[str, str]]:
     attrs: Dict[str, str] = {}
+    collections: Dict[str, str] = {}
     if not isinstance(items, list):
-        return attrs
+        return attrs, collections
 
     for item in items:
         if not isinstance(item, dict):
@@ -253,12 +258,15 @@ def flatten_attribute_items(items: object) -> Dict[str, str]:
         value = item.get("attributeValue")
         if value is None:
             value = item.get("value")
-        attrs[str(name)] = "" if value is None else str(value)
+        attr_name = str(name)
+        attrs[attr_name] = "" if value is None else str(value)
+        if collection_name:
+            collections[attr_name] = collection_name
 
-    return attrs
+    return attrs, collections
 
 
-def load_qdf_document(qdf_file: Path) -> Tuple[Dict[str, str], str]:
+def load_qdf_document(qdf_file: Path) -> Tuple[Dict[str, str], str, Dict[str, str]]:
     data = json.loads(qdf_file.read_text(encoding="utf-8"))
     liid = ""
     if isinstance(data, dict):
@@ -270,21 +278,27 @@ def load_qdf_document(qdf_file: Path) -> Tuple[Dict[str, str], str]:
 
         for key in ("MarketingAttributes", "marketingAttributes", "attributes"):
             if key in data and isinstance(data[key], dict):
-                return {str(k): str(v) for k, v in data[key].items()}, liid
+                attrs = {str(k): str(v) for k, v in data[key].items()}
+                collection_map = {name: "Marketing" for name in attrs} if key.lower().startswith("marketing") else {}
+                return attrs, liid, collection_map
 
-        flattened = flatten_attribute_items(data.get("attributes"))
+        flattened, collection_map = flatten_attribute_items(data.get("attributes"))
         if flattened:
-            return flattened, liid
+            return flattened, liid, collection_map
 
         collections = data.get("collections")
         if isinstance(collections, list):
             attrs: Dict[str, str] = {}
+            attr_collections: Dict[str, str] = {}
             for collection in collections:
                 if not isinstance(collection, dict):
                     continue
-                attrs.update(flatten_attribute_items(collection.get("attributes")))
+                collection_name = str(collection.get("collectionName") or "").strip()
+                collection_attrs, collection_map = flatten_attribute_items(collection.get("attributes"), collection_name)
+                attrs.update(collection_attrs)
+                attr_collections.update(collection_map)
             if attrs:
-                return attrs, liid
+                return attrs, liid, attr_collections
 
         attrs = {}
         for key, value in data.items():
@@ -292,7 +306,7 @@ def load_qdf_document(qdf_file: Path) -> Tuple[Dict[str, str], str]:
                 continue
             if isinstance(value, (str, int, float, bool)):
                 attrs[str(key)] = str(value)
-        return attrs, liid
+        return attrs, liid, {}
 
     raise ValueError(f"Unsupported JSON shape in {qdf_file}")
 
@@ -301,6 +315,7 @@ def validate_qdf(
     qdf_name: str,
     liid: str,
     attrs: Dict[str, str],
+    attr_collections: Dict[str, str],
     expectations: Dict[str, AttributeExpectation],
     strict_undocumented: bool,
     strict_warnings: bool,
@@ -310,6 +325,7 @@ def validate_qdf(
 
     for attr_name in sorted(attrs):
         attr_value = attrs[attr_name]
+        collection_name = attr_collections.get(attr_name, "")
         summary.total_attributes += 1
 
         if attr_name not in expectations:
@@ -325,6 +341,7 @@ def validate_qdf(
                 HeatmapRow(
                     qdf=qdf_name,
                     attribute=attr_name,
+                    collection_name=collection_name,
                     status=status,
                     status_code=STATUS_CODE[status],
                     actual_value=attr_value,
@@ -335,6 +352,8 @@ def validate_qdf(
             continue
 
         exp = expectations[attr_name]
+        if not collection_name:
+            collection_name = exp.collection_name
         exp_values = expected_preview(exp)
 
         if exp.accepts_any_value:
@@ -343,6 +362,7 @@ def validate_qdf(
                 HeatmapRow(
                     qdf=qdf_name,
                     attribute=attr_name,
+                    collection_name=collection_name,
                     status="VALID",
                     status_code=STATUS_CODE["VALID"],
                     actual_value=attr_value,
@@ -359,6 +379,7 @@ def validate_qdf(
                     HeatmapRow(
                         qdf=qdf_name,
                         attribute=attr_name,
+                        collection_name=collection_name,
                         status="VALID",
                         status_code=STATUS_CODE["VALID"],
                         actual_value=attr_value,
@@ -373,6 +394,7 @@ def validate_qdf(
                         HeatmapRow(
                             qdf=qdf_name,
                             attribute=attr_name,
+                            collection_name=collection_name,
                             status="NUMERIC_DERIVED",
                             status_code=STATUS_CODE["NUMERIC_DERIVED"],
                             actual_value=attr_value,
@@ -387,6 +409,7 @@ def validate_qdf(
                         HeatmapRow(
                             qdf=qdf_name,
                             attribute=attr_name,
+                            collection_name=collection_name,
                             status="SKIPPED",
                             status_code=STATUS_CODE["SKIPPED"],
                             actual_value=attr_value,
@@ -410,6 +433,7 @@ def validate_qdf(
                 HeatmapRow(
                     qdf=qdf_name,
                     attribute=attr_name,
+                    collection_name=collection_name,
                     status=status,
                     status_code=STATUS_CODE[status],
                     actual_value=attr_value,
@@ -425,6 +449,7 @@ def validate_qdf(
                 HeatmapRow(
                     qdf=qdf_name,
                     attribute=attr_name,
+                    collection_name=collection_name,
                     status="VALID",
                     status_code=STATUS_CODE["VALID"],
                     actual_value=attr_value,
@@ -440,6 +465,7 @@ def validate_qdf(
                 HeatmapRow(
                     qdf=qdf_name,
                     attribute=attr_name,
+                    collection_name=collection_name,
                     status="INVALID",
                     status_code=STATUS_CODE["INVALID"],
                     actual_value=attr_value,
@@ -456,6 +482,7 @@ def validate_qdf(
             HeatmapRow(
                 qdf=qdf_name,
                 attribute=attr_name,
+                collection_name=exp.collection_name,
                 status="MISSING",
                 status_code=STATUS_CODE["MISSING"],
                 actual_value="",
@@ -501,6 +528,7 @@ def write_heatmap_csv(path: Path, rows: List[HeatmapRow]) -> None:
         writer.writerow([
             "qdf",
             "attribute",
+            "collection_name",
             "status",
             "status_code",
             "actual_value",
@@ -511,6 +539,7 @@ def write_heatmap_csv(path: Path, rows: List[HeatmapRow]) -> None:
             writer.writerow([
                 row.qdf,
                 row.attribute,
+                row.collection_name,
                 row.status,
                 row.status_code,
                 row.actual_value,
@@ -524,16 +553,17 @@ def write_json(path: Path, payload: dict) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def build_heatmap_matrix(rows: List[HeatmapRow]) -> Tuple[List[str], List[str], Dict[str, Dict[str, str]]]:
+def build_heatmap_matrix(
+    rows: List[HeatmapRow],
+) -> Tuple[List[str], List[Tuple[str, str]], Dict[Tuple[str, str], Dict[str, str]]]:
     qdfs = sorted({row.qdf for row in rows})
-    attributes = sorted({row.attribute for row in rows})
-    matrix: Dict[str, Dict[str, str]] = {attribute: {qdf: "MISSING" for qdf in qdfs} for attribute in attributes}
+    row_keys = sorted({(row.collection_name, row.attribute) for row in rows}, key=lambda item: (item[1], item[0]))
+    matrix: Dict[Tuple[str, str], Dict[str, str]] = {row_key: {qdf: "MISSING" for qdf in qdfs} for row_key in row_keys}
 
     for row in rows:
-        matrix[row.attribute][row.qdf] = row.status
+        matrix[(row.collection_name, row.attribute)][row.qdf] = row.status
 
-    return qdfs, attributes, matrix
-
+    return qdfs, row_keys, matrix
 
 def column_name(index: int) -> str:
     result = []
@@ -683,15 +713,15 @@ def content_types_xml() -> str:
 
 def write_heatmap_workbook(path: Path, rows: List[HeatmapRow]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    qdfs, attributes, matrix = build_heatmap_matrix(rows)
+    qdfs, row_keys, matrix = build_heatmap_matrix(rows)
 
-    heatmap_rows: List[List[str]] = [["LIRA Attribute", *qdfs]]
-    heatmap_styles: List[List[int]] = [[2] * (len(qdfs) + 1)]
-    for attribute in attributes:
-        row_values = [attribute]
-        row_styles = [0]
+    heatmap_rows: List[List[str]] = [["collectionName", "LIRA Attribute", *qdfs]]
+    heatmap_styles: List[List[int]] = [[2] * (len(qdfs) + 2)]
+    for collection_name, attribute in row_keys:
+        row_values = [collection_name, attribute]
+        row_styles = [0, 0]
         for qdf in qdfs:
-            status = matrix[attribute][qdf]
+            status = matrix[(collection_name, attribute)][qdf]
             row_values.append(status)
             row_styles.append(WORKBOOK_STATUS_STYLE.get(status, 0))
         heatmap_rows.append(row_values)
@@ -703,7 +733,8 @@ def write_heatmap_workbook(path: Path, rows: List[HeatmapRow]) -> None:
         legend_rows.append([status, meaning, status])
         legend_styles.append([0, 0, WORKBOOK_STATUS_STYLE.get(status, 0)])
 
-    total_cells = len(qdfs) * len(attributes)
+    total_attributes = len(row_keys)
+    total_cells = len(qdfs) * total_attributes
     counts = {status: 0 for status in WORKBOOK_STATUS_ORDER}
     for row in rows:
         counts[row.status] = counts.get(row.status, 0) + 1
@@ -712,7 +743,7 @@ def write_heatmap_workbook(path: Path, rows: List[HeatmapRow]) -> None:
         ["QDF-LIRA Validation Summary", "", ""],
         ["", "", ""],
         ["Total QDFs:", len(qdfs), ""],
-        ["Total Attributes:", len(attributes), ""],
+        ["Total Attributes:", total_attributes, ""],
         ["Total Cells:", total_cells, ""],
         ["", "", ""],
         ["Status", "Count", "Percentage"],
@@ -737,9 +768,9 @@ def write_heatmap_workbook(path: Path, rows: List[HeatmapRow]) -> None:
     heatmap_xml = build_sheet_xml(
         rows=heatmap_rows,
         styles=heatmap_styles,
-        col_widths=[32.0] + [12.0] * len(qdfs),
-        freeze_pane="B2",
-        auto_filter_ref=f"A1:{column_name(len(qdfs) + 1)}{len(attributes) + 1}",
+        col_widths=[22.0, 32.0] + [12.0] * len(qdfs),
+        freeze_pane="C2",
+        auto_filter_ref=f"A1:{column_name(len(qdfs) + 2)}{len(row_keys) + 1}",
     )
     legend_xml = build_sheet_xml(rows=legend_rows, styles=legend_styles, col_widths=[18.0, 60.0, 14.0])
     summary_xml = build_sheet_xml(rows=summary_rows, styles=summary_styles, col_widths=[24.0, 12.0, 12.0], merge_ref="A1:C1")
@@ -753,7 +784,6 @@ def write_heatmap_workbook(path: Path, rows: List[HeatmapRow]) -> None:
         zf.writestr("xl/worksheets/sheet1.xml", heatmap_xml)
         zf.writestr("xl/worksheets/sheet2.xml", legend_xml)
         zf.writestr("xl/worksheets/sheet3.xml", summary_xml)
-
 
 def default_heatmap_paths(args: argparse.Namespace) -> Tuple[Path | None, Path | None, Path | None]:
     csv_out = Path(args.output_heatmap_csv).resolve() if args.output_heatmap_csv else None
@@ -786,11 +816,12 @@ def main() -> int:
 
     for qdf_file in iter_qdf_files(qdf_dir, args.qdf_glob):
         qdf_name = qdf_file.stem
-        attrs, liid = load_qdf_document(qdf_file)
+        attrs, liid, attr_collections = load_qdf_document(qdf_file)
         summary, rows = validate_qdf(
             qdf_name,
             liid,
             attrs,
+            attr_collections,
             expectations,
             strict_undocumented=args.strict_undocumented,
             strict_warnings=args.strict_warnings,
@@ -829,6 +860,7 @@ def main() -> int:
             {
                 "qdf": row.qdf,
                 "attribute": row.attribute,
+                "collection_name": row.collection_name,
                 "status": row.status,
                 "status_code": row.status_code,
                 "actual_value": row.actual_value,
@@ -867,6 +899,11 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
+
+
+
 
 
 
