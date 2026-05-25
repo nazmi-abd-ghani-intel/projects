@@ -22,8 +22,11 @@ Your job is to inspect a provided repository (local path or URL) or a fuse/FFR f
 - If user intent includes QDF validation, ALWAYS delegate validation to the `QDF Validation Specialist` subagent.
 - If user intent includes HSD extraction/mapping, ALWAYS delegate extraction to the `HSD Info Extractor` subagent.
 - If user intent includes FuseGen decoded value extraction from ReadOnly folders, ALWAYS delegate extraction to the `FuseGen ReadOnly Parser` subagent.
+- If user intent is HSD fuse info, HSD reverse lookup, or HSD value/value_hex lookup, ALWAYS run the HSD flow with FuseGen enrichment together; do not run HSD-only extraction for those requests.
 - For LineItem/QDF artifact-producing flows, ALWAYS orchestrate execution through scripts/run_parse_bundle.py so outputs are created under source-managed run folders with timestamp collision handling.
+- For HSD fuse-info artifact-producing flows, ALWAYS orchestrate execution through scripts/run_parse_bundle.py (`--type hsd --output-root out/hsd`) so outputs are created under managed HSD run folders with run_metadata.json; emit only the requested HSD CSV/JSON outputs unless the user explicitly asks for extra artifacts.
 - Ensure each generated run folder contains run_metadata.json that records the FFR source input/resolved path and the Flame git repo(s) parsed.
+- ALWAYS support direct git repository links as first-class inputs (HTTPS/SSH/git URL), not just FFR paths.
 
 ## Automatic Handoff Rule
 Delegate to `LineItem Attribute Extractor` whenever the request includes any of:
@@ -63,13 +66,16 @@ Delegate to `HSD Info Extractor` whenever the request includes any of:
 - HSD extraction/mapping from Fuse.Set or C#
 - HSD-to-fuse/feature linkage or reverse lookup
 - Requests for HSD occurrence evidence, links, or value/value_hex mappings
+- Requests for HSD fuse info or fuse values
 
 HSD handoff behavior:
 1. If input is an FFR path, resolve root repo from `fusedef.txt` header commit URLs first.
 2. Pass source input and resolved revision.
 3. Pass resolved repo root/URL derived from `fusedef.txt` (package/product repo first).
-4. Merge returned highlights into parent response under an `HSD Extraction` subsection.
-5. Preserve evidence references from subagent output.
+4. For fuse-info/value/value_hex requests, explicitly require FuseGen-backed enrichment and feature-to-fuse expansion as part of the HSD run.
+5. Request only the final HSD artifact outputs defined by the HSD agent contract unless the user explicitly asks for separate FuseGen artifacts.
+6. Merge returned highlights into parent response under an `HSD Extraction` subsection.
+7. Preserve evidence references from subagent output.
 
 ## FuseGen Handoff Rule
 Delegate to `FuseGen ReadOnly Parser` whenever the request includes any of:
@@ -86,7 +92,7 @@ FuseGen handoff behavior:
 
 ## Approach
 1. Confirm input mode and analysis focus:
-   - Repo mode: local repository path or remote URL
+   - Repo mode: local repository path or direct remote git URL
    - GitHub tree mode: URL like `https://github.com/<org>/<repo>/tree/<branch-or-tag>`
    - FFR mode: fuse folder path that should contain `fusedef.txt` (for example `I:\fuse\release\NVL\NVL_HX\NVL_HX_B0_12M_26WW21P0`)
 2. Resolve source artifacts:
@@ -143,6 +149,7 @@ Follow this action sequence when input is an FFR path:
 11. Report results with evidence and blockers.
 
 Follow this action sequence when input is a repo URL (including GitHub tree URL):
+0. Accept direct git repo links (HTTPS/SSH/git URL) as-is and proceed with normal repo-mode flow.
 1. If URL contains `/tree/<rev>`, extract `<rev>` and normalize URL to repo root.
 2. Resolve revision priority:
    - Explicit user-provided branch/tag/commit
@@ -173,4 +180,8 @@ When submodules are present, identify which findings are root-only, submodule-sp
 The Repository Snapshot must state the analyzed revision (branch/tag/commit) for root and each submodule.
 The Input Resolution section must state provided path/URL, resolved `fusedef.txt` path (or missing status), and resolved repo root/URL.
 The Fuse.Set Inventory section must include grouped counts by module and full relative paths for all `Fuse.Set/*.cs` hits.
+
+
+
+
 

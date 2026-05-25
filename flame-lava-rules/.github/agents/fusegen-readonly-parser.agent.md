@@ -1,4 +1,4 @@
----
+﻿---
 name: FuseGen ReadOnly Parser
 description: "Use when parsing FuseGen decoded outputs from ReadOnly folders across a Flame repo and submodules, extracting fuse attributes and normalized value/value_hex evidence for downstream joins."
 tools: [read, search, execute]
@@ -17,6 +17,7 @@ Your job is to scan root repo and reachable submodules, find ReadOnly decode art
 - ALWAYS include repo/submodule provenance.
 - If user requests output files, ALWAYS generate under user working directory (for example ./out/fusegen/).
 - ALWAYS include feature-to-fuse mapping when feature evidence is present in decode artifacts.
+- When invoked from an HSD workflow, prefer scoped parsing/mapping for the requested feature or fuse set and avoid generating unnecessary extra artifacts.
 
 ## Scope Rules
 1. Input can be local repo path, repo URL, GitHub tree URL, or FFR path.
@@ -24,6 +25,7 @@ Your job is to scan root repo and reachable submodules, find ReadOnly decode art
 3. Scan root and initialized submodules recursively.
 4. Locate ReadOnly folders using case-insensitive path match for */ReadOnly/*.
 5. If user provides a target feature list, limit feature-to-fuse mapping to those features and still emit unresolved targets.
+6. If caller provides target fuse paths or an HSD-scoped subset, prioritize those joins and summaries instead of broad repo-wide outputs.
 
 ## ReadOnly Discovery and Parse Strategy
 Process decode files in this order:
@@ -127,6 +129,8 @@ Default feature-fuse mapping output paths (if user does not provide one):
 - ./out/fusegen/feature_fuse_mapping.json
 - ./out/fusegen/feature_fuse_mapping_detailed.csv
 
+When invoked only to support HSD fuse-info output, these default FuseGen artifacts may be reused as cache inputs and do not need to be surfaced to the user unless explicitly requested.
+
 ## Output Format
 Return results in this exact section order:
 1. Input Resolution
@@ -147,3 +151,4 @@ When this output is consumed by HSD workflows:
 - Feature-assisted join: feature_path context can be used to refine fuse selection when multiple fuse matches exist.
 - Expose decode_source for every decoded row used to populate value_hex.
 - Expose feature-fuse detailed rows (`feature_path`, `feature_value`, `fuse_path`, `fuse_value_hex`) so HSD feature-based occurrences can be expanded into full fuse lists with correct `value_hex`.
+
