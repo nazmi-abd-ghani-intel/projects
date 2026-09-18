@@ -1,0 +1,42 @@
+table _metrics
+	lineageTag: 5a33d900-f242-49af-86da-2e0ee3c78918
+	sourceLineageTag: 82b8acde-5bf8-47ab-93e4-689eb0942bc5
+
+	measure LastRefreshDt = EXTERNALMEASURE("LastRefreshDt", STRING, "DirectQuery to AS - SnOpObp_CurrentForecast")
+		lineageTag: d833559b-6425-4269-971a-7ad33013c5f7
+		sourceLineageTag: 6bb1b4c7-31d0-4cb7-8d93-cb02e2be5cf7
+		dataCategory: Uncategorized
+
+		annotation PBI_FormatHint = {"isText":true}
+
+	measure KF_Qty = EXTERNALMEASURE("KF_Qty", DOUBLE, "DirectQuery to AS - SnOpObp_CurrentForecast")
+		lineageTag: 0e348e47-5ecb-4f3a-9b9e-48e4fdaf37ad
+		sourceLineageTag: 10010bf2-0913-4c0b-bf6c-b30c4e3ce695
+		dataCategory: Uncategorized
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure IsWLAselected = EXTERNALMEASURE("IsWLAselected", INTEGER, "DirectQuery to AS - SnOpObp_CurrentForecast")
+		formatString: 0
+		lineageTag: 9b168d9f-5466-408d-8106-3cf6c8e54bba
+		sourceLineageTag: 4434946d-4b5b-4b76-b978-ebd0c879e2ba
+		dataCategory: Uncategorized
+
+	column LastRefreshDate
+		dataType: dateTime
+		isHidden
+		formatString: General Number
+		lineageTag: 97c2cea8-7ca1-410d-90bd-5dca7860783b
+		sourceLineageTag: 334bf059-c044-4a34-9437-eb6287adee45
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: LastRefreshDate
+
+		annotation SummarizationSetBy = User
+
+	partition _metrics = entity
+		mode: directQuery
+		source
+			entityName: _metrics
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

@@ -1,0 +1,16 @@
+﻿{
+    "SourceWorkbook":  "C:\\git-repo\\nabdghan-git\\projects\\VolumeForecast\\VolumeForecast.xlsx",
+    "SourceSheet":  "Data",
+    "SourceDataRows":  504,
+    "FilteredRows":  504,
+    "ProductGroups":  [
+                          "NOVA LAKE",
+                          "RAZOR LAKE"
+                      ],
+    "Stages":  [
+                   "TEST",
+                   "FINISH"
+               ],
+    "TotalKF_Qty":  45249100,
+    "GeneratedAt":  "2026-09-19T01:01:27.4580764+08:00"
+}

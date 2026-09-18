@@ -1,0 +1,34 @@
+table dimStages
+	lineageTag: 8cfe0923-42e1-4f85-b161-640575b847d0
+	sourceLineageTag: ffca19d4-a085-4784-93c0-bd3d26403045
+
+	column MfgLocationStage
+		dataType: string
+		isNullable: false
+		lineageTag: 211b9af3-120d-46a3-9b9b-e2f28d440acf
+		sourceLineageTag: 797dd1d0-99a4-4831-a93f-db1ab2cd9952
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: MfgLocationStage
+		sortByColumn: StageIndex
+
+		annotation SummarizationSetBy = User
+
+	column StageIndex
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 91ea1076-b356-4743-a016-6b1a1d0959bb
+		sourceLineageTag: 2f54c3c7-802a-4c82-b0dc-1fb3bb1b31e5
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: StageIndex
+
+		annotation SummarizationSetBy = User
+
+	partition dimStages = entity
+		mode: directQuery
+		source
+			entityName: dimStages
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

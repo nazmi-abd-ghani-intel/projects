@@ -1,0 +1,192 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "bbdd15a52d61e6148b2c",
+  "position": {
+    "x": 340.8130081300813,
+    "y": 132.6829268292683,
+    "z": 0,
+    "height": 623.08943089430886,
+    "width": 1428.2926829268292
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "factSnOPdata"
+                    }
+                  },
+                  "Property": "YearQuarterTxt"
+                }
+              },
+              "queryRef": "factSnOPdata.YearQuarterTxt",
+              "nativeQueryRef": "YearQuarterTxt",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "factSnOPdata"
+                    }
+                  },
+                  "Property": "SpeedDesignId"
+                }
+              },
+              "queryRef": "factSnOPdata.SpeedDesignId",
+              "nativeQueryRef": "SpeedDesignId"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_metrics"
+                    }
+                  },
+                  "Property": "KF_Qty"
+                }
+              },
+              "queryRef": "_metrics.KF_Qty",
+              "nativeQueryRef": "KF_Qty"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "_metrics"
+                  }
+                },
+                "Property": "KF_Qty"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "9b51beb183348a978b14",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "factSnOPdata"
+              }
+            },
+            "Property": "ProductGroupNm"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "f",
+              "Entity": "factSnOPdata",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "f"
+                          }
+                        },
+                        "Property": "ProductGroupNm"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'NOVA LAKE'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "fecfc64fcb0e4e644049",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "_metrics"
+              }
+            },
+            "Property": "KF_Qty"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "e66fcb65634b7abd0bb0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "factSnOPdata"
+              }
+            },
+            "Property": "YearQuarterTxt"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "6b66296704c8abdc9104",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "factSnOPdata"
+              }
+            },
+            "Property": "SpeedDesignId"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

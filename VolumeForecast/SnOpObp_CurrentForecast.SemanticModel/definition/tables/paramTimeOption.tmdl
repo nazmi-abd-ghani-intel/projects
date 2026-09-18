@@ -1,0 +1,58 @@
+table paramTimeOption
+	lineageTag: c61bda10-e6b7-4660-ad97-b74822fa2c51
+	sourceLineageTag: 91afa9e0-3fe2-41ae-bba4-f0efeaf6ffac
+
+	column paramTimeOption
+		dataType: string
+		lineageTag: b1804c6d-8e7d-45a4-a41e-9b2a113ce21c
+		sourceLineageTag: 39342e22-ae90-4e45-9be7-ff5aa95a7893
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: paramTimeOption
+		sortByColumn: 'paramTimeOption Order'
+
+		relatedColumnDetails
+			groupByColumn: 'paramTimeOption Fields'
+
+		annotation SummarizationSetBy = User
+
+	column 'paramTimeOption Fields'
+		dataType: string
+		isHidden
+		lineageTag: 29239c1d-49b2-4f4a-84bd-c503b4372e1e
+		sourceLineageTag: 5e5b3c65-659b-456f-b7a3-254149387aa2
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: paramTimeOption Fields
+		sortByColumn: 'paramTimeOption Order'
+
+		annotation SummarizationSetBy = User
+
+	column 'paramTimeOption Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cf4eb1ed-9fcd-4ad9-b2fd-59b99508a859
+		sourceLineageTag: 27c2f615-ca13-489d-ac80-069c6ef3b4af
+		dataCategory: Uncategorized
+		summarizeBy: sum
+		sourceColumn: paramTimeOption Order
+
+		annotation SummarizationSetBy = User
+
+	column SortOrder
+		dataType: string
+		lineageTag: 9ac47b58-d591-4b79-8f54-c7e8f337fce0
+		sourceLineageTag: dd1e3ede-9297-4b7e-9a49-80771ee09f69
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = User
+
+	partition paramTimeOption = entity
+		mode: directQuery
+		source
+			entityName: paramTimeOption
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

@@ -1,0 +1,11 @@
+expression 'DirectQuery to AS - SnOpObp_CurrentForecast' =
+		let
+		    Source = AnalysisServices.Database("powerbi://api.powerbi.com/v1.0/myorg/Integrated%20Sales%20%26%20Operations%20Planning%20Reporting", "SnOpObp_CurrentForecast"),
+		    Cubes = Table.Combine(Source[Data]),
+		    Cube = Cubes{[Id="Model", Kind="Cube"]}[Data]
+		in
+		    Cube
+	lineageTag: 5d3e6d1b-cdcf-41f8-ba60-4ec900284048
+
+	annotation PBI_IncludeFutureArtifacts = True
+

@@ -1,0 +1,8 @@
+relationship 43a96d95-c0c0-4f76-a2e6-f16d23a858d0
+	fromColumn: factSnOPdata.MfgLocationStage
+	toColumn: dimStages.MfgLocationStage
+
+relationship 245ba77e-dc21-46f0-a87d-7353ee2b7b77
+	fromColumn: factSnOPdata.Key
+	toColumn: factGDPW.Key
+

@@ -1,0 +1,10 @@
+﻿EVALUATE
+FILTER(
+    'factSnOPdata',
+    'factSnOPdata'[ProductGroupNm] IN { "NOVA LAKE", "RAZOR LAKE" }
+        && 'factSnOPdata'[MfgLocationStage] IN { "TEST", "FINISH" }
+)
+ORDER BY
+    'factSnOPdata'[YearQuarterTxt],
+    'factSnOPdata'[SpeedDesignId],
+    'factSnOPdata'[DesignItemMilestone]

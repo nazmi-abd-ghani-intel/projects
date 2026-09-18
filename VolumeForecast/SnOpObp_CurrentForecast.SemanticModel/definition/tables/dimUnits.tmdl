@@ -1,0 +1,20 @@
+table dimUnits
+	lineageTag: 24d73885-409e-46d8-9964-15de665e29ab
+	sourceLineageTag: bc157a9e-e9fa-4bd0-817e-dcec82f9d6c6
+
+	column Unit
+		dataType: string
+		lineageTag: a06f0eac-32c1-4bd5-8303-e69de5c85537
+		sourceLineageTag: f9a29a7b-0217-4e40-a64e-e03d4fe6c7ab
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: Unit
+
+		annotation SummarizationSetBy = User
+
+	partition dimUnits = entity
+		mode: directQuery
+		source
+			entityName: dimUnits
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

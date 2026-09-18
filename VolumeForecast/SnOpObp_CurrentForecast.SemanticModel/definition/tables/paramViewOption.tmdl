@@ -1,0 +1,48 @@
+table paramViewOption
+	lineageTag: dfcfcfcf-8b1d-4319-9275-02456454388d
+	sourceLineageTag: fcbfcacc-4aca-4c75-9406-94e863b1478d
+
+	column paramViewOption
+		dataType: string
+		lineageTag: 0b659b5e-c096-43b7-a791-e4e456f0d412
+		sourceLineageTag: d7ddf467-3b68-4d6a-986a-ec0f583f0ff0
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: paramViewOption
+		sortByColumn: 'paramViewOption Order'
+
+		relatedColumnDetails
+			groupByColumn: 'paramViewOption Fields'
+
+		annotation SummarizationSetBy = User
+
+	column 'paramViewOption Fields'
+		dataType: string
+		isHidden
+		lineageTag: d2f84509-2ba4-4260-b880-207e2b935521
+		sourceLineageTag: c6594a32-89c6-4def-9498-6c52434316a6
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: paramViewOption Fields
+		sortByColumn: 'paramViewOption Order'
+
+		annotation SummarizationSetBy = User
+
+	column 'paramViewOption Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 48ec6e20-326d-41fa-89aa-d3d5824e182f
+		sourceLineageTag: dc377f67-6168-4c2d-acb2-105584d444ef
+		dataCategory: Uncategorized
+		summarizeBy: sum
+		sourceColumn: paramViewOption Order
+
+		annotation SummarizationSetBy = User
+
+	partition paramViewOption = entity
+		mode: directQuery
+		source
+			entityName: paramViewOption
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

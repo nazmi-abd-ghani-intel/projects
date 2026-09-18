@@ -1,0 +1,36 @@
+table factGDPW
+	isHidden
+	lineageTag: 4d56ea90-ac83-4821-af04-91ef1d5cf448
+	sourceLineageTag: 44559f0b-8225-4097-a9c1-5f1026b2d21a
+
+	column Key
+		dataType: string
+		isHidden
+		isNullable: false
+		lineageTag: c70775ed-e9d8-47e5-a409-9744a9bb09e1
+		sourceLineageTag: e47ecb88-e455-49b9-8656-5d20a0ef1667
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: Key
+
+		annotation SummarizationSetBy = User
+
+	column GDPW_Factor
+		dataType: double
+		isHidden
+		lineageTag: 4f7bcff1-235e-4581-bdf4-00fffa0c4013
+		sourceLineageTag: cab0d98c-66c2-4fbe-b767-7c1ddbe6d4bd
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: GDPW_Factor
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition factGDPW = entity
+		mode: directQuery
+		source
+			entityName: factGDPW
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

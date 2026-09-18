@@ -1,0 +1,50 @@
+table 'OBP TS KF Mapping'
+	lineageTag: 01077b0d-1b75-4e05-819d-56ac5c788f8c
+	sourceLineageTag: cd3a6b49-c094-42ec-8c01-cece66811f26
+
+	column 'OBP KF Nbr'
+		dataType: string
+		lineageTag: e98090bf-be52-408c-ae05-2857deae851e
+		sourceLineageTag: cba71339-0ec1-4029-900e-16a07a3e250b
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: OBP KF Nbr
+
+		annotation SummarizationSetBy = User
+
+	column 'OBP KF Name'
+		dataType: string
+		lineageTag: ab842863-05a3-4292-8f14-0f760bc56ebb
+		sourceLineageTag: 6693fbea-0888-4918-9056-69ddba0da86b
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: OBP KF Name
+
+		annotation SummarizationSetBy = User
+
+	column 'TS KF Nbr'
+		dataType: string
+		lineageTag: e6815ab7-7e20-4bd9-b037-6fce2ce55b48
+		sourceLineageTag: dffb6ac3-207d-4bdc-be68-6af9434dc362
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: TS KF Nbr
+
+		annotation SummarizationSetBy = User
+
+	column 'TS KF Name'
+		dataType: string
+		lineageTag: 1469e688-982c-4738-88fa-88caed5a5732
+		sourceLineageTag: 769cc232-ee92-4249-935d-29c1c251f029
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: TS KF Name
+
+		annotation SummarizationSetBy = User
+
+	partition 'OBP TS KF Mapping' = entity
+		mode: directQuery
+		source
+			entityName: OBP TS KF Mapping
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+

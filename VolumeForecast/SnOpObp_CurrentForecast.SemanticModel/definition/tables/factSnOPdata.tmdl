@@ -1,0 +1,278 @@
+table factSnOPdata
+	lineageTag: fc67acda-54f3-4ce1-b209-8409251c1b4f
+	sourceLineageTag: d0cfd0fe-915a-463f-8540-9b0997e6bd88
+
+	column CustomerTypeCd
+		dataType: string
+		lineageTag: f317db4c-1aaa-48d0-9b28-231c4b576110
+		sourceLineageTag: da5b621b-da35-457b-a693-6e1da96adcad
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: CustomerTypeCd
+
+		annotation SummarizationSetBy = User
+
+	column DesignItemCategory
+		dataType: string
+		lineageTag: d7e2d797-244f-4e29-a2a5-c3d3b5eb36ee
+		sourceLineageTag: d12a916e-0f15-439b-89e3-5e9afd8ab423
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: DesignItemCategory
+
+		annotation SummarizationSetBy = User
+
+	column DesignItemMilestone
+		dataType: string
+		lineageTag: cc20ce26-7a11-4ce4-b6d2-1a847c6728b0
+		sourceLineageTag: 639c3949-3fc4-4ad2-9e81-d17aade354e6
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: DesignItemMilestone
+
+		annotation SummarizationSetBy = User
+
+	column MfgLocationStage
+		dataType: string
+		isHidden
+		lineageTag: 39b464ed-db11-4220-a383-c3b541072ee5
+		sourceLineageTag: 916f796e-3ffc-48f0-a5f3-1d00e2f45344
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: MfgLocationStage
+
+		annotation SummarizationSetBy = User
+
+	column EngTypeCd
+		dataType: string
+		lineageTag: 2a877fcd-2eb8-4cad-b2e7-9b55870ccf4f
+		sourceLineageTag: fe12b8b9-7207-47d0-a29f-b094dca0ad18
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: EngTypeCd
+
+		annotation SummarizationSetBy = User
+
+	column KeyFigureNm
+		dataType: string
+		lineageTag: 25515d50-4187-4594-b027-575fc79c8d08
+		sourceLineageTag: d84d79e7-10c4-4355-be73-fdc008d5a49f
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: KeyFigureNm
+
+		annotation SummarizationSetBy = User
+
+	column MfgLocationCd
+		dataType: string
+		lineageTag: 1bf7a0b0-5850-408d-b518-075a1e568ffe
+		sourceLineageTag: fa2b5964-7908-465e-a50b-bba60b364205
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: MfgLocationCd
+
+		annotation SummarizationSetBy = User
+
+	column VersionType
+		dataType: string
+		lineageTag: e3f15a9b-187f-42a4-b491-7843c70421a6
+		sourceLineageTag: 2af00962-6f73-4e3c-89ac-d27ffdebd228
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: VersionType
+
+		annotation SummarizationSetBy = User
+
+	column KeyFigureQty
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 17da3abb-1641-47bb-ae3e-25f93126e812
+		sourceLineageTag: 4976ad3c-b1be-43d2-85ee-ab16ff991561
+		dataCategory: Uncategorized
+		summarizeBy: sum
+		sourceColumn: KeyFigureQty
+
+		annotation SummarizationSetBy = User
+
+	column RevStepCd
+		dataType: string
+		lineageTag: f8754ddb-c5d2-4bcb-8f17-4886e6b95016
+		sourceLineageTag: c4585dc9-9cc2-48b1-8352-02e03c1743c0
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: RevStepCd
+
+		annotation SummarizationSetBy = User
+
+	column VersionDescription
+		dataType: string
+		lineageTag: 42116d43-19ce-49b6-b653-e3309422dcbe
+		sourceLineageTag: b26271ea-c192-42a8-a0a7-2faa4343468d
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: VersionDescription
+
+		annotation SummarizationSetBy = User
+
+	column Key
+		dataType: string
+		lineageTag: 9e99e6df-b174-4950-a5dc-53915c1f3cac
+		sourceLineageTag: 91a59bf5-32c2-44ee-b66d-2b1e4d2d869e
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: Key
+
+		annotation SummarizationSetBy = User
+
+	column DesignItemId
+		dataType: string
+		lineageTag: 07c2d8e3-47cd-4ea5-99fe-85dfa7447a42
+		sourceLineageTag: 734a4582-c2e2-44f4-82d6-f212de82b6e2
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: DesignItemId
+
+		annotation SummarizationSetBy = User
+
+	column KeyFigureQty_Wafers
+		dataType: double
+		isHidden
+		lineageTag: d98f2454-4c1e-44a6-83b0-8abc5f356d6e
+		sourceLineageTag: b80d961e-49e9-4cbb-b0ec-ea001b88a421
+		dataCategory: Uncategorized
+		summarizeBy: sum
+		sourceColumn: KeyFigureQty_Wafers
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column WaferPackageTechnologyCd
+		dataType: string
+		lineageTag: b058de44-8e8d-4f1e-ac3e-d890b6fa0565
+		sourceLineageTag: 3a0c93cf-b842-48a0-96fe-cd7a72317c9a
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: WaferPackageTechnologyCd
+
+		annotation SummarizationSetBy = User
+
+	column WorkWeekTxt
+		dataType: string
+		lineageTag: b4f18679-fa22-46a9-b310-db5dbf999039
+		sourceLineageTag: b17690a1-6292-4f3e-9f32-7b43c0190c96
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: WorkWeekTxt
+
+		annotation SummarizationSetBy = User
+
+	column FabDotProcessCd
+		dataType: string
+		lineageTag: d7c67c29-efbc-4a0c-be54-7c2d4f27d736
+		sourceLineageTag: 038ec196-303e-4749-a886-1d21fcecb4f3
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: FabDotProcessCd
+
+		annotation SummarizationSetBy = User
+
+	column ProcessNodeCd
+		dataType: string
+		lineageTag: 789f52ac-8adc-442c-bd23-7cefd54ef5f4
+		sourceLineageTag: 81abd4f4-1f2d-4e64-b854-9ad4eef56a01
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: ProcessNodeCd
+
+		annotation SummarizationSetBy = User
+
+	column DesignItemDsc
+		dataType: string
+		lineageTag: 29a34b73-7841-46ea-9ad9-0453ac092a0b
+		sourceLineageTag: b36e8805-1273-4562-a9cc-14ec6b6605a1
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: DesignItemDsc
+
+		annotation SummarizationSetBy = User
+
+	column ProductGroupNm
+		dataType: string
+		lineageTag: 7f8f81df-4e09-42c1-b939-5597c1a0fa46
+		sourceLineageTag: f21ae7c6-8af6-4cea-8c59-db2a3302e66f
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: ProductGroupNm
+
+		annotation SummarizationSetBy = User
+
+	column SpeedDesignId
+		dataType: string
+		lineageTag: de2b6b2e-6420-4dc8-9159-7d486d43c0ff
+		sourceLineageTag: 37bb72b8-605e-41db-8112-a9258dee6568
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: SpeedDesignId
+
+		annotation SummarizationSetBy = User
+
+	column VersionDateTime
+		dataType: dateTime
+		formatString: General Number
+		lineageTag: 41b32749-4013-451b-a82e-59ec234becd4
+		sourceLineageTag: 44fbf957-8eb1-45fb-b87c-51d919d7c575
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: VersionDateTime
+
+		annotation SummarizationSetBy = User
+
+	column YearMonthTxt
+		dataType: string
+		lineageTag: dce54c8c-a02f-4cd2-9343-38b0cad14028
+		sourceLineageTag: 305af02f-d85a-422b-8661-e93a2cea93fb
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: YearMonthTxt
+
+		annotation SummarizationSetBy = User
+
+	column YearQuarterTxt
+		dataType: string
+		lineageTag: 0b565166-dece-4cce-8bc0-56e25b6c1b1a
+		sourceLineageTag: 6a5fd697-18de-4c34-904e-89abf0d3e2b1
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: YearQuarterTxt
+
+		annotation SummarizationSetBy = User
+
+	column KeyFigureNbr
+		dataType: int64
+		formatString: 0
+		lineageTag: 506ed13f-a059-4bf3-aaf7-bd0a556efc59
+		sourceLineageTag: df2a3794-bb43-4710-8dda-5fd1cc0dd407
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: KeyFigureNbr
+
+		annotation SummarizationSetBy = User
+
+	column EmibCategoryNm
+		dataType: string
+		lineageTag: e9912310-2b88-4a0b-9bff-d16f84c0b656
+		sourceLineageTag: e9851b7c-7456-4432-ac24-7b627d048f26
+		dataCategory: Uncategorized
+		summarizeBy: none
+		sourceColumn: EmibCategoryNm
+
+		annotation SummarizationSetBy = User
+
+	partition factSnOPdata = entity
+		mode: directQuery
+		source
+			entityName: factSnOPdata
+			expressionSource: 'DirectQuery to AS - SnOpObp_CurrentForecast'
+
