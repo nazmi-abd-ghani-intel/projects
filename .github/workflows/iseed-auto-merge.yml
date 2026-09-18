@@ -1,0 +1,54 @@
+﻿name: ISEED Dashboard Auto-Merge
+on:
+  pull_request:
+    paths:
+      - ISEED-Volume-Analysis/inventory-dashboard.html
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  validate-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          if [ ! -f "ISEED-Volume-Analysis/inventory-dashboard.html" ]; then
+            echo "❌ Dashboard HTML not found"
+            exit 1
+          fi
+          
+          # Check for required DATA marker
+          if ! grep -q "const DATA=" ISEED-Volume-Analysis/inventory-dashboard.html; then
+            echo "❌ DATA marker not found in dashboard"
+            exit 1
+          fi
+          
+          # Check for required PRODUCT_CONFIG marker
+          if ! grep -q "const PRODUCT_CONFIG=" ISEED-Volume-Analysis/inventory-dashboard.html; then
+            echo "❌ PRODUCT_CONFIG marker not found in dashboard"
+            exit 1
+          fi
+          
+          echo "✅ Dashboard validation passed"
+
+      - name: Auto-approve PR
+        run: |
+          gh pr review --approve "${{ github.event.pull_request.number }}" || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge PR
+        run: |
+          gh pr merge "${{ github.event.pull_request.number }}" \
+            --auto \
+            --squash \
+            --delete-branch || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
