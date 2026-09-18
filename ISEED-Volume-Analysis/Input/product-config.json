@@ -1,284 +1,284 @@
-{
-  "NVL": {
-    "usageCategory": {
-      "D2D-1CDIE": "INVENTORY",
-      "D2D-2CDIE": "INVENTORY",
-      "EnDebug": "NON_INV",
-      "PartID": "NON_INV",
-      "Red": "NON_INV",
-      "User2": "NON_INV",
-      "Host": "NON_INV",
-      "HDCP": "NON_INV",
-      "RandUniq": "NON_INV",
-      "GSC ODCA": "INVENTORY",
-      "User6": "NON_INV",
-      "ESE ODCA + CRT": "INVENTORY",
-      "OSSE ODCA + CRT": "INVENTORY",
-      "Host_OSSE": "NON_INV",
-      "Host_PCD_INTELIFP": "NON_INV",
-      "Host_OSSE_INTELIFP": "NON_INV",
-      "Host_PCD_OEMIFP": "NON_INV",
-      "CSME ODCA + CRT": "INVENTORY"
-    },
-    "milestones": {
-      "ES": {
-        "CPU0": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1600": "Host"
-        },
-        "CPU1": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1599": "Host"
-        },
-        "HUB": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4163": "EnDebug",
-          "77777": "PartID",
-          "4599": "Red",
-          "4601": "User2",
-          "1601": "Host",
-          "1317": "HDCP",
-          "1479": "RandUniq",
-          "4634": "GSC ODCA"
-        },
-        "GCD": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4379": "EnDebug",
-          "77777": "PartID",
-          "4602": "Red",
-          "4603": "User2",
-          "1602": "Host"
-        },
-        "PCD_S": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4160": "EnDebug",
-          "77777": "PartID",
-          "4426": "Red",
-          "4425": "User2",
-          "4424": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4640": "ESE ODCA + CRT",
-          "4637": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCD_H": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4161": "EnDebug",
-          "77777": "PartID",
-          "4423": "Red",
-          "4422": "User2",
-          "4419": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4628": "ESE ODCA + CRT",
-          "4631": "CSME ODCA + CRT",
-          "4625": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCH_S": {
-          "4162": "EnDebug",
-          "77777": "PartID",
-          "4429": "Red",
-          "4428": "User2",
-          "4427": "User6",
-          "2480": "Host",
-          "4643": "ESE ODCA + CRT",
-          "4646": "CSME ODCA + CRT"
-        }
-      },
-      "QS": {
-        "CPU0": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1600": "Host"
-        },
-        "CPU1": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1599": "Host"
-        },
-        "HUB": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4163": "EnDebug",
-          "77777": "PartID",
-          "4599": "Red",
-          "4601": "User2",
-          "1601": "Host",
-          "1317": "HDCP",
-          "1479": "RandUniq",
-          "4636": "GSC ODCA"
-        },
-        "GCD": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4379": "EnDebug",
-          "77777": "PartID",
-          "4602": "Red",
-          "4603": "User2",
-          "1602": "Host"
-        },
-        "PCD_S": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4160": "EnDebug",
-          "77777": "PartID",
-          "4426": "Red",
-          "4425": "User2",
-          "4424": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4642": "ESE ODCA + CRT",
-          "4639": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCD_H": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4161": "EnDebug",
-          "77777": "PartID",
-          "4423": "Red",
-          "4422": "User2",
-          "4419": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4630": "ESE ODCA + CRT",
-          "4633": "CSME ODCA + CRT",
-          "4627": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCH_S": {
-          "4162": "EnDebug",
-          "77777": "PartID",
-          "4429": "Red",
-          "4428": "User2",
-          "4427": "User6",
-          "2480": "Host",
-          "4645": "ESE ODCA + CRT",
-          "4648": "CSME ODCA + CRT"
-        }
-      },
-      "PRQ": {
-        "CPU0": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1600": "Host"
-        },
-        "CPU1": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4164": "EnDebug",
-          "77777": "PartID",
-          "4604": "Red",
-          "4605": "User2",
-          "1599": "Host"
-        },
-        "HUB": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4163": "EnDebug",
-          "77777": "PartID",
-          "4599": "Red",
-          "4601": "User2",
-          "1601": "Host",
-          "1317": "HDCP",
-          "1479": "RandUniq",
-          "4635": "GSC ODCA"
-        },
-        "GCD": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4379": "EnDebug",
-          "77777": "PartID",
-          "4602": "Red",
-          "4603": "User2",
-          "1602": "Host"
-        },
-        "PCD_S": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4160": "EnDebug",
-          "77777": "PartID",
-          "4426": "Red",
-          "4425": "User2",
-          "4424": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4641": "ESE ODCA + CRT",
-          "4638": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCD_H": {
-          "4580": "D2D-1CDIE",
-          "4581": "D2D-2CDIE",
-          "4161": "EnDebug",
-          "77777": "PartID",
-          "4423": "Red",
-          "4422": "User2",
-          "4419": "User6",
-          "2480": "Host",
-          "1479": "RandUniq",
-          "4629": "ESE ODCA + CRT",
-          "4632": "CSME ODCA + CRT",
-          "4626": "OSSE ODCA + CRT",
-          "2481": "Host_OSSE",
-          "3600": "Host_PCD_INTELIFP",
-          "4659": "Host_OSSE_INTELIFP",
-          "4259": "Host_PCD_OEMIFP"
-        },
-        "PCH_S": {
-          "4162": "EnDebug",
-          "77777": "PartID",
-          "4429": "Red",
-          "4428": "User2",
-          "4427": "User6",
-          "2480": "Host",
-          "4644": "ESE ODCA + CRT",
-          "4647": "CSME ODCA + CRT"
-        }
-      }
-    }
-  }
+﻿{
+    "NVL":  {
+                "usageCategory":  {
+                                      "D2D-1CDIE":  "INVENTORY",
+                                      "D2D-2CDIE":  "INVENTORY",
+                                      "EnDebug":  "NON_INV",
+                                      "PartID":  "NON_INV",
+                                      "Red":  "NON_INV",
+                                      "User2":  "NON_INV",
+                                      "Host":  "NON_INV",
+                                      "HDCP":  "NON_INV",
+                                      "RandUniq":  "NON_INV",
+                                      "GSC ODCA":  "INVENTORY",
+                                      "User6":  "NON_INV",
+                                      "ESE ODCA + CRT":  "INVENTORY",
+                                      "OSSE ODCA + CRT":  "INVENTORY",
+                                      "Host_OSSE":  "NON_INV",
+                                      "Host_PCD_INTELIFP":  "NON_INV",
+                                      "Host_OSSE_INTELIFP":  "NON_INV",
+                                      "Host_PCD_OEMIFP":  "NON_INV",
+                                      "CSME ODCA + CRT":  "INVENTORY"
+                                  },
+                "milestones":  {
+                                   "ES":  {
+                                              "CPU0":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4164":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4604":  "Red",
+                                                           "4605":  "User2",
+                                                           "1600":  "Host"
+                                                       },
+                                              "CPU1":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4164":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4604":  "Red",
+                                                           "4605":  "User2",
+                                                           "1599":  "Host"
+                                                       },
+                                              "HUB":  {
+                                                          "4580":  "D2D-1CDIE",
+                                                          "4581":  "D2D-2CDIE",
+                                                          "4163":  "EnDebug",
+                                                          "77777":  "PartID",
+                                                          "4599":  "Red",
+                                                          "4601":  "User2",
+                                                          "1601":  "Host",
+                                                          "1317":  "HDCP",
+                                                          "1479":  "RandUniq",
+                                                          "4634":  "GSC ODCA"
+                                                      },
+                                              "GCD":  {
+                                                          "4580":  "D2D-1CDIE",
+                                                          "4581":  "D2D-2CDIE",
+                                                          "4379":  "EnDebug",
+                                                          "77777":  "PartID",
+                                                          "4602":  "Red",
+                                                          "4603":  "User2",
+                                                          "1602":  "Host"
+                                                      },
+                                              "PCD_S":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4160":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4426":  "Red",
+                                                            "4425":  "User2",
+                                                            "4424":  "User6",
+                                                            "2480":  "Host",
+                                                            "1479":  "RandUniq",
+                                                            "4640":  "ESE ODCA + CRT",
+                                                            "4637":  "OSSE ODCA + CRT",
+                                                            "2481":  "Host_OSSE",
+                                                            "3600":  "Host_PCD_INTELIFP",
+                                                            "4659":  "Host_OSSE_INTELIFP",
+                                                            "4259":  "Host_PCD_OEMIFP"
+                                                        },
+                                              "PCD_H":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4161":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4423":  "Red",
+                                                            "4422":  "User2",
+                                                            "4419":  "User6",
+                                                            "2480":  "Host",
+                                                            "1479":  "RandUniq",
+                                                            "4628":  "ESE ODCA + CRT",
+                                                            "4631":  "CSME ODCA + CRT",
+                                                            "4625":  "OSSE ODCA + CRT",
+                                                            "2481":  "Host_OSSE",
+                                                            "3600":  "Host_PCD_INTELIFP",
+                                                            "4659":  "Host_OSSE_INTELIFP",
+                                                            "4259":  "Host_PCD_OEMIFP"
+                                                        },
+                                              "PCH_S":  {
+                                                            "4162":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4429":  "Red",
+                                                            "4428":  "User2",
+                                                            "4427":  "User6",
+                                                            "2480":  "Host",
+                                                            "4643":  "ESE ODCA + CRT",
+                                                            "4646":  "CSME ODCA + CRT"
+                                                        }
+                                          },
+                                   "QS":  {
+                                              "CPU0":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4164":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4604":  "Red",
+                                                           "4605":  "User2",
+                                                           "1600":  "Host"
+                                                       },
+                                              "CPU1":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4164":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4604":  "Red",
+                                                           "4605":  "User2",
+                                                           "1599":  "Host"
+                                                       },
+                                              "HUB":  {
+                                                          "4580":  "D2D-1CDIE",
+                                                          "4581":  "D2D-2CDIE",
+                                                          "4163":  "EnDebug",
+                                                          "77777":  "PartID",
+                                                          "4599":  "Red",
+                                                          "4601":  "User2",
+                                                          "1601":  "Host",
+                                                          "1317":  "HDCP",
+                                                          "1479":  "RandUniq",
+                                                          "4636":  "GSC ODCA"
+                                                      },
+                                              "GCD":  {
+                                                          "4580":  "D2D-1CDIE",
+                                                          "4581":  "D2D-2CDIE",
+                                                          "4379":  "EnDebug",
+                                                          "77777":  "PartID",
+                                                          "4602":  "Red",
+                                                          "4603":  "User2",
+                                                          "1602":  "Host"
+                                                      },
+                                              "PCD_S":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4160":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4426":  "Red",
+                                                            "4425":  "User2",
+                                                            "4424":  "User6",
+                                                            "2480":  "Host",
+                                                            "1479":  "RandUniq",
+                                                            "4642":  "ESE ODCA + CRT",
+                                                            "4639":  "OSSE ODCA + CRT",
+                                                            "2481":  "Host_OSSE",
+                                                            "3600":  "Host_PCD_INTELIFP",
+                                                            "4659":  "Host_OSSE_INTELIFP",
+                                                            "4259":  "Host_PCD_OEMIFP"
+                                                        },
+                                              "PCD_H":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4161":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4423":  "Red",
+                                                            "4422":  "User2",
+                                                            "4419":  "User6",
+                                                            "2480":  "Host",
+                                                            "1479":  "RandUniq",
+                                                            "4630":  "ESE ODCA + CRT",
+                                                            "4633":  "CSME ODCA + CRT",
+                                                            "4627":  "OSSE ODCA + CRT",
+                                                            "2481":  "Host_OSSE",
+                                                            "3600":  "Host_PCD_INTELIFP",
+                                                            "4659":  "Host_OSSE_INTELIFP",
+                                                            "4259":  "Host_PCD_OEMIFP"
+                                                        },
+                                              "PCH_S":  {
+                                                            "4162":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4429":  "Red",
+                                                            "4428":  "User2",
+                                                            "4427":  "User6",
+                                                            "2480":  "Host",
+                                                            "4645":  "ESE ODCA + CRT",
+                                                            "4648":  "CSME ODCA + CRT"
+                                                        }
+                                          },
+                                   "PRQ":  {
+                                               "CPU0":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4164":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4604":  "Red",
+                                                            "4605":  "User2",
+                                                            "1600":  "Host"
+                                                        },
+                                               "CPU1":  {
+                                                            "4580":  "D2D-1CDIE",
+                                                            "4581":  "D2D-2CDIE",
+                                                            "4164":  "EnDebug",
+                                                            "77777":  "PartID",
+                                                            "4604":  "Red",
+                                                            "4605":  "User2",
+                                                            "1599":  "Host"
+                                                        },
+                                               "HUB":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4163":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4599":  "Red",
+                                                           "4601":  "User2",
+                                                           "1601":  "Host",
+                                                           "1317":  "HDCP",
+                                                           "1479":  "RandUniq",
+                                                           "4635":  "GSC ODCA"
+                                                       },
+                                               "GCD":  {
+                                                           "4580":  "D2D-1CDIE",
+                                                           "4581":  "D2D-2CDIE",
+                                                           "4379":  "EnDebug",
+                                                           "77777":  "PartID",
+                                                           "4602":  "Red",
+                                                           "4603":  "User2",
+                                                           "1602":  "Host"
+                                                       },
+                                               "PCD_S":  {
+                                                             "4580":  "D2D-1CDIE",
+                                                             "4581":  "D2D-2CDIE",
+                                                             "4160":  "EnDebug",
+                                                             "77777":  "PartID",
+                                                             "4426":  "Red",
+                                                             "4425":  "User2",
+                                                             "4424":  "User6",
+                                                             "2480":  "Host",
+                                                             "1479":  "RandUniq",
+                                                             "4641":  "ESE ODCA + CRT",
+                                                             "4638":  "OSSE ODCA + CRT",
+                                                             "2481":  "Host_OSSE",
+                                                             "3600":  "Host_PCD_INTELIFP",
+                                                             "4659":  "Host_OSSE_INTELIFP",
+                                                             "4259":  "Host_PCD_OEMIFP"
+                                                         },
+                                               "PCD_H":  {
+                                                             "4580":  "D2D-1CDIE",
+                                                             "4581":  "D2D-2CDIE",
+                                                             "4161":  "EnDebug",
+                                                             "77777":  "PartID",
+                                                             "4423":  "Red",
+                                                             "4422":  "User2",
+                                                             "4419":  "User6",
+                                                             "2480":  "Host",
+                                                             "1479":  "RandUniq",
+                                                             "4629":  "ESE ODCA + CRT",
+                                                             "4632":  "CSME ODCA + CRT",
+                                                             "4626":  "OSSE ODCA + CRT",
+                                                             "2481":  "Host_OSSE",
+                                                             "3600":  "Host_PCD_INTELIFP",
+                                                             "4659":  "Host_OSSE_INTELIFP",
+                                                             "4259":  "Host_PCD_OEMIFP"
+                                                         },
+                                               "PCH_S":  {
+                                                             "4162":  "EnDebug",
+                                                             "77777":  "PartID",
+                                                             "4429":  "Red",
+                                                             "4428":  "User2",
+                                                             "4427":  "User6",
+                                                             "2480":  "Host",
+                                                             "4644":  "ESE ODCA + CRT",
+                                                             "4647":  "CSME ODCA + CRT"
+                                                         }
+                                           }
+                               }
+            }
 }
