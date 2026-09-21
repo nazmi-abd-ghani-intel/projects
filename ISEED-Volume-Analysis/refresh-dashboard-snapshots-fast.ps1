@@ -1,4 +1,4 @@
-# ============================================================================
+﻿# ============================================================================
 # ISEED Dashboard Refresh - Snapshot-Only Mode (ULTRA-FAST - ArrayList Parser)
 # ============================================================================
 # Ultra-optimized version using ArrayList + ReadAllLines for O(1) performance
@@ -216,12 +216,27 @@ function Update-Dashboard {
     $after = $html.Substring($dataEnd)
     $newHtml = $before + $newDataBlock + "`r`n" + $after
 
+    # Stamp refresh time for the dashboard freshness indicator
+    $stamp = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $newHtml = [regex]::Replace($newHtml, 'const LAST_UPDATED=(null|"[^"]*");', "const LAST_UPDATED=`"$stamp`";", 1)
+
     # Validate JSON can round-trip
     $null = $json | ConvertFrom-Json
 
-    # Write back
-    [IO.File]::WriteAllText($DashboardPath, $newHtml, [System.Text.Encoding]::UTF8)
-    Write-Log "Dashboard injected with $($Records.Count) records"
+    # Guard against encoding corruption before writing
+    if ($newHtml.Contains([char]0xFFFD)) {
+        throw "Refusing to write: dashboard HTML contains U+FFFD replacement characters (encoding corruption)"
+    }
+    $moon = [char]::ConvertFromUtf32(0x1F319)
+    if ($html.Contains($moon) -and -not $newHtml.Contains($moon)) {
+        throw "Refusing to write: non-ASCII glyphs were lost during injection"
+    }
+
+    # Write back, preserving the BOM if the source had one
+    $rawBytes = [IO.File]::ReadAllBytes($DashboardPath)
+    $hadBom = $rawBytes.Length -ge 3 -and $rawBytes[0] -eq 0xEF -and $rawBytes[1] -eq 0xBB -and $rawBytes[2] -eq 0xBF
+    [IO.File]::WriteAllText($DashboardPath, $newHtml, (New-Object System.Text.UTF8Encoding($hadBom)))
+    Write-Log "Dashboard injected with $($Records.Count) records (LAST_UPDATED=$stamp)"
 }
 
 # ============================================================================
