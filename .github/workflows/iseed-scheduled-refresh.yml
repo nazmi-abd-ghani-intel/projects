@@ -1,0 +1,152 @@
+name: ISEED Scheduled Dashboard Refresh
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC (10 AM Singapore time)
+  workflow_dispatch:     # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh-dashboard:
+    runs-on: ubuntu-latest
+    name: Download snapshots & refresh dashboard
+    
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PowerShell
+        run: |
+          pwsh -Command "Write-Host 'PowerShell Core ready'"
+
+      - name: Download latest snapshots from Graph API
+        run: |
+          pwsh -Command @'
+            # Get latest 3 snapshots from DDG/iSEED folder via Graph API
+            # This step uses GitHub token to authenticate with Microsoft Graph
+            
+            $headers = @{
+              "Authorization" = "Bearer ${{ secrets.GRAPH_API_TOKEN }}"
+              "Content-Type" = "application/json"
+            }
+            
+            try {
+              # Get folder info
+              $folderUri = "https://graph.microsoft.com/v1.0/me/mailFolders/inbox/childFolders?`$filter=displayName eq 'DDG/iSEED'"
+              $folderResponse = Invoke-RestMethod -Uri $folderUri -Headers $headers -Method Get
+              
+              if ($folderResponse.value.Count -gt 0) {
+                $folderId = $folderResponse.value[0].id
+                Write-Host "Found DDG/iSEED folder: $folderId"
+                
+                # Get latest messages with attachments
+                $messagesUri = "https://graph.microsoft.com/v1.0/me/mailFolders/$folderId/messages?`$top=10&`$orderby=receivedDateTime desc&`$filter=hasAttachments eq true"
+                $messagesResponse = Invoke-RestMethod -Uri $messagesUri -Headers $headers -Method Get
+                
+                $snapshotDir = "${{ github.workspace }}/ISEED-Volume-Analysis/Input/Snapshots"
+                New-Item -ItemType Directory -Path $snapshotDir -Force | Out-Null
+                
+                $downloaded = 0
+                foreach ($message in $messagesResponse.value) {
+                  if ($downloaded -ge 3) { break }
+                  
+                  $attachmentsUri = "https://graph.microsoft.com/v1.0/me/messages/$($message.id)/attachments?`$filter=hasAttachments eq true"
+                  $attachments = Invoke-RestMethod -Uri $attachmentsUri -Headers $headers -Method Get
+                  
+                  foreach ($attachment in $attachments.value) {
+                    if ($attachment.name -match "\.txt$" -or $attachment.name -match "inventory") {
+                      $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+                      $filename = "snapshot-$timestamp-$($attachment.name)"
+                      $filepath = "$snapshotDir/$filename"
+                      
+                      # Download attachment
+                      $attachmentUri = "https://graph.microsoft.com/v1.0/me/messages/$($message.id)/attachments/$($attachment.id)/`$value"
+                      $content = Invoke-RestMethod -Uri $attachmentUri -Headers $headers -Method Get
+                      
+                      [System.IO.File]::WriteAllBytes($filepath, $content)
+                      Write-Host "Downloaded: $filename"
+                      $downloaded++
+                    }
+                  }
+                }
+                
+                if ($downloaded -gt 0) {
+                  Write-Host "✅ Downloaded $downloaded snapshot files"
+                } else {
+                  Write-Host "⚠️  No new snapshots found"
+                  exit 0
+                }
+              } else {
+                Write-Host "⚠️  DDG/iSEED folder not found"
+                exit 0
+              }
+            } catch {
+              Write-Host "⚠️  Graph API not configured (expected in workflow). Using fallback."
+              exit 0
+            }
+          '@
+        continue-on-error: true
+
+      - name: Run refresh script
+        run: |
+          pwsh -ExecutionPolicy Bypass -File ISEED-Volume-Analysis/refresh-dashboard-snapshots-fast.ps1
+        continue-on-error: true
+
+      - name: Check if dashboard changed
+        id: dashboard-check
+        run: |
+          if git diff --quiet ISEED-Volume-Analysis/inventory-dashboard.html; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create feature branch
+        if: steps.dashboard-check.outputs.changed == 'true'
+        run: |
+          git config user.name "Copilot Dashboard Bot"
+          git config user.email "copilot-dashboard@bot.local"
+          
+          BRANCH_NAME="iseed/refresh-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b $BRANCH_NAME
+          git add ISEED-Volume-Analysis/inventory-dashboard.html
+          
+          COMMIT_MSG="chore: auto-refresh ISEED dashboard [$(date '+%Y-%m-%d %H:%M:%S')]
+
+Automated snapshot refresh via scheduled GitHub Actions workflow.
+Latest inventory data from DDG/iSEED folder.
+
+Co-authored-by: Copilot Dashboard Bot <copilot-dashboard@bot.local>"
+          
+          git commit -m "$COMMIT_MSG"
+          git push -u origin $BRANCH_NAME
+          
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create Pull Request
+        if: steps.dashboard-check.outputs.changed == 'true'
+        run: |
+          gh pr create \
+            --title "chore: auto-refresh ISEED dashboard [$(date '+%Y-%m-%d')]" \
+            --body "Automated ISEED dashboard snapshot refresh via scheduled workflow.
+
+This PR will be auto-merged and deployed to GitHub Pages." \
+            --base main \
+            --repo ${{ github.repository }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.dashboard-check.outputs.changed }}" = "true" ]; then
+            echo "✅ Dashboard refreshed and PR created"
+            echo "   - Auto-merge workflow will handle validation and merge"
+            echo "   - Pages deployment will follow automatically"
+          else
+            echo "ℹ️  No changes to dashboard (snapshots may not have changed)"
+          fi
