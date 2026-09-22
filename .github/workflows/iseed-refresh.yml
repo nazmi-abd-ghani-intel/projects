@@ -1,0 +1,101 @@
+name: ISEED Dashboard Refresh
+
+# Rebuilds inventory-dashboard.html from the committed Input/Snapshots/*.txt files
+# and commits the result straight to main (GitHub Pages redeploys automatically).
+# No mailbox access is needed here: snapshot ingestion happens upstream, this job
+# only owns parse -> inject -> verify -> commit.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ISEED-Volume-Analysis/Input/Snapshots/**'
+      - 'ISEED-Volume-Analysis/product-config.json'
+  schedule:
+    - cron: '0 22 * * *'   # 06:00 Asia/Kuala_Lumpur (UTC+8)
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit the refreshed dashboard (false = dry run)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: iseed-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Snapshot inventory
+        run: |
+          $files = Get-ChildItem ISEED-Volume-Analysis/Input/Snapshots -Filter *.txt
+          Write-Host "Snapshots available: $($files.Count)"
+          $files | Sort-Object Name | Select-Object -Last 3 Name, Length | Format-Table -AutoSize
+
+      - name: Run injector
+        run: |
+          & ./ISEED-Volume-Analysis/refresh-dashboard-snapshots-fast.ps1
+          if ($LASTEXITCODE -ne 0) { throw "Injector failed with exit code $LASTEXITCODE" }
+
+      - name: Encoding integrity check
+        run: |
+          $path = 'ISEED-Volume-Analysis/inventory-dashboard.html'
+          $bytes = [IO.File]::ReadAllBytes($path)
+          $html  = [Text.Encoding]::UTF8.GetString($bytes)
+          $bom   = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+          $fffd  = ([regex]::Matches($html, [char]0xFFFD)).Count
+          $moon  = $html.Contains([char]::ConvertFromUtf32(0x1F319))
+          $marks = @('const LAST_UPDATED="', 'const DATA=[', 'const PRODUCT_CONFIG=') | Where-Object { -not $html.Contains($_) }
+          Write-Host "BOM=$bom  U+FFFD=$fffd  moon=$moon  size=$($bytes.Length)"
+          if (-not $bom)      { throw 'UTF-8 BOM was lost' }
+          if ($fffd -gt 0)    { throw "$fffd replacement characters found (encoding corruption)" }
+          if (-not $moon)     { throw 'Non-ASCII glyphs lost' }
+          if ($marks.Count)   { throw "Missing markers: $($marks -join ', ')" }
+          Write-Host 'Encoding integrity OK'
+
+      - name: Detect data change
+        id: diff
+        run: |
+          $path = 'ISEED-Volume-Analysis/inventory-dashboard.html'
+          function DataHash([string]$text) {
+            $s = $text.IndexOf('const DATA='); $e = $text.IndexOf('const PRODUCT_CONFIG=', $s)
+            $sha = [Security.Cryptography.SHA256]::Create()
+            [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text.Substring($s, $e - $s)))) -replace '-'
+          }
+          $oldFile = Join-Path $env:RUNNER_TEMP 'dashboard-head.html'
+          cmd /c "git show HEAD:$path > `"$oldFile`""
+          $old = DataHash ([IO.File]::ReadAllText($oldFile))
+          $new = DataHash ([IO.File]::ReadAllText($path))
+          $changed = $old -ne $new
+          Write-Host "DATA changed: $changed"
+          "changed=$($changed.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          if (-not $changed) { git checkout -- $path }
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.commit)
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add ISEED-Volume-Analysis/inventory-dashboard.html
+          git commit -m "chore(iseed): refresh dashboard from snapshots [skip ci]" -m "Triggered by: ${{ github.event_name }}"
+          git push
+          Write-Host 'Dashboard committed - GitHub Pages will redeploy.'
+
+      - name: Summary
+        run: |
+          $state = if ('${{ steps.diff.outputs.changed }}' -eq 'true') { 'refreshed' } else { 'unchanged (no new data)' }
+          "### ISEED Dashboard: $state" >> $env:GITHUB_STEP_SUMMARY
+          "- Trigger: ``${{ github.event_name }}``" >> $env:GITHUB_STEP_SUMMARY
+          "- Snapshots: $((Get-ChildItem ISEED-Volume-Analysis/Input/Snapshots -Filter *.txt).Count)" >> $env:GITHUB_STEP_SUMMARY
