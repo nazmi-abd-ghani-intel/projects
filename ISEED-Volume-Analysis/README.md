@@ -51,8 +51,6 @@ GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MY
 | `refresh-inventory-dashboard.ps1` | Legacy script (not used by workflow; reference only) |
 | `README.md` | **Quick reference guide** (you are here) |
 | `AUTOMATION-SETUP.md` | **Complete automation documentation** |
-| `MANUAL-REFRESH-GUIDE.md` | **How to run script manually** (testing, debugging) |
-| `SCRIPT-COMPARISON.md` | **Detailed script comparison** |
 | `build-product-config.ps1` | Helper script (generates product config) |
 | `Input/Snapshots/` | **Snapshot files** (git-tracked; committed by the feeder) |
 | `Input/product-config.csv` | Product mapping definitions |
@@ -159,17 +157,13 @@ You have **TWO OPTIONS** to run the dashboard refresh:
 
 ## For More Details
 
-**Reading order:**
-
-1. **`README.md`** (you are here) - Quick overview and two options
-2. **`MANUAL-REFRESH-GUIDE.md`** - How to run the PowerShell script manually (for testing/debugging)
-3. **`AUTOMATION-SETUP.md`** - Complete architecture, safety rules, and troubleshooting
-4. **`SCRIPT-COMPARISON.md`** - Detailed comparison between old and new scripts
+**Complete documentation:** `AUTOMATION-SETUP.md` (single source of truth for setup, operation, troubleshooting, and daily timeline).
 
 Or jump directly to what you need:
-- **"How do I run it manually?"** → See `MANUAL-REFRESH-GUIDE.md`
-- **"How does the automatic workflow work?"** → See `AUTOMATION-SETUP.md`
-- **"What's the difference between scripts?"** → See `SCRIPT-COMPARISON.md`
+- **"How do I run it manually?"** → `AUTOMATION-SETUP.md` → Manual refresh section
+- **"How does the automatic workflow work?"** → `AUTOMATION-SETUP.md` → Hop 1/2/3 sections
+- **"What's running on my VM?"** → `AUTOMATION-SETUP.md` → Hop 2 section
+- **"My Task Scheduler failed. What now?"** → `AUTOMATION-SETUP.md` → Troubleshooting section
 
 ---
 
@@ -189,11 +183,30 @@ Or jump directly to what you need:
 
 ## One-Time Setup
 
-1. Open Copilot Workflow Editor (should open automatically when you review this doc)
-2. Click **"Save"** to activate the workflow
-3. **Done!** Workflow now runs automatically every day at 6:00 AM
+Nothing to do on your end. Hops 2 & 3 (Task Scheduler + Actions) are already registered and live. Hop 1 (Power Automate flow) awaits your build — see `AUTOMATION-SETUP.md` → Hop 1.
 
-You do NOT need to click "Run in the Cloud" or any other button. Just Save and you're finished.
+---
+
+## For Future Maintainers
+
+| Role | Reference |
+|------|-----------|
+| **Build or rebuild Hop 1** (Power Automate flow) | `AUTOMATION-SETUP.md` → Hop 1 section (step-by-step build) |
+| **Modify refresh logic** (parsing, injection, encoding) | Edit `refresh-dashboard-snapshots-fast.ps1`; test with manual run; Hop 3 will use the updated script |
+| **Change the daily trigger time** | Task Scheduler: `Get-ScheduledTask 'ISEED Snapshot Sync'`; modify the trigger; or re-register using the snippet in `AUTOMATION-SETUP.md` → Hop 2 |
+| **Add another daily run time** | Example: to publish same-day, add 14:00 trigger to Task Scheduler (see Hop 2 setup) |
+| **Skip a scheduled run** | Disable Task Scheduler trigger, or set the next 06:00 to "Run whether user logged in or not" (trades OneDrive sync reliability for unattended run) |
+| **Troubleshoot Hop 1** | `make.powerautomate.com` → My flows → 28-day run history; flow often fails on SharePoint folder path or blank file name |
+| **Troubleshoot Hop 2** | `Get-ScheduledTaskInfo 'ISEED Snapshot Sync'`; `Get-Content Logs/sync-snapshots.log -Tail 50`; `Start-ScheduledTask` for manual run |
+| **Troubleshoot Hop 3** | GitHub Actions tab → *ISEED Dashboard Refresh* → latest run; check "DATA changed" output and any encode/parse errors |
+| **Inspect what committed** | `git log --oneline` (data/iseed or chore/iseed commits); `git show <hash>` to see which .txt files were added or what HTML changed |
+
+---
+
+## One-Time Setup
+
+1. **`README.md`** (you are here) - Quick overview and file table
+2. **`AUTOMATION-SETUP.md`** - Complete reference: Hops 1/2/3, daily timeline, manual refresh, troubleshooting
 
 ---
 
