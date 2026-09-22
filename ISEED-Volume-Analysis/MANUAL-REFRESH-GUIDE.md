@@ -42,7 +42,7 @@ cd C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis
 ### Step 2: Run the Refresh Script
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
 ```
 
 ### Step 3: Monitor Output
@@ -132,7 +132,7 @@ ls Input/Snapshots/
 2. If files are old, wait for new emails
 3. If files are new but data looks wrong, investigate snapshot content manually
 4. To override safety check (NOT RECOMMENDED):
-   - Edit `refresh-dashboard-snapshots-only.ps1` and temporarily increase the validation threshold
+   - Edit `refresh-dashboard-snapshots-fast.ps1` and temporarily increase the validation threshold
    - But this is risky - validates are there to prevent bad overwrites
 
 ### Issue: Script hangs or takes too long
@@ -182,7 +182,7 @@ cd C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis
 
 # 1. Run snapshot refresh
 Write-Host "Phase 1: Running refresh script..."
-powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
 
 # 2. Check if it changed
 if (git diff --quiet inventory-dashboard.html) {

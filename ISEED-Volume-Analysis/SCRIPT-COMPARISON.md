@@ -105,7 +105,7 @@ Main Script
 
 ---
 
-### `refresh-dashboard-snapshots-only.ps1` (New)
+### `refresh-dashboard-snapshots-fast.ps1` (New)
 
 **Structure:**
 ```
@@ -149,7 +149,7 @@ Windows Task Scheduler (6 AM)
 ```
 Copilot Cloud Workflow (6 AM)
   ├─ Downloads attachments (Graph API - my existing access)
-  └─ Calls refresh-dashboard-snapshots-only.ps1 (no auth needed)
+  └─ Calls refresh-dashboard-snapshots-fast.ps1 (no auth needed)
 ```
 
 **Action if task still exists:**
@@ -203,7 +203,7 @@ New:  Copilot Workflow → Graph API → Snapshots → Parse Script → Dashboar
 cd C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis
 
 # 2. Run the refresh script
-powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
 
 # 3. Check results
 git status  # Should show changes to inventory-dashboard.html
@@ -221,7 +221,7 @@ cat Logs\refresh-inventory-dashboard.log  # Check logs
 
 # 2. Run refresh script
 cd projects\ISEED-Volume-Analysis
-powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
 
 # 3. Commit if changed
 git checkout -b iseed/refresh-manual-$(Get-Date -Format yyyyMMdd-HHmmss)
@@ -239,10 +239,10 @@ gh pr create --title "chore: manual refresh" --body "Manual test" --base main
 
 | Question | Answer |
 |----------|--------|
-| **Which script should I use?** | `refresh-dashboard-snapshots-only.ps1` (new one) |
+| **Which script should I use?** | `refresh-dashboard-snapshots-fast.ps1` (new one) |
 | **When should I use the old script?** | Never. It's legacy. For reference only. |
 | **Do I need to set up anything?** | No. Copilot workflow handles everything. |
-| **What if I want to run manually?** | Just run `refresh-dashboard-snapshots-only.ps1` |
+| **What if I want to run manually?** | Just run `refresh-dashboard-snapshots-fast.ps1` |
 | **Do I need auth?** | No. It works with files already on disk. |
 | **Can I test locally?** | Yes. Use Input/Snapshots/ files. |
 | **Is it safe?** | Yes. Built-in validation prevents bad overwrites. |

@@ -21,7 +21,7 @@ The ISEED dashboard automation is **fully configured** and runs on a daily sched
 |-----------|--------|---------|
 | **Scheduled Workflow** | ✅ Active | Daily at 6:00 AM (Copilot Backend) |
 | **Graph API Access** | ✅ Ready | Uses Copilot session (no app registration) |
-| **Scripts** | ✅ Ready | `refresh-dashboard-snapshots-only.ps1` |
+| **Scripts** | ✅ Ready | `refresh-dashboard-snapshots-fast.ps1` |
 | **GitHub Auto-Merge** | ✅ Ready | `.github/workflows/iseed-auto-merge.yml` |
 | **Dashboard** | ✅ Live | Published on GitHub Pages |
 
@@ -51,7 +51,7 @@ Run the workflow manually:
 2. **Run the refresh script:**
    ```powershell
    cd projects/ISEED-Volume-Analysis
-   powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+   powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
    ```
 
 3. **Commit and PR:**
@@ -105,7 +105,7 @@ If the daily 6 AM workflow fails:
 
 ---
 
-### `refresh-dashboard-snapshots-only.ps1` (New/Lightweight)
+### `refresh-dashboard-snapshots-fast.ps1` (New/Lightweight)
 
 **What it does:**
 - ✅ Only parses existing snapshots
@@ -138,7 +138,7 @@ If the daily 6 AM workflow fails:
 Do you have .txt files already in Input/Snapshots/?
 │
 ├─ YES (files downloaded via Copilot or manually)
-│   └─ Use: refresh-dashboard-snapshots-only.ps1 ✅
+│   └─ Use: refresh-dashboard-snapshots-fast.ps1 ✅
 │       └─ Fast, simple, no auth needed
 │
 └─ NO (need to fetch attachments from email)
@@ -166,7 +166,7 @@ Daily 6:00 AM Copilot Workflow
 │  └─ m365-graph-email_attachments (→ Input/Snapshots/)
 │
 ├─ Phase 2: Dashboard Refresh
-│  └─ refresh-dashboard-snapshots-only.ps1
+│  └─ refresh-dashboard-snapshots-fast.ps1
 │     ├─ Parse .txt files
 │     ├─ Validate safety checks
 │     └─ Inject into inventory-dashboard.html

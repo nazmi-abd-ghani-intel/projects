@@ -6,7 +6,7 @@ name: ISEED Dashboard Refresh
 # only owns parse -> inject -> verify -> commit.
 on:
   push:
-    branches: [main, iseed-actions-refresh]   # TODO: drop test branch before merging
+    branches: [main]
     paths:
       - 'ISEED-Volume-Analysis/Input/Snapshots/**'
       - 'ISEED-Volume-Analysis/product-config.json'
@@ -92,6 +92,8 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add ISEED-Volume-Analysis/inventory-dashboard.html
           git commit -m "chore(iseed): refresh dashboard from snapshots [skip ci]" -m "Triggered by: ${{ github.event_name }}"
+          # A feeder may have pushed another snapshot while we were running; snapshots never conflict with the HTML.
+          git pull --rebase origin main
           git push
           Write-Host 'Dashboard committed - GitHub Pages will redeploy.'
 

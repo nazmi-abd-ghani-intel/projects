@@ -9,7 +9,7 @@
 This folder contains the **ISEED inventory dashboard** with fully automated refresh pipeline:
 
 - 📧 **Data Source:** DDG/iSEED email folder (Graph API)
-- 🔄 **Refresh:** Daily at 6:00 AM (Copilot Cloud Backend)
+- 🔄 **Refresh:** GitHub Actions on every new snapshot + daily 06:00 MYT (see `AUTOMATION-SETUP.md`)
 - 📊 **Dashboard:** `inventory-dashboard.html` (live on GitHub Pages)
 - 🔗 **Public Link:** https://nazmi-abd-ghani-intel.github.io/projects/ISEED-Volume-Analysis/inventory-dashboard.html
 
@@ -20,33 +20,23 @@ This folder contains the **ISEED inventory dashboard** with fully automated refr
 ## How It Works
 
 ```
-6:00 AM Daily (Automatic - No User Action Needed)
+New iSEED mail in DDG/iSEED
      ↓
-Copilot Workflow Agent (Runs on Cloud Backend)
-     ├─ Downloads .txt attachments from DDG/iSEED (Graph API)
-     ├─ Runs refresh-dashboard-snapshots-only.ps1 (parse & inject)
-     ├─ Commits updated HTML to feature branch (git)
-     ├─ Opens PR automatically (GitHub CLI)
-     └─ GitHub Actions auto-approves & auto-merges
-     
-Timeline: 6:00-6:05 AM (Download) → 6:05-6:10 AM (Parse & Git) → 
-          6:10-6:12 AM (PR Created) → 6:12-6:14 AM (Auto-Merged) →
-          6:15 AM (Live on GitHub Pages)
-
-Result: Dashboard updated within ~15 minutes, fully automated
+Feeder commits .txt to Input/Snapshots/ on main
+     (A: Power Automate flow — cloud | C: Copilot app workflow — on your PC)
+     ↓
+GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MYT)
+     ├─ Runs refresh-dashboard-snapshots-fast.ps1 (parse & inject)
+     ├─ Encoding integrity check (refuses corrupted HTML)
+     ├─ Skips commit when data unchanged
+     └─ Commits inventory-dashboard.html to main → GitHub Pages redeploys
 ```
 
 ### What Actually Happens
 
-**You do NOT need to:**
-- Click "Run in the Cloud" (workflow saves automatically)
-- Keep your machine ON (runs on Copilot cloud backend)
-- Approve PRs (GitHub Actions auto-merges)
-- Manually publish (GitHub Pages auto-deploys)
-
-**You only need to:**
-- Click "Save" in the Copilot workflow dialog once
-- That's it! Workflow runs automatically every day at 6 AM
+- The dashboard HTML is **only** written by the Actions job — never by a person or an agent.
+- Feeder A needs no machine; Feeder C needs the Copilot app open on your PC at run time.
+- Manual re-run: Actions tab → *ISEED Dashboard Refresh* → *Run workflow*.
 
 ---
 
@@ -55,18 +45,19 @@ Result: Dashboard updated within ~15 minutes, fully automated
 | File | Purpose |
 |------|---------|
 | `inventory-dashboard.html` | **Published dashboard** (contains DATA + PRODUCT_CONFIG constants) |
-| `refresh-dashboard-snapshots-only.ps1` | **Refresh script** (parses existing snapshots, injects into HTML) |
+| `refresh-dashboard-snapshots-fast.ps1` | **Refresh script** (parses existing snapshots, injects into HTML) |
 | `refresh-inventory-dashboard.ps1` | Legacy script (not used by workflow; reference only) |
 | `README.md` | **Quick reference guide** (you are here) |
 | `AUTOMATION-SETUP.md` | **Complete automation documentation** |
 | `MANUAL-REFRESH-GUIDE.md` | **How to run script manually** (testing, debugging) |
 | `SCRIPT-COMPARISON.md` | **Detailed script comparison** |
 | `build-product-config.ps1` | Helper script (generates product config) |
-| `Input/Snapshots/` | **Snapshot cache** (downloaded via Graph API) |
+| `Input/Snapshots/` | **Snapshot files** (git-tracked; committed by the feeder) |
 | `Input/product-config.csv` | Product mapping definitions |
 | `Input/product-config.json` | Generated config (injected into dashboard) |
 | `Backups/` | Timestamped dashboard backups |
-| `.github/workflows/iseed-auto-merge.yml` | GitHub Actions auto-merge workflow |
+| `.github/workflows/iseed-refresh.yml` | **GitHub Actions refresh workflow** (builds & commits the dashboard) |
+| `.github/workflows/iseed-auto-merge.yml` | Legacy PR auto-merge workflow |
 
 ---
 
@@ -74,11 +65,11 @@ Result: Dashboard updated within ~15 minutes, fully automated
 
 You have **TWO OPTIONS** to run the dashboard refresh:
 
-### Option 1: Automatic (Recommended) - Copilot Workflow
-- ✅ **Runs every day at 6:00 AM automatically**
-- ✅ Your machine can be OFF
-- ✅ No manual steps needed
-- **How to enable:** Click "Save" in Copilot Workflow Editor (one-time setup)
+### Option 1: Automatic (Recommended) - GitHub Actions
+- ✅ Runs on every new snapshot commit and daily at 06:00 MYT
+- ✅ Runs on GitHub-hosted runners (your machine is irrelevant)
+- ✅ Only commits when the data actually changed
+- **Setup:** see `AUTOMATION-SETUP.md` (feeder A or C)
 
 ### Option 2: Manual - PowerShell Script
 - For testing, debugging, or one-off refreshes
@@ -86,7 +77,7 @@ You have **TWO OPTIONS** to run the dashboard refresh:
 - Command:
   ```powershell
   cd C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis
-  powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-only.ps1
+  powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
   ```
 - **Outputs:**
   - `Logs/refresh-inventory-dashboard.log` (execution log)
