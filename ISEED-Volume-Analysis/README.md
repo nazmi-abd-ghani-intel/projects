@@ -63,32 +63,43 @@ GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MY
 
 ## Running the Refresh
 
-You have **TWO OPTIONS** to run the dashboard refresh:
+You have **THREE WAYS** to refresh the dashboard:
 
-### Option 1: Automatic (Recommended) - GitHub Actions
-- ✅ Runs on every new snapshot commit and daily at 06:00 MYT
-- ✅ Runs on GitHub-hosted runners (your machine is irrelevant)
+### Option 1: Automatic (Recommended) - GitHub Actions + Task Scheduler
+- ✅ Runs on every new snapshot commit (Hop 2 push) and daily at 06:00 MYT (Hop 3 cron)
+- ✅ Cloud-based (your machine can be off)
 - ✅ Only commits when the data actually changed
-- **Setup:** see `AUTOMATION-SETUP.md`
+- **Details:** See `AUTOMATION-SETUP.md` → Architecture & Hops
 
-### Option 2: Manual - PowerShell Script
-- For testing, debugging, or one-off refreshes
-- Requires you to have the latest snapshots in `Input/Snapshots/`
-- Command:
-  ```powershell
-  cd C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis
-  powershell.exe -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
-  ```
-- **Outputs:**
-  - `Logs/refresh-inventory-dashboard.log` (execution log)
-  - `inventory-dashboard.html` (updated dashboard)
-  - `Backups/` (previous version backed up)
-- **After script runs:** You can manually commit & push if desired:
-  ```powershell
-  git add inventory-dashboard.html
-  git commit -m "chore: manual refresh"
-  git push
-  ```
+### Option 2: Manual - GitHub Actions (on-demand)
+- Click Actions tab → **ISEED Dashboard Refresh** → **Run workflow** → tick **Commit the refreshed dashboard**
+- Rebuilds from existing snapshots, commits if data changed
+- **Speed:** ~2 min
+- **Use case:** Test a config change, force immediate refresh without waiting for 06:00
+
+### Option 3: Manual - PowerShell Scripts (two flavors)
+
+**A. Fast local rebuild (no download):**
+```powershell
+cd ISEED-Volume-Analysis
+powershell -NoProfile -ExecutionPolicy Bypass -File refresh-dashboard-snapshots-fast.ps1
+```
+- Parses existing snapshots, rebuilds HTML locally
+- **Does NOT commit** — you decide afterward
+- **Speed:** ~30 sec
+- **Use case:** Debug, test changes locally
+
+**B. End-to-end (download + rebuild + commit):**
+```powershell
+cd ISEED-Volume-Analysis
+powershell -NoProfile -ExecutionPolicy Bypass -File refresh-inventory-dashboard.ps1 -Method Outlook -Unattended
+```
+- Downloads fresh attachments from Outlook
+- Parses, rebuilds, **auto-commits and pushes** to `main`
+- **Speed:** ~1–2 min
+- **Use case:** Force immediate refresh, or if Hop 1 (Power Automate) is broken
+
+**Details:** See `AUTOMATION-SETUP.md` → Manual refresh
 
 ---
 

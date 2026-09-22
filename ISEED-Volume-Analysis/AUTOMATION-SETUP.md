@@ -180,7 +180,7 @@ Add a second daily trigger to the task (e.g. 14:00) if same-day publishing is wa
 
 ## Manual refresh
 
-### From GitHub (preferred)
+### Option 1: From GitHub Actions (Recommended)
 
 Actions tab → **ISEED Dashboard Refresh** → **Run workflow** → branch `main`.
 
@@ -191,13 +191,75 @@ Actions tab → **ISEED Dashboard Refresh** → **Run workflow** → branch `mai
 
 The checkbox exists only for manual runs; the `push` and `schedule` triggers always commit.
 
-### Locally
+**Speed:** ~2 min. **Use case:** Test config changes, force refresh from existing snapshots, or dry-run the entire pipeline.
+
+### Option 2: Locally (Parse Only, No Download)
 
 ```powershell
 cd ISEED-Volume-Analysis
 powershell -NoProfile -ExecutionPolicy Bypass -File .\refresh-dashboard-snapshots-fast.ps1
 ```
-Then commit only if you have verified the output; or simply push new `.txt` files and let Actions do it.
+
+This parses existing snapshots in `Input/Snapshots/`, rebuilds the HTML locally, and **does not commit**. You decide afterward whether to `git add` and `git commit`.
+
+**Speed:** ~30 sec. **Use case:** Local testing, debugging parsing logic, verifying HTML changes without touching git.
+
+### Option 3: End-to-End (Download + Parse + Commit) — Legacy Script
+
+**Skip all three hops and do everything in one script:**
+
+```powershell
+cd ISEED-Volume-Analysis
+powershell -NoProfile -ExecutionPolicy Bypass -File .\refresh-inventory-dashboard.ps1 -Method Outlook -Unattended
+```
+
+What this does:
+1. Downloads the latest iSEED mail attachments from Outlook (or Graph if specified)
+2. Auto-renames them with `yyyyMMdd-HHmmss-<name>.txt` format using the mail's received time
+3. Parses all snapshots in `Input/Snapshots/`
+4. Rebuilds `inventory-dashboard.html` with safety checks
+5. Commits to git if data changed: `chore(iseed): manual refresh`
+6. Pushes to `main`
+
+**Speed:** ~1–2 min (depends on Outlook response time). **Use case:** Force an immediate refresh without waiting for 06:00 or building Hop 1; useful fallback if Power Automate flow is broken.
+
+**Parameters:**
+```powershell
+# Download from Outlook (requires desktop Outlook client)
+.\refresh-inventory-dashboard.ps1 -Method Outlook -Unattended
+
+# Download from Graph API (requires GraphClientId and interactive browser auth first time)
+.\refresh-inventory-dashboard.ps1 -Method Graph -GraphClientId "<your-azure-app-id>" -Unattended
+
+# Dry-run (parse, commit to staging, but don't push)
+.\refresh-inventory-dashboard.ps1 -Method Outlook -Unattended # (manually push after reviewing)
+```
+
+**Requirements:**
+- Outlook method: Desktop Outlook client must be installed and signed in
+- Graph method: Azure AD app registration with `Mail.Read` permission (one-time setup)
+- `-Unattended` flag: Suppresses interactive prompts (use for scheduled runs)
+
+**When it fails:**
+- Check `Logs/refresh-inventory-dashboard.log`
+- Common issues: Outlook not running, folder path wrong, slow network
+
+---
+
+### Comparison: All Three Manual Options
+
+| Aspect | Option 1: Actions | Option 2: Local PS (fast) | Option 3: Legacy Script |
+|--------|---|---|---|
+| **What it does** | Rebuild HTML from existing snapshots | Rebuild HTML locally | Download mail → Rebuild → Commit all in one |
+| **Speed** | ~2 min | ~30 sec | ~1–2 min |
+| **Needs internet?** | ✅ Yes (GitHub) | ❌ No | ✅ Yes (mail) |
+| **Needs Outlook?** | ❌ No | ❌ No | ✅ Yes (Outlook method) |
+| **Needs git push?** | ❌ Auto | ⚠️ Manual | ✅ Auto |
+| **Commits to git?** | ✅ Yes (if data changed) | ❌ No (you decide) | ✅ Yes (if data changed) |
+| **Skip Hop 1?** | No (use existing data) | No (use existing data) | ✅ Yes (downloads fresh) |
+| **Best use** | Test config / dry-run | Debug parsing locally | Force immediate refresh / fallback if Hop 1 broken |
+
+
 
 ## Troubleshooting
 
