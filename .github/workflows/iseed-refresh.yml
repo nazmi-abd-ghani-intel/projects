@@ -6,10 +6,11 @@ name: ISEED Dashboard Refresh
 # only owns parse -> inject -> verify -> commit.
 on:
   push:
-    branches: [main]
+    branches: [main, iseed-actions-refresh]   # TODO: drop test branch before merging
     paths:
       - 'ISEED-Volume-Analysis/Input/Snapshots/**'
       - 'ISEED-Volume-Analysis/product-config.json'
+      - '.github/workflows/iseed-refresh.yml'
   schedule:
     - cron: '0 22 * * *'   # 06:00 Asia/Kuala_Lumpur (UTC+8)
   workflow_dispatch:
