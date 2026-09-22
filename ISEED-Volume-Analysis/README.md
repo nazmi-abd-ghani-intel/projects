@@ -22,8 +22,9 @@ This folder contains the **ISEED inventory dashboard** with fully automated refr
 ```
 New iSEED mail in DDG/iSEED
      ↓
-Feeder commits .txt to Input/Snapshots/ on main
-     (A: Power Automate flow — cloud | C: Copilot app workflow — on your PC)
+Power Automate → SharePoint KeysSnapshot folder (cloud)
+     ↓ OneDrive sync
+VM Task Scheduler: sync-snapshots.ps1 commits new .txt to Input/Snapshots/ on main
      ↓
 GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MYT)
      ├─ Runs refresh-dashboard-snapshots-fast.ps1 (parse & inject)
@@ -35,7 +36,7 @@ GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MY
 ### What Actually Happens
 
 - The dashboard HTML is **only** written by the Actions job — never by a person or an agent.
-- Feeder A needs no machine; Feeder C needs the Copilot app open on your PC at run time.
+- The VM only needs to be signed in with OneDrive running — no Outlook or Copilot app required.
 - Manual re-run: Actions tab → *ISEED Dashboard Refresh* → *Run workflow*.
 
 ---
@@ -46,6 +47,7 @@ GitHub Actions: iseed-refresh.yml (cloud runner; also daily 22:00 UTC / 06:00 MY
 |------|---------|
 | `inventory-dashboard.html` | **Published dashboard** (contains DATA + PRODUCT_CONFIG constants) |
 | `refresh-dashboard-snapshots-fast.ps1` | **Refresh script** (parses existing snapshots, injects into HTML) |
+| `sync-snapshots.ps1` | **Feeder script** (SharePoint/OneDrive folder → git push; run by Task Scheduler) |
 | `refresh-inventory-dashboard.ps1` | Legacy script (not used by workflow; reference only) |
 | `README.md` | **Quick reference guide** (you are here) |
 | `AUTOMATION-SETUP.md` | **Complete automation documentation** |
@@ -69,7 +71,7 @@ You have **TWO OPTIONS** to run the dashboard refresh:
 - ✅ Runs on every new snapshot commit and daily at 06:00 MYT
 - ✅ Runs on GitHub-hosted runners (your machine is irrelevant)
 - ✅ Only commits when the data actually changed
-- **Setup:** see `AUTOMATION-SETUP.md` (feeder A or C)
+- **Setup:** see `AUTOMATION-SETUP.md`
 
 ### Option 2: Manual - PowerShell Script
 - For testing, debugging, or one-off refreshes

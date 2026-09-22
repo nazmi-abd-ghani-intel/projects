@@ -5,26 +5,26 @@ How `inventory-dashboard.html` is kept fresh without anyone touching it.
 ## Architecture
 
 ```
-iseed_key_inventory@intel.com  ──mail──▶  Outlook folder DDG/iSEED
-                                              │
-                    ┌─────────────────────────┴──────────────────────────┐
-                    │ FEEDER (pick one)                                   │
-                    │  A. Power Automate flow  (cloud, PC can be off)     │
-                    │  C. Copilot app workflow (runs on your PC)          │
-                    │  → commits new .txt to Input/Snapshots/ on main     │
-                    └─────────────────────────┬──────────────────────────┘
-                                              │ push
-                    ┌─────────────────────────▼──────────────────────────┐
-                    │ .github/workflows/iseed-refresh.yml (GitHub Actions) │
-                    │  windows-latest runner, no credentials needed        │
-                    │  1. refresh-dashboard-snapshots-fast.ps1             │
-                    │  2. encoding integrity check (BOM, U+FFFD, glyphs)   │
-                    │  3. skip if DATA block unchanged                     │
-                    │  4. commit inventory-dashboard.html → main           │
-                    └─────────────────────────┬──────────────────────────┘
-                                              │
-                                    GitHub Pages redeploys
+iseed_key_inventory@intel.com ──mail──▶ Outlook folder DDG/iSEED
+                                            │
+      ┌─────────────────────────────────────▼─────────────────────────────────────┐
+      │ HOP 1 · Power Automate (cloud, Standard connectors only)                   │
+      │  trigger: new mail in DDG/iSEED  →  SharePoint "Create file"                │
+      │  mpefusewg › … › KeyIDs/Volume/KeysSnapshot/<yyyyMMdd-HHmmss>-<name>.txt   │
+      └─────────────────────────────────────┬─────────────────────────────────────┘
+                                            │ OneDrive sync client mirrors to disk
+      ┌─────────────────────────────────────▼─────────────────────────────────────┐
+      │ HOP 2 · VM · Task Scheduler "ISEED Snapshot Sync" (06:00 + at logon)       │
+      │  sync-snapshots.ps1: copy new .txt → Input/Snapshots → commit → push main   │
+      └─────────────────────────────────────┬─────────────────────────────────────┘
+                                            │ push
+      ┌─────────────────────────────────────▼─────────────────────────────────────┐
+      │ HOP 3 · GitHub Actions · .github/workflows/iseed-refresh.yml                │
+      │  refresh-dashboard-snapshots-fast.ps1 → encoding check → commit HTML → Pages │
+      └───────────────────────────────────────────────────────────────────────────┘
 ```
+
+No LLM in the pipeline; every hop only moves or transforms files deterministically. Each hop is independently recoverable: missed mails stay in SharePoint, missed syncs are picked up at the next task run, and the Actions cron rebuilds from whatever is committed.
 
 Triggers for the Actions workflow:
 
@@ -38,55 +38,64 @@ The Actions job never reads the mailbox. It only needs the `.txt` snapshots to b
 
 ## Rules
 
-- **Only the Actions job writes `inventory-dashboard.html`.** Feeders must commit `.txt` files (and optionally `product-config.json`) — nothing else.
+- **Only the Actions job writes `inventory-dashboard.html`.** Feeders must commit `.txt` files (and optionally `product-config.json`) — nothing else. `sync-snapshots.ps1` aborts if anything else is staged.
 - Never edit the HTML with `Get-Content`/`Set-Content`/`Out-File`; that destroys the emoji/arrow glyphs. The injector and the workflow both refuse to write a corrupted file.
-- Snapshot filename convention: `yyyyMMdd-HHmmss-<attachment name>` using the mail's **UTC** received time, e.g. `20260921-110014-central_inventory.txt`. The parser reads the timestamp from the first 15 characters of the filename.
+- Snapshot filename convention: `yyyyMMdd-HHmmss-<attachment name>` using the mail's **UTC** received time, e.g. `20260921-110014-central_inventory.txt`. The parser reads the timestamp from the first 15 characters; the sync script ignores files that do not match.
+- Never place the git repo inside a OneDrive-synced folder. SharePoint is the landing zone; git is the source of truth.
 
-## Feeder A — Power Automate (not available in this tenant)
+## Hop 1 — Power Automate flow (mail → SharePoint)
 
-> **Status 2026-09-22:** tested — the generic **HTTP** action is a Premium connector and is not licensed here, and no Standard connector can write files to GitHub. Feeder **C** is the active feeder. The recipe below is kept in case a Premium licence becomes available.
+Uses only Standard connectors (the generic **HTTP** connector is Premium and not licensed in this tenant, so writing straight to GitHub is not possible).
 
-Requires the **HTTP** action (Premium connector). If it shows a padlock in your tenant, use Feeder C.
+1. make.powerautomate.com → **Create** → **Automated cloud flow** → name `ISEED snapshot to SharePoint`.
+2. Trigger **Office 365 Outlook – When a new email arrives (V3)**
+   - Folder: paste the folder ID (the picker is often empty):
+     `AAMkADBmZWY4OGY1LWMwMDktNDNiOC1hM2NmLTZhMTdlMjZmZWFjOAAuAAAAAABIEEFTKb4BRLQLUI0nGFiAAQDQI2C36fGmRZCMSEK-w_EZAARQHQI7AAA=`
+     (= `DDG/iSEED`; re-read it with `m365-graph-email_list_folders` if the mailbox is recreated)
+   - From: `iseed_key_inventory@intel.com` · Include Attachments **Yes** · Only with Attachments **Yes**
+3. **Compose** (rename `stamp`) → Expression
+   `formatDateTime(triggerOutputs()?['body/receivedDateTime'],'yyyyMMdd-HHmmss')`
+4. **Apply to each** → *Attachments* (the list item, not *Attachments Name*)
+5. Inside the loop: **SharePoint – Create file**
+   - Site Address: `https://intel.sharepoint.com/sites/mpefusewg`
+   - Folder Path: `/Shared Documents/NVL Fuse Sync/Dynamic and Security Fuses/KeyIDs/Volume/KeysSnapshot`
+   - File Name: `outputs('stamp')` + `-` + *Attachments Name*
+   - File Content: *Attachments Content*
+6. Save. Test by dragging any iSEED mail into `DDG/iSEED`; the file should appear in KeysSnapshot within a minute.
 
-1. **GitHub token** — github.com → Settings → Developer settings → Fine-grained tokens → *Generate new token*
-   - Repository access: *Only select repositories* → `nazmi-abd-ghani-intel/projects`
-   - Permissions → Repository → **Contents: Read and write**. Copy the token.
-2. **Flow** — make.powerautomate.com → *Create* → *Automated cloud flow*
-   - Trigger: **Office 365 Outlook – When a new email arrives (V3)**
-     - Folder: `DDG/iSEED` · From: `iseed_key_inventory@intel.com`
-     - Include Attachments: **Yes** · Only with Attachments: **Yes**
-   - Action: **Compose** (rename to `stamp`) →
-     `formatDateTime(triggerOutputs()?['body/receivedDateTime'],'yyyyMMdd-HHmmss')`
-   - Action: **Apply to each** → *Attachments*
-     - Inside: **HTTP**
-       - Method: `PUT`
-       - URI: `https://api.github.com/repos/nazmi-abd-ghani-intel/projects/contents/ISEED-Volume-Analysis/Input/Snapshots/@{outputs('stamp')}-@{items('Apply_to_each')?['name']}`
-       - Headers:
-         `Authorization` = `Bearer <token>` · `Accept` = `application/vnd.github+json` · `User-Agent` = `iseed-power-automate` · `X-GitHub-Api-Version` = `2022-11-28`
-       - Body:
-         ```json
-         {
-           "message": "data(iseed): add snapshot @{outputs('stamp')}-@{items('Apply_to_each')?['name']}",
-           "branch": "main",
-           "content": "@{items('Apply_to_each')?['contentBytes']}"
-         }
-         ```
-         (`contentBytes` is already base64 — exactly what the GitHub API wants.)
-     - Optional: HTTP → *Settings* → *Secure inputs* **On** so the token is not shown in run history.
-3. Save, then forward yourself one old iSEED mail into `DDG/iSEED` to test. Within ~3 minutes you should see a `data(iseed):` commit followed by a `chore(iseed): refresh dashboard` commit from `github-actions[bot]`.
+## Hop 2 — VM sync task (SharePoint → git)
 
-Notes: a duplicate filename returns HTTP 422 from GitHub — harmless (the file already exists). Two attachments arriving together produce two pushes; the Actions job serialises them via a concurrency group and rebases before pushing.
+| Item | Value |
+|---|---|
+| Script | `ISEED-Volume-Analysis/sync-snapshots.ps1` |
+| Task Scheduler | `ISEED Snapshot Sync` — daily **06:00** local + **at logon (+2 min)**, *run task as soon as possible after a missed start*, 3 retries |
+| Source | auto-discovered: `<OneDrive - Intel Corporation>\NVL Fuse Sync\Dynamic and Security Fuses\KeyIDs\Volume\KeysSnapshot` (override with `-SourcePath`) |
+| Git | system git (`C:\Program Files\Git`) + Windows Credential Manager token — no Copilot app involved |
+| Log | `ISEED-Volume-Analysis/Logs/sync-snapshots.log` (gitignored) |
 
-## Feeder C — Copilot app workflow (active)
+What it does: finds `*.txt` matching `yyyyMMdd-HHmmss-*.txt` that are not yet in `Input/Snapshots`, copies bytes verbatim, `git add` only those paths, commits `data(iseed): add N snapshots`, pushes (one rebase retry). Aborts if `Input/Snapshots` is dirty or anything unexpected is staged. Exit 0 = OK (including "nothing to do"), 1 = failure (see log).
 
-The Copilot app scheduled workflow *ISEED Dashboard Auto-Refresh* runs **on your PC** (`hostId: local`) — the app must be open at run time. Under this architecture its prompt is reduced to:
+VM requirements: powered on and **signed in** (locked is fine) with the OneDrive sync client running. Neither Outlook nor the GitHub Copilot app needs to be open.
 
-1. Fetch mails from `DDG/iSEED` via Graph; save `.txt` attachments as `<UTC yyyyMMdd-HHmmss>-<name>.txt` into `Input/Snapshots/` (skip existing).
-2. `git add ISEED-Volume-Analysis/Input/Snapshots/*.txt` → commit `data(iseed): add N snapshots` → `git push origin main`.
-3. Do **not** run the refresh script or touch the HTML; the Actions job does that.
+One-time setup on a new VM:
+1. Open the KeysSnapshot folder in the browser → **Add shortcut to OneDrive** (or **Sync**).
+2. Make sure `git push` works once interactively (stores the token in Credential Manager).
+3. Register the task:
+   ```powershell
+   $s = 'C:\git-repo\nabdghan-git\projects\ISEED-Volume-Analysis\sync-snapshots.ps1'
+   $a = New-ScheduledTaskAction -Execute powershell.exe -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$s`"" -WorkingDirectory 'C:\Program Files\Git\cmd'
+   $t1 = New-ScheduledTaskTrigger -Daily -At 06:00
+   $t2 = New-ScheduledTaskTrigger -AtLogOn -User "$env:USERDOMAIN\$env:USERNAME"; $t2.Delay = 'PT2M'
+   $st = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 15) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10) -MultipleInstances IgnoreNew
+   Register-ScheduledTask 'ISEED Snapshot Sync' -Action $a -Trigger $t1,$t2 -Settings $st -Force
+   ```
+   Dry run any time: `powershell -File sync-snapshots.ps1 -WhatIf`
 
-If the PC is off, no new snapshots land that day, but the 06:00 cron still runs harmlessly and the next successful feeder push catches up (all missed mails are still in the folder).
+## Retired feeders
 
+- **Copilot app workflow** (*ISEED Snapshot Feeder*, id `43561a25-…`): disabled 2026-09-22. It only ran while the GitHub Copilot desktop app was open, consumed AI credits per run, and an earlier version of its prompt hand-edited the HTML and corrupted it. Re-enable only as a temporary fallback.
+- **Power Automate → GitHub HTTP**: not possible without a Premium licence.
+- **Outlook Classic COM**: rejected — New Outlook is in use, and the classic cache did not sync `DDG/*`.
 ## Components
 
 | Component | Purpose |
