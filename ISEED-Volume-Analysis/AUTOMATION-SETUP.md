@@ -261,6 +261,144 @@ What this does:
 
 
 
+## Debugging Guide: Where to Look When Something Fails
+
+When reporting an issue, **identify which hop failed** and collect the right logs. Here's how to debug each step:
+
+### Hop 1 Fails: Power Automate Flow (Attachments Not Appearing in SharePoint)
+
+**Symptom:** You send/forward an iSEED email with attachment, but file never appears in KeysSnapshot folder.
+
+**Debug steps (collect all, share with me):**
+
+1. **Check Power Automate run history:**
+   - Go to https://make.powerautomate.com/ → My cloud flows → ISEED snapshot to SharePoint
+   - Click **Edit** → look at recent runs (blue ✓ or red ✗)
+   - If red ✗: click the failed run → expand each step → copy the error message
+   - **Share:** Screenshot of failed step + error text
+
+2. **Verify trigger was activated:**
+   - In the flow editor, check trigger "When a new email arrives in a shared mailbox"
+   - Confirm DDG/iSEED folder ID is correct (should match your mailbox settings)
+   - Send a **test email** with `.txt` attachment to DDG/iSEED folder
+   - **Share:** Mail Subject line + Attachment name
+
+3. **Check SharePoint folder directly:**
+   - Go to https://intel.sharepoint.com/sites/mpefusewg/.../KeysSnapshot
+   - Click **Sync** or **Add shortcut to OneDrive** if not synced
+   - Wait 1 min for sync
+   - **Share:** Screenshot showing whether folder is empty or has other files
+
+**If stuck:** Copy exact error from Power Automate run, and I'll help you fix the flow.
+
+---
+
+### Hop 2 Fails: Task Scheduler Sync (No Git Commits After Files Appear)
+
+**Symptom:** Files appear in KeysSnapshot folder, but no new commits in git repo.
+
+**Debug steps:**
+
+1. **Check last task run:**
+   ```powershell
+   Get-ScheduledTaskInfo 'ISEED Snapshot Sync'
+   ```
+   - Look at **LastRunTime** (should be recent, e.g., 06:00 or 14:00 MYT)
+   - Look at **LastTaskResult** (0 = success, non-zero = failed)
+   - **Share:** Full output of this command
+
+2. **Read the sync log:**
+   ```powershell
+   Get-Content .\ISEED-Volume-Analysis\Logs\sync-snapshots.log -Tail 30
+   ```
+   - This shows the last 30 lines of what the sync script did
+   - Look for errors like "OneDrive path not found", "git push rejected", "Input/Snapshots is dirty"
+   - **Share:** Last 20 lines of the log
+
+3. **Manually run the sync script to see error:**
+   ```powershell
+   cd ISEED-Volume-Analysis
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\sync-snapshots.ps1
+   ```
+   - This will print errors to console (no log file)
+   - **Share:** All red/error text that appears
+
+4. **Verify OneDrive sync is working:**
+   ```powershell
+   ls "C:\Users\nabdghan\OneDrive - Intel Corporation\NVL Fuse Sync\Dynamic and Security Fuses\KeyIDs\Volume\KeysSnapshot"
+   ```
+   - Should show `.txt` files if sync is working
+   - If empty or path doesn't exist, OneDrive is broken → skip to next step
+   - **Share:** List of files, or "path not found" error
+
+5. **Check git credential:**
+   ```powershell
+   cd ISEED-Volume-Analysis
+   git push origin main --dry-run
+   ```
+   - Should succeed (or show credential prompt once)
+   - If fails: "fatal: could not read Username for 'https://github.com'", then Credential Manager token expired
+   - **Share:** Success or error message
+
+**If stuck:** Copy log output + manual sync script output, and I'll diagnose the git/OneDrive issue.
+
+---
+
+### Hop 3 Fails: GitHub Actions Workflow (HTML Not Rebuilding)
+
+**Symptom:** New snapshots committed by Hop 2, but dashboard HTML not updating.
+
+**Debug steps:**
+
+1. **Check Actions run history:**
+   - Go to GitHub repo → **Actions** tab → *ISEED Dashboard Refresh* workflow
+   - Click the most recent run (red ✗ or blue ✓)
+   - **Share:** 
+     - Workflow run name + status (e.g., "ISEED Dashboard Refresh #42 · failed")
+     - Click each failed step → copy the error message
+     - Screenshot of the job summary
+
+2. **Look at the commit that triggered it:**
+   - In the Actions run, under "Triggered by: <commit>", click the commit hash
+   - Look at the files changed (should be in `Input/Snapshots/`)
+   - If empty commit (no files): Hop 2 is not creating files
+   - **Share:** Commit hash + list of files changed
+
+3. **Check the safety floor (most common failure):**
+   - In the Actions run log, search for "Safety floor" or "DATA changed"
+   - If: "‼️ Only 500 records found (< min 1000)" → your snapshot is truncated or corrupted
+   - If: "❌ Detected >50% drop" → new data is inconsistent with historical baseline
+   - **Share:** The full line that starts with ‼️ or ❌
+
+4. **Manually test the injector locally:**
+   ```powershell
+   cd ISEED-Volume-Analysis
+   powershell -NoProfile -ExecutionPolicy Bypass -File .\refresh-dashboard-snapshots-fast.ps1
+   ```
+   - This rebuilds HTML without committing
+   - **Share:** Any error messages (especially "DATA changed: False" or safety floor warnings)
+
+5. **Check the live dashboard:**
+   - Go to https://nazmi-abd-ghani-intel.github.io/projects/ISEED-Volume-Analysis/
+   - Scroll to footer: **"Refreshed at …"** timestamp
+   - If old timestamp: Actions run didn't rebuild HTML
+   - **Share:** Screenshot of footer timestamp + current time (MYT)
+
+**If stuck:** Copy Actions job summary + injector script output, and I'll identify the data or safety issue.
+
+---
+
+### Quick Reference: What to Share When Debugging
+
+| Hop | When it fails | Collect & share |
+|-----|---|---|
+| **1** (Power Automate) | No files in SharePoint | Error from Power Automate run history + flow trigger config + test email details |
+| **2** (Task Scheduler sync) | Files in SharePoint, no git commits | `Get-ScheduledTaskInfo` output + last 20 lines of `Logs/sync-snapshots.log` + manual sync script error |
+| **3** (Actions workflow) | Git commits, HTML not updating | Actions run job summary + safety floor warning (if any) + dashboard footer timestamp |
+| **Any** | Unsure which hop | Full automated run from mail arrival to dashboard update; take screenshot/screenshot at each step |
+
+---
+
 ## Troubleshooting
 
 | Symptom | Check |
