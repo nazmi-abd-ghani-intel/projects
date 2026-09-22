@@ -42,7 +42,9 @@ The Actions job never reads the mailbox. It only needs the `.txt` snapshots to b
 - Never edit the HTML with `Get-Content`/`Set-Content`/`Out-File`; that destroys the emoji/arrow glyphs. The injector and the workflow both refuse to write a corrupted file.
 - Snapshot filename convention: `yyyyMMdd-HHmmss-<attachment name>` using the mail's **UTC** received time, e.g. `20260921-110014-central_inventory.txt`. The parser reads the timestamp from the first 15 characters of the filename.
 
-## Feeder A — Power Automate (preferred)
+## Feeder A — Power Automate (not available in this tenant)
+
+> **Status 2026-09-22:** tested — the generic **HTTP** action is a Premium connector and is not licensed here, and no Standard connector can write files to GitHub. Feeder **C** is the active feeder. The recipe below is kept in case a Premium licence becomes available.
 
 Requires the **HTTP** action (Premium connector). If it shows a padlock in your tenant, use Feeder C.
 
@@ -75,7 +77,7 @@ Requires the **HTTP** action (Premium connector). If it shows a padlock in your 
 
 Notes: a duplicate filename returns HTTP 422 from GitHub — harmless (the file already exists). Two attachments arriving together produce two pushes; the Actions job serialises them via a concurrency group and rebases before pushing.
 
-## Feeder C — Copilot app workflow (fallback)
+## Feeder C — Copilot app workflow (active)
 
 The Copilot app scheduled workflow *ISEED Dashboard Auto-Refresh* runs **on your PC** (`hostId: local`) — the app must be open at run time. Under this architecture its prompt is reduced to:
 
@@ -95,6 +97,19 @@ If the PC is off, no new snapshots land that day, but the 06:00 cron still runs 
 | `inventory-dashboard.html` | Published via GitHub Pages (legacy build from `main`). Shows *Refreshed …* from `LAST_UPDATED`. |
 
 ## Manual refresh
+
+### From GitHub (preferred)
+
+Actions tab → **ISEED Dashboard Refresh** → **Run workflow** → branch `main`.
+
+| Checkbox "Commit the refreshed dashboard" | Behaviour |
+|---|---|
+| ✅ ticked (default) | Normal run: rebuild → verify → commit to `main` if the data changed → Pages redeploys. |
+| ⬜ unticked | **Dry run**: same steps, but the commit is skipped. Use after changing the script or the HTML template to confirm parsing, encoding check and "DATA changed" all pass without touching `main`. |
+
+The checkbox exists only for manual runs; the `push` and `schedule` triggers always commit.
+
+### Locally
 
 ```powershell
 cd ISEED-Volume-Analysis
