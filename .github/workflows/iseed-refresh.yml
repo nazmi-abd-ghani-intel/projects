@@ -72,8 +72,9 @@ jobs:
           $path = 'ISEED-Volume-Analysis/inventory-dashboard.html'
           function DataHash([string]$text) {
             $s = $text.IndexOf('const DATA='); $e = $text.IndexOf('const PRODUCT_CONFIG=', $s)
+            $block = $text.Substring($s, $e - $s).TrimEnd("`r", "`n")
             $sha = [Security.Cryptography.SHA256]::Create()
-            [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text.Substring($s, $e - $s)))) -replace '-'
+            [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($block))) -replace '-'
           }
           $oldFile = Join-Path $env:RUNNER_TEMP 'dashboard-head.html'
           cmd /c "git show HEAD:$path > `"$oldFile`""
