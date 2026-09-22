@@ -48,7 +48,7 @@ jobs:
       - name: Run injector
         run: |
           & ./ISEED-Volume-Analysis/refresh-dashboard-snapshots-fast.ps1
-          if ($LASTEXITCODE -ne 0) { throw "Injector failed with exit code $LASTEXITCODE" }
+          if (-not $?) { throw 'Injector reported failure' }
 
       - name: Encoding integrity check
         run: |
